@@ -1,0 +1,270 @@
+[
+  {
+    "id": "admin_default",
+    "email": "admin@advokatai.uz",
+    "role": "admin",
+    "plan_id": "premium",
+    "created_at": "2026-09-18T18:06:33.259Z"
+  },
+  {
+    "id": "usr_1789984423995_c11n9",
+    "name": "Valid User",
+    "email": "valid@example.com",
+    "password_hash": "cd2be0c89e2c611ad70a487c5fe20d8328db4ca3cdcd7e5e58e3a90b046f4f33f740bb4c4424175e8deff383729df5e729975092183fb376e05e87926ce1e02a",
+    "plan": "free",
+    "created_at": "2026-09-21T09:53:43.995Z"
+  },
+  {
+    "id": "usr_g_1789991856953_lrzp3",
+    "name": "Updated Google Name",
+    "email": "test_google_1789991856952@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T11:57:36.953Z"
+  },
+  {
+    "id": "usr_g_1789991942832_78vo0",
+    "name": "Updated Google Name",
+    "email": "test_google_1789991942832@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T11:59:02.832Z"
+  },
+  {
+    "id": "usr_g_1789991954455_3o2l4",
+    "name": "Updated Google Name",
+    "email": "test_google_1789991954454@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T11:59:14.455Z"
+  },
+  {
+    "id": "usr_g_1789991983646_arjw2",
+    "name": "Updated Google Name",
+    "email": "test_google_1789991983646@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T11:59:43.646Z"
+  },
+  {
+    "id": "usr_g_1789999370430_7yg2j",
+    "name": "Updated Google Name",
+    "email": "test_google_1789999370429@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T14:02:50.430Z"
+  },
+  {
+    "id": "usr_g_1790000561550_1t0kd",
+    "name": "Updated Google Name",
+    "email": "test_google_1790000561550@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T14:22:41.550Z"
+  },
+  {
+    "id": "usr_g_1790000989334_qa0i7",
+    "name": "Updated Google Name",
+    "email": "test_google_1790000989334@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T14:29:49.335Z"
+  },
+  {
+    "id": "usr_g_1790001562759_2xvjp",
+    "name": "Updated Google Name",
+    "email": "test_google_1790001562758@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T14:39:22.759Z"
+  },
+  {
+    "id": "usr_g_1790002261717_y8cr7",
+    "name": "Alisher Usmonov",
+    "email": "alisher.usmonov@gmail.com",
+    "avatar_url": null,
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T14:51:01.717Z"
+  },
+  {
+    "id": "usr_1790002640234_61ltd",
+    "name": "Zafar",
+    "email": "zokirovzafar881@gmail.com",
+    "password_hash": "084957116c8e66db9181708675ee79a4f8f0738c3bf1cbd4cbb538a2f6f6dced3974f5d21a529ff1adf8e80641cc0dac2d1b337c4ad7466e0d0d8ec10b1b645e",
+    "plan": "free",
+    "created_at": "2026-09-21T14:57:20.234Z"
+  },
+  {
+    "id": "usr_g_1790003872251_5v8lu",
+    "name": "Updated Google Name",
+    "email": "test_google_1790003872250@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T15:17:52.251Z"
+  },
+  {
+    "id": "usr_g_1790004582124_ji075",
+    "name": "Updated Google Name",
+    "email": "test_google_1790004582123@gmail.com",
+    "avatar_url": "https://lh3.googleusercontent.com/a/default-avatar",
+    "provider": "google",
+    "authProvider": "google",
+    "plan": "free",
+    "created_at": "2026-09-21T15:29:42.124Z"
+  },
+  {
+    "id": "usr_1790005525091_g11l7",
+    "name": "Chaos Tester",
+    "email": "user_chaos_1790005525075@advokatai.uz",
+    "password_hash": "3a6e9b2633a59ec7ce0009c129365f807160a9ac4e94de6e87fb13a35a3d5be5bac52b89213432c7d9dd257217d50a6e4e7cdafffce713b373e4e4e13515529a",
+    "plan": "free",
+    "created_at": "2026-09-21T15:45:25.091Z"
+  },
+  {
+    "id": "user_pay_1790005532062",
+    "email": "user_pay_1790005532062@advokatai.uz",
+    "role": "user",
+    "plan_id": "pro",
+    "plan_expires_at": "2026-10-21T15:45:32.066Z",
+    "created_at": "2026-09-21T15:45:32.066Z"
+  },
+  {
+    "id": "usr_1790005548683_3r6lq",
+    "name": "Chaos Tester",
+    "email": "user_chaos_1790005548678@advokatai.uz",
+    "password_hash": "3a6e9b2633a59ec7ce0009c129365f807160a9ac4e94de6e87fb13a35a3d5be5bac52b89213432c7d9dd257217d50a6e4e7cdafffce713b373e4e4e13515529a",
+    "plan": "free",
+    "created_at": "2026-09-21T15:45:48.683Z"
+  },
+  {
+    "id": "user_pay_1790005572407",
+    "email": "user_pay_1790005572407@advokatai.uz",
+    "role": "user",
+    "plan_id": "pro",
+    "plan_expires_at": "2026-10-21T15:46:12.424Z",
+    "created_at": "2026-09-21T15:46:12.424Z"
+  },
+  {
+    "id": "usr_1790168772176_rskx6",
+    "name": "Zafar Usmonov",
+    "email": "test_user_1790168772148@example.com",
+    "password_hash": "3abe2abc47f941751944ee77431fe6b93f01d5485951354fbf88fa82b634c7526c8ef44e7ac5b82e1dd0e8950f4d3ef4a991725b411b05723be7d9a091ec2a5e",
+    "plan": "free",
+    "created_at": "2026-09-23T13:06:12.176Z"
+  },
+  {
+    "id": "usr_1790168776437_660im",
+    "name": "Vercel Test User",
+    "email": "vercel_test_1790168776420@example.com",
+    "password_hash": "cd2be0c89e2c611ad70a487c5fe20d8328db4ca3cdcd7e5e58e3a90b046f4f33f740bb4c4424175e8deff383729df5e729975092183fb376e05e87926ce1e02a",
+    "plan": "free",
+    "created_at": "2026-09-23T13:06:16.437Z"
+  },
+  {
+    "id": "usr_1790178064514_68quy",
+    "name": "Zafar Usmonov",
+    "email": "test_user_1790178064480@example.com",
+    "password_hash": "3abe2abc47f941751944ee77431fe6b93f01d5485951354fbf88fa82b634c7526c8ef44e7ac5b82e1dd0e8950f4d3ef4a991725b411b05723be7d9a091ec2a5e",
+    "plan": "free",
+    "created_at": "2026-09-23T15:41:04.514Z"
+  },
+  {
+    "id": "usr_1790178068409_m1pzw",
+    "name": "Vercel Test User",
+    "email": "vercel_test_1790178068396@example.com",
+    "password_hash": "cd2be0c89e2c611ad70a487c5fe20d8328db4ca3cdcd7e5e58e3a90b046f4f33f740bb4c4424175e8deff383729df5e729975092183fb376e05e87926ce1e02a",
+    "plan": "free",
+    "created_at": "2026-09-23T15:41:08.409Z"
+  },
+  {
+    "id": "usr_1790178073159_wd0f7",
+    "name": "Azamat Qodirov",
+    "email": "legit_user_1790178073145@example.com",
+    "password_hash": "aca92bc54974d2ea5b3d95a1e1eed47d9c9c91c84c1ac021fb274c565176ba143f2982dcbf9b7875b3e7d58f5885210882f647844f2857af3f37035ffcd198fc",
+    "plan": "free",
+    "created_at": "2026-09-23T15:41:13.159Z"
+  },
+  {
+    "id": "usr_1790178073183_n9w0s",
+    "name": "Dilshod Aliyev",
+    "email": "other_user_1790178073168@example.com",
+    "password_hash": "e46c89474de6e017238cf68af2498d9f030ec49f3b2b7338422fc2a701232010cb88840cc31d5adfe60fba5e09ae18af2420db4797c821dde366eb4a4dd3ce27",
+    "plan": "free",
+    "created_at": "2026-09-23T15:41:13.183Z"
+  },
+  {
+    "id": "usr_1790180314499_wjh3u",
+    "name": "Zafar Usmonov",
+    "email": "test_user_1790180314470@example.com",
+    "password_hash": "3abe2abc47f941751944ee77431fe6b93f01d5485951354fbf88fa82b634c7526c8ef44e7ac5b82e1dd0e8950f4d3ef4a991725b411b05723be7d9a091ec2a5e",
+    "plan": "free",
+    "created_at": "2026-09-23T16:18:34.499Z"
+  },
+  {
+    "id": "usr_1790180795105_dmoul",
+    "name": "Sherzod Rahimov",
+    "email": "net_user_1790180795074@example.com",
+    "password_hash": "3abe2abc47f941751944ee77431fe6b93f01d5485951354fbf88fa82b634c7526c8ef44e7ac5b82e1dd0e8950f4d3ef4a991725b411b05723be7d9a091ec2a5e",
+    "plan": "free",
+    "created_at": "2026-09-23T16:26:35.105Z"
+  },
+  {
+    "id": "test_user_net_simulation",
+    "email": "test_user_net_simulation@advokatai.uz",
+    "role": "user",
+    "plan_id": "pro",
+    "plan_expires_at": "2026-10-23T16:27:15.594Z",
+    "created_at": "2026-09-23T16:26:38.413Z"
+  },
+  {
+    "id": "usr_1790180832444_p2nnq",
+    "name": "Sherzod Rahimov",
+    "email": "net_user_1790180832422@example.com",
+    "password_hash": "3abe2abc47f941751944ee77431fe6b93f01d5485951354fbf88fa82b634c7526c8ef44e7ac5b82e1dd0e8950f4d3ef4a991725b411b05723be7d9a091ec2a5e",
+    "plan": "free",
+    "created_at": "2026-09-23T16:27:12.444Z"
+  },
+  {
+    "id": "usr_1790180911718_71bcq",
+    "name": "Zafar Usmonov",
+    "email": "test_user_1790180911693@example.com",
+    "password_hash": "3abe2abc47f941751944ee77431fe6b93f01d5485951354fbf88fa82b634c7526c8ef44e7ac5b82e1dd0e8950f4d3ef4a991725b411b05723be7d9a091ec2a5e",
+    "plan": "free",
+    "created_at": "2026-09-23T16:28:31.718Z"
+  },
+  {
+    "id": "usr_1790180918621_lu6z5",
+    "name": "Azamat Qodirov",
+    "email": "legit_user_1790180918613@example.com",
+    "password_hash": "aca92bc54974d2ea5b3d95a1e1eed47d9c9c91c84c1ac021fb274c565176ba143f2982dcbf9b7875b3e7d58f5885210882f647844f2857af3f37035ffcd198fc",
+    "plan": "free",
+    "created_at": "2026-09-23T16:28:38.621Z"
+  },
+  {
+    "id": "usr_1790180919021_1qa3i",
+    "name": "Dilshod Aliyev",
+    "email": "other_user_1790180919019@example.com",
+    "password_hash": "e46c89474de6e017238cf68af2498d9f030ec49f3b2b7338422fc2a701232010cb88840cc31d5adfe60fba5e09ae18af2420db4797c821dde366eb4a4dd3ce27",
+    "plan": "free",
+    "created_at": "2026-09-23T16:28:39.021Z"
+  }
+]

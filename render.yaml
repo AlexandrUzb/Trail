@@ -1,0 +1,53 @@
+# ============================================================================
+# AdvokatAI - Render Blueprint Specification
+# Single Unified Full-Stack Service (Node.js + React 19 + Express 5)
+# Docs: https://render.com/docs/blueprint-spec
+# ============================================================================
+
+services:
+  - type: web
+    name: advokatai
+    runtime: node
+    plan: free
+    region: frankfurt # Options: frankfurt, oregon, ohio, virginia, singapore
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+
+      # Server-only AI Key (Prompted securely in Render Dashboard)
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # Admin Secret Key (Prompted securely in Render Dashboard)
+      - key: ADMIN_API_KEY
+        sync: false
+
+      # Stateless Session Token Secret (Auto-generated cryptographic secret)
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Payment Configuration
+      - key: PAYMENT_CARD_NUMBER
+        value: 4466 1369 5151 4448
+      - key: PAYMENT_CARD_HOLDER
+        value: Zokirov Zafar
+      - key: PAYMENT_BANK_NAME
+        value: Humo / Uzcard / Visa
+
+      # Supabase Project Configuration
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: https://gkztwgxxcahwmzwvimzi.supabase.co
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        value: sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0
+      - key: VITE_SUPABASE_URL
+        value: https://gkztwgxxcahwmzwvimzi.supabase.co
+      - key: VITE_SUPABASE_ANON_KEY
+        value: sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0
+
+      # Optional: Supabase Server Service Role Key (for direct server DB access)
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

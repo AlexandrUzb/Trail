@@ -1,0 +1,57 @@
+[
+  {
+    "id": "act_1790178068478_j3ej0",
+    "user_id": "usr_1790178068409_m1pzw",
+    "template_id": 1,
+    "action_type": "download",
+    "meta": {
+      "format": "docx",
+      "templateName": "Ishdan bo'shash arizasi"
+    },
+    "timestamp": "2026-09-23T15:41:08.478Z"
+  },
+  {
+    "id": "act_1790168776515_78zoo",
+    "user_id": "usr_1790168776437_660im",
+    "template_id": 1,
+    "action_type": "download",
+    "meta": {
+      "format": "docx",
+      "templateName": "Ishdan bo'shash arizasi"
+    },
+    "timestamp": "2026-09-23T13:06:16.515Z"
+  },
+  {
+    "id": "act_1790158488121_sc4ah",
+    "user_id": "usr_1790158488037_9kh9i",
+    "template_id": 1,
+    "action_type": "download",
+    "meta": {
+      "format": "docx",
+      "templateName": "Ishdan bo'shash arizasi"
+    },
+    "timestamp": "2026-09-23T10:14:48.121Z"
+  },
+  {
+    "id": "act_1790047500145_lrzby",
+    "user_id": "usr_1790047500057_4csi8",
+    "template_id": 1,
+    "action_type": "download",
+    "meta": {
+      "format": "docx",
+      "templateName": "Ishdan bo'shash arizasi"
+    },
+    "timestamp": "2026-09-22T03:25:00.145Z"
+  },
+  {
+    "id": "act_1790043999067_y7xf4",
+    "user_id": "usr_1790043998976_2f72t",
+    "template_id": 1,
+    "action_type": "download",
+    "meta": {
+      "format": "docx",
+      "templateName": "Ishdan bo'shash arizasi"
+    },
+    "timestamp": "2026-09-22T02:26:39.067Z"
+  }
+]

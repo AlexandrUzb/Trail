@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment Variables & Secrets (CRITICAL FOR PRODUCTION)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Production Build Output
+dist/
+dist-ssr/
+build/
+.output/
+
+# Serverless & Deployment Caches
+.vercel/
+.netlify/
+advokatai_store/
+
+# Logs & Temporary Files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+*.tmp
+*.temp
+
+# Operating System & IDE Files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

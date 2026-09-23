@@ -1,0 +1,131 @@
+[
+  {
+    "plan_id": "free",
+    "name": "Bepul",
+    "price": 0,
+    "currency": "so'm",
+    "daily_limit": 10,
+    "monthly_limit": 100,
+    "features": [
+      {
+        "label": "AdvokatAI Chatbot",
+        "sub": "Kuniga 10 ta savol",
+        "on": true
+      },
+      {
+        "label": "Rasmiy Qonunchilik Bazasi",
+        "sub": "5 ta kodeks (3,000+ modda)",
+        "on": true
+      },
+      {
+        "label": "Hujjat Shablonlari",
+        "sub": "Asosiy shablonlar",
+        "on": true
+      },
+      {
+        "label": "O'zbek tili va qidiruv",
+        "sub": "Lotin va Kirill",
+        "on": true
+      },
+      {
+        "label": "Maxsus yurist konsultatsiyasi",
+        "sub": "",
+        "on": false
+      },
+      {
+        "label": "Cheksiz savollar",
+        "sub": "",
+        "on": false
+      }
+    ],
+    "active": true,
+    "duration": "doim",
+    "popular": false
+  },
+  {
+    "plan_id": "pro",
+    "name": "Pro",
+    "price": 18000,
+    "currency": "so'm",
+    "daily_limit": 50,
+    "monthly_limit": 500,
+    "features": [
+      {
+        "label": "AdvokatAI Chatbot",
+        "sub": "Kuniga 50 ta savol",
+        "on": true
+      },
+      {
+        "label": "Rasmiy Qonunchilik Bazasi",
+        "sub": "Kengaytirilgan RAG qidiruv",
+        "on": true
+      },
+      {
+        "label": "Hujjat Shablonlari",
+        "sub": "Barcha shablonlar",
+        "on": true
+      },
+      {
+        "label": "O'zbek tili va qidiruv",
+        "sub": "Yuqori tezlikda tahlil",
+        "on": true
+      },
+      {
+        "label": "Ustuvor javob vaqti",
+        "sub": "2 soniyadan kam",
+        "on": true
+      },
+      {
+        "label": "Cheksiz savollar",
+        "sub": "",
+        "on": false
+      }
+    ],
+    "active": true,
+    "duration": "30 kun",
+    "popular": true
+  },
+  {
+    "plan_id": "premium",
+    "name": "Premium",
+    "price": 30000,
+    "currency": "so'm",
+    "daily_limit": 200,
+    "monthly_limit": 2000,
+    "features": [
+      {
+        "label": "AdvokatAI Chatbot",
+        "sub": "Kuniga 200 ta savol",
+        "on": true
+      },
+      {
+        "label": "Rasmiy Qonunchilik Bazasi",
+        "sub": "To'liq chuqur huquqiy tahlil",
+        "on": true
+      },
+      {
+        "label": "Hujjat Shablonlari",
+        "sub": "Cheksiz generatsiya",
+        "on": true
+      },
+      {
+        "label": "O'zbek tili va qidiruv",
+        "sub": "Eng yuqori ustuvorlik",
+        "on": true
+      },
+      {
+        "label": "Ustuvor javob vaqti",
+        "sub": "500ms dan kam",
+        "on": true
+      },
+      {
+        "label": "Tezkor texnik ko'mak",
+        "sub": "24/7",
+        "on": true
+      }
+    ],
+    "active": true,
+    "duration": "30 kun",
+    "popular": false
+  }
+]

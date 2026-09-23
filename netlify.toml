@@ -1,0 +1,26 @@
+# AdvokatAI - Netlify Production Configuration
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = [
+    "server/data/**"
+  ]
+
+# 1. API Route: Directs all /api/* calls to Netlify Serverless Function
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+  headers = { X-From = "Netlify-API-Function" }
+
+# 2. SPA Fallback: Directs all other client routes to index.html for React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

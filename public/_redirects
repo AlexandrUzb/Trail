@@ -1,0 +1,3 @@
+# Netlify redirect rules (processed top-to-bottom)
+/api/*  /.netlify/functions/api/:splat  200!
+/*      /index.html                     200

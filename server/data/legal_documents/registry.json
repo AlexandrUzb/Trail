@@ -1,0 +1,78 @@
+{
+  "total_documents": 5,
+  "total_articles": 3015,
+  "updated_at": "2026-09-19T00:00:00.000Z",
+  "source_hierarchy": {
+    "level_1": "Primary Legislation (Lex.uz - Constitution, Codes, Laws)",
+    "level_2": "Official Government Bodies & Hotlines (1176, 1253, 1007, etc.)",
+    "level_3": "Court & Authority Procedures",
+    "level_4": "Secondary Educational Materials"
+  },
+  "documents": [
+    {
+      "id": "constitution",
+      "name": "Oʻzbekiston Respublikasi Konstitutsiyasi",
+      "short_title": "Konstitutsiya",
+      "type": "constitution",
+      "source_url": "https://lex.uz/docs/-6445145",
+      "version_date": "2023-05-01",
+      "status": "active",
+      "source_priority": 1,
+      "article_count": 155,
+      "document_hash": "a570b14e3bd976515599bab25079386c8e5887f574109eef1df65a6682d2c917",
+      "updated_at": "2026-09-19T00:00:00.000Z"
+    },
+    {
+      "id": "labor_code",
+      "name": "Oʻzbekiston Respublikasining Mehnat kodeksi",
+      "short_title": "Mehnat kodeksi",
+      "type": "code",
+      "source_url": "https://lex.uz/docs/-6257288",
+      "version_date": "2023-04-30",
+      "status": "active",
+      "source_priority": 1,
+      "article_count": 593,
+      "document_hash": "e18ee40d5364150f8a0cc4a4f78fbb8082b28100c735788b8285be0905571b91",
+      "updated_at": "2026-09-19T00:00:00.000Z"
+    },
+    {
+      "id": "civil_code",
+      "name": "Oʻzbekiston Respublikasining Fuqarolik kodeksi",
+      "short_title": "Fuqarolik kodeksi",
+      "type": "code",
+      "source_url": "https://lex.uz/docs/-111189",
+      "version_date": "1997-03-01",
+      "status": "active",
+      "source_priority": 1,
+      "article_count": 1197,
+      "document_hash": "7bcbe8285f52d72328de3efb94d24a63b8ee1228ce9c5b14d9f25852fe04047d",
+      "updated_at": "2026-09-19T00:00:00.000Z"
+    },
+    {
+      "id": "criminal_code",
+      "name": "Oʻzbekiston Respublikasining Jinoyat kodeksi",
+      "short_title": "Jinoyat kodeksi",
+      "type": "code",
+      "source_url": "https://lex.uz/docs/-111453",
+      "version_date": "1995-04-01",
+      "status": "active",
+      "source_priority": 1,
+      "article_count": 405,
+      "document_hash": "a9b65725c6c432a205e184828104c3074dc256284037b2daf7f2b695336d3055",
+      "updated_at": "2026-09-19T00:00:00.000Z"
+    },
+    {
+      "id": "administrative_code",
+      "name": "Oʻzbekiston Respublikasining Maʼmuriy javobgarlik toʻgʻrisidagi kodeksi",
+      "short_title": "MJtK (Maʼmuriy javobgarlik toʻgʻrisidagi kodeks)",
+      "type": "code",
+      "source_url": "https://lex.uz/docs/97664",
+      "version_date": "1995-04-01",
+      "status": "active",
+      "source_priority": 1,
+      "article_count": 665,
+      "document_hash": "c0238bd6c5b893430cfc05cd6ba6b22dad9697e90e47b922bbd9f0cd584bcfd2",
+      "updated_at": "2026-09-19T00:00:00.000Z"
+    }
+  ]
+}
