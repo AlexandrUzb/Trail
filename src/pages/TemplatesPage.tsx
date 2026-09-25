@@ -37,6 +37,7 @@ export default function TemplatesPage() {
   const [showDocLimitModal, setShowDocLimitModal] = useState<boolean>(false);
 
   const documentLimit = user?.documentLimit ?? (user?.plan?.toLowerCase().includes('premium') ? 100 : user?.plan?.toLowerCase().includes('pro') ? 10 : 2);
+  const isDocLimitReached = Boolean(isLoggedIn && documentLimit < 999999 && docCount >= documentLimit);
 
   // Load user today's document count
   useEffect(() => {
@@ -397,6 +398,10 @@ export default function TemplatesPage() {
   };
 
   const handleGuardedCopy = () => {
+    if (isDocLimitReached) {
+      setShowDocLimitModal(true);
+      return;
+    }
     requireAuthentication('copy', 'Hujjatdan nusxa olish', handleCopy);
   };
 
@@ -414,6 +419,10 @@ export default function TemplatesPage() {
   };
 
   const handleGuardedExportDocx = () => {
+    if (isDocLimitReached) {
+      setShowDocLimitModal(true);
+      return;
+    }
     requireAuthentication('download_docx', 'Word (.docx) formatida yuklab olish', handleExportDocx);
   };
 
@@ -422,6 +431,10 @@ export default function TemplatesPage() {
   };
 
   const handleGuardedPrintPdf = () => {
+    if (isDocLimitReached) {
+      setShowDocLimitModal(true);
+      return;
+    }
     requireAuthentication('download_pdf', 'PDF formatida yuklab olish yoki chop etish', handlePrintPdf);
   };
 
@@ -437,6 +450,10 @@ export default function TemplatesPage() {
   };
 
   const handleGuardedDownloadTxt = () => {
+    if (isDocLimitReached) {
+      setShowDocLimitModal(true);
+      return;
+    }
     requireAuthentication('download_txt', 'Oddiy matn (.txt) formatida yuklab olish', handleDownloadTxt);
   };
 
@@ -703,6 +720,28 @@ export default function TemplatesPage() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Document Limit Banner */}
+                  {isDocLimitReached && (
+                    <div className="mb-4 p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                          <i className="ri-file-lock-line text-base"></i>
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-gray-900">Hujjat yaratish limitingiz ({documentLimit} ta) to'ldi</div>
+                          <div className="text-gray-600">Yangi rasmiy shartnoma va arizalarni yuklab olish yoki nusxa olish uchun tarifingizni yangilang.</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate('/pricing')}
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
+                      >
+                        <i className="ri-vip-crown-fill text-amber-300"></i>
+                        <span>Tariflarga o'tish →</span>
+                      </button>
+                    </div>
+                  )}
 
                   {/* Generated Document Card */}
                   {currentModel && (
@@ -1169,10 +1208,10 @@ export default function TemplatesPage() {
                   setShowDocLimitModal(false);
                   navigate('/pricing');
                 }}
-                className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
-                <i className="ri-vip-crown-line text-amber-300"></i>
-                <span>Tariflarni ko'rish</span>
+                <i className="ri-vip-crown-fill text-amber-300"></i>
+                <span>Tariflarni ko'rish va obuna bo'lish</span>
               </button>
               <button
                 type="button"

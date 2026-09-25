@@ -133,7 +133,16 @@ export default function SearchPage() {
   const [searchCount, setSearchCount] = useState<number>(0);
   const [showSearchLimitModal, setShowSearchLimitModal] = useState<boolean>(false);
   const searchLimit = user?.searchLimit ?? (user?.plan?.toLowerCase().includes('premium') ? 999999 : user?.plan?.toLowerCase().includes('pro') ? 30 : 3);
+  const isSearchLimitReached = Boolean(isLoggedIn && searchLimit < 999999 && searchCount >= searchLimit);
   const lastTrackedQueryRef = useRef<string>('');
+
+  const handleQueryChange = (val: string) => {
+    if (isSearchLimitReached && val.trim().length > 0) {
+      setShowSearchLimitModal(true);
+      return;
+    }
+    setQuery(val);
+  };
 
   // Load today's search usage
   useEffect(() => {
@@ -288,6 +297,9 @@ export default function SearchPage() {
   // Ranking calculation & partitioning (primary vs cross-category)
   const { primaryArticles, crossCategoryArticles } = useMemo(() => {
     const rawQ = query.trim();
+    if (isSearchLimitReached && rawQ) {
+      return { primaryArticles: [], crossCategoryArticles: [] };
+    }
     const normQ = normalizeSearchText(rawQ);
     const queryWords = normQ.split(/\s+/).filter((w) => w.length >= 2);
     const digitsOnly = rawQ.replace(/\D/g, '');
@@ -439,7 +451,7 @@ export default function SearchPage() {
     cross.sort(sortFn);
 
     return { primaryArticles: primary, crossCategoryArticles: cross.slice(0, 9) };
-  }, [category, subcategory, query, sortBy]);
+  }, [category, subcategory, query, sortBy, isSearchLimitReached]);
 
   const toggleSave = async (id: string) => {
     const isCurrentlySaved = saved.includes(id);
@@ -495,17 +507,49 @@ export default function SearchPage() {
             </div>
           )}
 
+          {/* Search Limit Banner */}
+          {isSearchLimitReached && (
+            <div className="max-w-2xl mx-auto mb-4 p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-xs text-left">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <i className="ri-lock-line text-base"></i>
+                </div>
+                <div>
+                  <div className="font-bold text-sm text-gray-900">Kunlik qidiruv limitingiz ({searchLimit} ta) to'ldi</div>
+                  <div className="text-gray-600">Qonunlar bazasidan yangi qidiruvlar qilish uchun tarifingizni yangilang.</div>
+                </div>
+              </div>
+              <Link
+                to="/pricing"
+                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
+              >
+                <i className="ri-vip-crown-fill text-amber-300"></i>
+                <span>Tariflarga o'tish →</span>
+              </Link>
+            </div>
+          )}
+
           <div className="max-w-2xl mx-auto">
             <div className="flex gap-2">
-              <div className="flex-1 relative">
+              <div
+                onClick={() => {
+                  if (isSearchLimitReached) setShowSearchLimitModal(true);
+                }}
+                className="flex-1 relative"
+              >
                 <i className="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
                 <input
                   type="text"
                   maxLength={200}
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Modda raqami (masalan: 15-modda) yoki kalit so‘z (aliment, ijara, ishdan bo‘shatish, soliq)..."
-                  className="w-full pl-12 pr-10 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none shadow-2xs"
+                  disabled={isSearchLimitReached}
+                  onChange={(e) => handleQueryChange(e.target.value)}
+                  placeholder={
+                    isSearchLimitReached
+                      ? `Kunlik qidiruv limitingiz (${searchLimit} ta) to'ldi. Tarifingizni yangilang...`
+                      : "Modda raqami (masalan: 15-modda) yoki kalit so‘z (aliment, ijara, ishdan bo‘shatish, soliq)..."
+                  }
+                  className="w-full pl-12 pr-10 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none shadow-2xs disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                 />
                 {query && (
                   <button
@@ -526,7 +570,13 @@ export default function SearchPage() {
                 (term) => (
                   <button
                     key={term}
-                    onClick={() => setQuery(term)}
+                    onClick={() => {
+                      if (isSearchLimitReached) {
+                        setShowSearchLimitModal(true);
+                        return;
+                      }
+                      setQuery(term);
+                    }}
                     className="bg-white/80 hover:bg-teal-50 hover:text-teal-700 text-gray-600 px-2.5 py-1 rounded-full border border-gray-200 transition-colors cursor-pointer text-[11px]"
                   >
                     {term}
@@ -635,7 +685,27 @@ export default function SearchPage() {
           </div>
 
           {/* Primary Results */}
-          {primaryArticles.length === 0 ? (
+          {isSearchLimitReached && query.trim() ? (
+            <div className="text-center py-16 bg-gradient-to-br from-amber-50/70 to-orange-50/50 rounded-3xl border border-amber-200 p-8 shadow-sm">
+              <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200 shadow-xs">
+                <i className="ri-file-search-line text-3xl"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Qonun qidiruv limitingiz to'ldi</h3>
+              <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
+                Siz bugungi belgilangan bepul qidiruvlar sonidan ({searchLimit} ta) to'liq foydalandingiz. Yangi qidiruv natijalarini ko'rish va cheksiz qidirish uchun tarifingizni yangilang:
+                <br /><strong className="text-teal-700">Pro:</strong> kuniga 30 ta qidiruv · <strong className="text-teal-700">Premium:</strong> cheksiz qidiruv!
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link
+                  to="/pricing"
+                  className="w-full sm:w-auto px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <i className="ri-vip-crown-fill text-amber-300"></i>
+                  <span>Tariflarni ko'rish va obuna bo'lish</span>
+                </Link>
+              </div>
+            </div>
+          ) : primaryArticles.length === 0 ? (
             <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-100">
               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-xs">
                 <i className="ri-search-line text-gray-400 text-2xl"></i>
@@ -1000,10 +1070,11 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
             <div className="space-y-3">
               <Link
                 to="/pricing"
-                className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                onClick={() => setShowSearchLimitModal(false)}
+                className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
-                <i className="ri-vip-crown-line text-amber-300"></i>
-                <span>Tariflarni ko'rish</span>
+                <i className="ri-vip-crown-fill text-amber-300"></i>
+                <span>Tariflarni ko'rish va obuna bo'lish</span>
               </Link>
               <button
                 type="button"

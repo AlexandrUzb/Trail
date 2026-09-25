@@ -161,6 +161,9 @@ router.post('/track-search', (req, res) => {
     const { userId } = req.body || {};
     if (!userId) return res.json({ allowed: true });
     const result = storageService.checkAndConsumeSearchQuota(userId);
+    if (!result.allowed) {
+      return res.status(429).json(result);
+    }
     return res.json(result);
   } catch (err) {
     return res.json({ allowed: true });

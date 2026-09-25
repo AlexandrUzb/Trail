@@ -718,6 +718,13 @@ function HomeFounderSection() {
                 <span className="text-xs font-bold text-gray-700">Bog'lanish va ijtimoiy tarmoqlar:</span>
                 <div className="flex flex-wrap items-center gap-2">
                   <a
+                    href="tel:+998906950811"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-xl text-xs font-semibold transition-all border border-emerald-200 shadow-2xs"
+                  >
+                    <i className="ri-phone-fill text-sm"></i>
+                    <span>+998 90 695 08 11</span>
+                  </a>
+                  <a
                     href="https://www.linkedin.com/in/zafar-zokirov-5222a2354/"
                     target="_blank"
                     rel="noopener noreferrer"

@@ -333,6 +333,9 @@ router.post('/track-document', (req, res) => {
     const { userId } = req.body || {};
     if (!userId) return res.json({ allowed: true });
     const result = storageService.checkAndConsumeDocumentQuota(userId);
+    if (!result.allowed) {
+      return res.status(429).json(result);
+    }
     return res.json(result);
   } catch (err) {
     return res.json({ allowed: true });

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { FormattedMarkdown } from '../components/FormattedMarkdown';
 import { safeFetchJson, safeStorage } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -75,6 +75,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 export default function ChatPage() {
   const { user, isLoggedIn } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const articleParam = searchParams.get('article');
   const convIdParam = searchParams.get('convId');
@@ -92,6 +93,9 @@ export default function ChatPage() {
 
   const [activeConvId, setActiveConvId] = useState<string>('conv_initial');
   const [todayUsage, setTodayUsage] = useState<number>(0);
+
+  const dailyLimit = user?.dailyLimit ?? 10;
+  const isLimitReached = Boolean(isLoggedIn && dailyLimit < 999999 && todayUsage >= dailyLimit);
 
   const activeConversation = conversations.find((c) => c.id === activeConvId) || conversations[0];
   const messages = activeConversation?.messages || [DEFAULT_WELCOME_MESSAGE];
@@ -300,6 +304,10 @@ export default function ChatPage() {
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || loading) return;
+      if (isLoggedIn && dailyLimit < 999999 && todayUsage >= dailyLimit) {
+        setShowLimitExceededModal(true);
+        return;
+      }
 
       setError(null);
 
@@ -480,10 +488,8 @@ export default function ChatPage() {
         setLoading(false);
       }
     },
-    [activeConvId, activeConversation?.title, isLoggedIn, loading, messages, selectedLawGroup, user?.id]
+    [activeConvId, activeConversation?.title, dailyLimit, isLoggedIn, loading, messages, selectedLawGroup, todayUsage, user?.id]
   );
-
-  const dailyLimit = user?.dailyLimit ?? 10;
 
   const handleAttemptSend = useCallback(
     (text: string) => {
@@ -549,6 +555,10 @@ export default function ChatPage() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if ((e.nativeEvent as any)?.isComposing) return;
+      if (isLimitReached) {
+        setShowLimitExceededModal(true);
+        return;
+      }
       if (!loading && input.trim()) {
         handleAttemptSend(input);
       }
@@ -894,29 +904,68 @@ export default function ChatPage() {
         {/* Input Bar Area */}
         <div className="p-4 sm:p-5 border-t border-gray-200/80 bg-white">
           <div className="max-w-4xl mx-auto">
-            <div className="relative flex items-end gap-2 bg-gray-50 border border-gray-300/80 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent focus-within:bg-white transition-all shadow-2xs">
+            {isLimitReached && (
+              <div className="mb-3 p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                    <i className="ri-alarm-warning-fill text-base"></i>
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-gray-900">Kunlik savollar limitingiz ({dailyLimit} ta) to'ldi</div>
+                    <div className="text-gray-600">Yangi savol berish va javob olish uchun tarifingizni yangilang.</div>
+                  </div>
+                </div>
+                <Link
+                  to="/pricing"
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
+                >
+                  <i className="ri-vip-crown-fill text-amber-300"></i>
+                  <span>Tariflarga o'tish →</span>
+                </Link>
+              </div>
+            )}
+
+            <div
+              onClick={() => {
+                if (isLimitReached) setShowLimitExceededModal(true);
+              }}
+              className="relative flex items-end gap-2 bg-gray-50 border border-gray-300/80 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent focus-within:bg-white transition-all shadow-2xs"
+            >
               <textarea
                 ref={textareaRef}
                 value={input}
                 maxLength={4000}
+                disabled={isLimitReached}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={1}
-                placeholder="Huquqiy savolingizni yozing (masalan: Ish beruvchi ish haqini o'z vaqtida to'lamasa nima qilish kerak?)..."
-                className="w-full resize-none bg-transparent px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none max-h-32 min-h-[40px] leading-relaxed"
+                placeholder={
+                  isLimitReached
+                    ? `Kunlik savollar limitingiz (${dailyLimit} ta) to'ldi. Davom ettirish uchun tarifingizni yangilang...`
+                    : "Huquqiy savolingizni yozing (masalan: Ish beruvchi ish haqini o'z vaqtida to'lamasa nima qilish kerak?)..."
+                }
+                className="w-full resize-none bg-transparent px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none max-h-32 min-h-[40px] leading-relaxed disabled:cursor-not-allowed disabled:text-gray-400"
               />
               <button
                 type="button"
-                onClick={() => handleAttemptSend(input)}
-                disabled={!input.trim() || loading}
+                onClick={() => {
+                  if (isLimitReached) {
+                    setShowLimitExceededModal(true);
+                    return;
+                  }
+                  handleAttemptSend(input);
+                }}
+                disabled={(!input.trim() && !isLimitReached) || loading}
                 className={`p-2.5 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                  input.trim() && !loading
+                  isLimitReached
+                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xs'
+                    : input.trim() && !loading
                     ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-xs'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
-                title="Yuborish (Enter)"
+                title={isLimitReached ? "Savollar limiti to'lgan (Tariflarga o'tish)" : "Yuborish (Enter)"}
               >
-                <i className="ri-send-plane-2-fill text-base"></i>
+                <i className={isLimitReached ? "ri-lock-line text-base" : "ri-send-plane-2-fill text-base"}></i>
               </button>
             </div>
 
@@ -994,10 +1043,11 @@ export default function ChatPage() {
               </button>
               <Link
                 to="/pricing"
-                className="w-full py-3 px-4 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer order-1 sm:order-2"
+                onClick={() => setShowLimitExceededModal(false)}
+                className="w-full py-3.5 px-4 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
               >
-                <i className="ri-vip-crown-line text-amber-300"></i>
-                <span>Tariflarni ko'rish</span>
+                <i className="ri-vip-crown-fill text-amber-300"></i>
+                <span>Tariflarni ko'rish va obuna bo'lish</span>
               </Link>
             </div>
           </div>
