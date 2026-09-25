@@ -136,7 +136,7 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (err) {
-    const statusCode = err.statusCode || 500;
+    const statusCode = (err.statusCode === 409 ? 400 : err.statusCode) || 500;
     const msg = err.message || "Roʻyxatdan oʻtishda kutilmagan xatolik yuz berdi.";
     return res.status(statusCode).json({
       success: false,

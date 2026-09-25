@@ -266,5 +266,29 @@
     "password_hash": "e46c89474de6e017238cf68af2498d9f030ec49f3b2b7338422fc2a701232010cb88840cc31d5adfe60fba5e09ae18af2420db4797c821dde366eb4a4dd3ce27",
     "plan": "free",
     "created_at": "2026-09-23T16:28:39.021Z"
+  },
+  {
+    "id": "usr_1790325951220_8a6in",
+    "name": "Chaos Tester",
+    "email": "user_chaos_1790325951197@advokatai.uz",
+    "password_hash": "3a6e9b2633a59ec7ce0009c129365f807160a9ac4e94de6e87fb13a35a3d5be5bac52b89213432c7d9dd257217d50a6e4e7cdafffce713b373e4e4e13515529a",
+    "plan": "free",
+    "created_at": "2026-09-25T08:45:51.220Z"
+  },
+  {
+    "id": "usr_1790326034653_32gq0",
+    "name": "Chaos Tester",
+    "email": "user_chaos_1790326034637@advokatai.uz",
+    "password_hash": "3a6e9b2633a59ec7ce0009c129365f807160a9ac4e94de6e87fb13a35a3d5be5bac52b89213432c7d9dd257217d50a6e4e7cdafffce713b373e4e4e13515529a",
+    "plan": "free",
+    "created_at": "2026-09-25T08:47:14.653Z"
+  },
+  {
+    "id": "user_pay_1790326036343",
+    "email": "user_pay_1790326036343@advokatai.uz",
+    "role": "user",
+    "plan_id": "pro",
+    "plan_expires_at": "2026-10-25T08:47:16.360Z",
+    "created_at": "2026-09-25T08:47:16.360Z"
   }
 ]
