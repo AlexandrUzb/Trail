@@ -29,16 +29,16 @@ const DEFAULT_FALLBACK_PLANS: PlanDisplayItem[] = [
     btnText: 'Bepul boshlash',
     btnLink: '/chat',
     features: [
-      { label: 'AI Huquqiy Chatbot', sub: 'Kuniga 5 ta savol', on: true },
-      { label: 'Qonun Qidiruv Tizimi', sub: 'Asosiy qidiruv', on: true },
-      { label: 'Hujjat Shablonlari', sub: 'Asosiy shablonlar', on: true },
+      { label: 'AI Huquqiy Chatbot', sub: 'Kuniga 10 ta savol', on: true },
+      { label: 'Hujjat Shablonlari', sub: '2 ta hujjat yaratish', on: true },
+      { label: 'Qonun Qidiruv Tizimi', sub: 'Kuniga 3 ta qidiruv', on: true },
       { label: "Ko'p tilli qo'llab-quvvatlash", sub: "Faqat O'zbek", on: true },
-      { label: 'Hujjat Nusxasini Olish', sub: '', on: false },
-      { label: 'Hujjatni Yuklab Olish', sub: '', on: false },
-      { label: 'Hujjatni Tahrirlash', sub: '', on: false },
+      { label: 'Hujjat Nusxasini Olish', sub: '2 ta hujjatgacha', on: true },
+      { label: 'Hujjatni Yuklab Olish', sub: '2 ta hujjatgacha', on: true },
+      { label: 'Hujjatni Tahrirlash', sub: 'Asosiy tahrirlash', on: true },
       { label: 'Maxsus Yordam', sub: '', on: false },
     ],
-    apiNote: { title: 'API Kirish', sub: "API kirish yo'q" },
+    apiNote: { title: 'Foydalanish meʼyori', sub: "Kuniga 10 ta savol · 2 ta hujjat · 3 ta qidiruv" },
   },
   {
     id: 'pro',
@@ -51,16 +51,16 @@ const DEFAULT_FALLBACK_PLANS: PlanDisplayItem[] = [
     btnText: "Pro Obunasi",
     btnLink: '/payment?plan=pro',
     features: [
-      { label: 'AI Huquqiy Chatbot', sub: 'Kuniga 50 ta savol', on: true },
-      { label: 'Qonun Qidiruv Tizimi', sub: "Kengaytirilgan + filtrlar", on: true },
-      { label: 'Hujjat Shablonlari', sub: 'Barcha shablonlar', on: true },
+      { label: 'AI Huquqiy Chatbot', sub: 'Kuniga 100 ta savol', on: true },
+      { label: 'Hujjat Shablonlari', sub: '10 ta hujjat yaratish', on: true },
+      { label: 'Qonun Qidiruv Tizimi', sub: "Kuniga 30 ta qidiruv", on: true },
       { label: "Ko'p tilli qo'llab-quvvatlash", sub: "O'Z, RU, EN", on: true },
-      { label: 'Hujjat Nusxasini Olish', sub: 'Ruxsat etilgan', on: true },
-      { label: 'Hujjatni Yuklab Olish', sub: 'Ruxsat etilgan', on: true },
-      { label: 'Hujjatni Tahrirlash', sub: 'Ruxsat etilgan', on: true },
+      { label: 'Hujjat Nusxasini Olish', sub: '10 ta hujjatgacha', on: true },
+      { label: 'Hujjatni Yuklab Olish', sub: '10 ta hujjat (DOCX/PDF)', on: true },
+      { label: 'Hujjatni Tahrirlash', sub: 'Toʻliq interaktiv tahrir', on: true },
       { label: 'Ustuvor Javob Vaqti', sub: '2 soniyadan kam', on: true },
     ],
-    apiNote: { title: 'API Kirish', sub: "REST API — oyiga 1,000 chaqiruv" },
+    apiNote: { title: 'Foydalanish meʼyori', sub: "Kuniga 100 ta savol · 10 ta hujjat · 30 ta qidiruv" },
   },
   {
     id: 'premium',
@@ -73,16 +73,16 @@ const DEFAULT_FALLBACK_PLANS: PlanDisplayItem[] = [
     btnText: "Premium Obunasi",
     btnLink: '/payment?plan=premium',
     features: [
-      { label: 'AI Huquqiy Chatbot', sub: "Kuniga 200 ta savol", on: true },
-      { label: 'Qonun Qidiruv Tizimi', sub: "To'liq ma'lumotlar bazasi", on: true },
-      { label: 'Hujjat Shablonlari', sub: 'Brendlangan shablonlar', on: true },
+      { label: 'AI Huquqiy Chatbot', sub: "Cheksiz savollar", on: true },
+      { label: 'Hujjat Shablonlari', sub: '100 ta hujjat yaratish', on: true },
+      { label: 'Qonun Qidiruv Tizimi', sub: "Cheksiz qonun qidiruvi", on: true },
       { label: "Ko'p tilli qo'llab-quvvatlash", sub: "O'Z, RU, EN + maxsus", on: true },
-      { label: 'Hujjat Nusxasini Olish', sub: 'Cheksiz', on: true },
-      { label: 'Hujjatni Yuklab Olish', sub: 'Cheksiz DOCX/PDF', on: true },
+      { label: 'Hujjat Nusxasini Olish', sub: '100 ta hujjat', on: true },
+      { label: 'Hujjatni Yuklab Olish', sub: '100 ta hujjat (DOCX/PDF)', on: true },
       { label: 'Hujjatni Tahrirlash', sub: 'Toʻliq tahrirlash', on: true },
       { label: 'Maxsus Yordam', sub: '24/7 shaxsiy menejer', on: true },
     ],
-    apiNote: { title: 'API Kirish', sub: "To'liq REST va WebSocket API — Cheksiz" },
+    apiNote: { title: 'Foydalanish meʼyori', sub: "Cheksiz savollar · 100 ta hujjat · Cheksiz qidiruv" },
   },
 ];
 
@@ -99,6 +99,10 @@ export default function PricingPage() {
           const mapped: PlanDisplayItem[] = dbPlans.map((p: Plan) => {
             const isFree = p.price_uzs === 0;
             const isPopular = p.name.toLowerCase().includes('pro') || p.name.toLowerCase().includes('standard');
+            const isPremium = p.name.toLowerCase().includes('premium');
+            const docLimit = (p as any).document_limit ?? (isPremium ? 100 : isPopular ? 10 : 2);
+            const searchLimit = (p as any).search_limit ?? (isPremium ? 999999 : isPopular ? 30 : 3);
+            const questionLimit = p.daily_question_limit >= 999999 ? 'Cheksiz' : `${p.daily_question_limit} ta`;
 
             return {
               id: p.id,
@@ -115,33 +119,33 @@ export default function PricingPage() {
               features: [
                 { 
                   label: 'AI Huquqiy Chatbot', 
-                  sub: `Kuniga ${p.daily_question_limit} ta savol`, 
-                  on: true 
-                },
-                { 
-                  label: 'Qonun Qidiruv Tizimi', 
-                  sub: isFree ? 'Asosiy qidiruv' : 'Toʻliq qonunlar bazasi', 
+                  sub: `Kuniga ${questionLimit} savol`, 
                   on: true 
                 },
                 { 
                   label: 'Hujjat Shablonlari', 
-                  sub: isFree ? 'Asosiy shablonlar' : 'Barcha 30+ shablonlar', 
+                  sub: `${docLimit} ta hujjat yaratish`, 
+                  on: true 
+                },
+                { 
+                  label: 'Qonun Qidiruv Tizimi', 
+                  sub: searchLimit >= 999999 ? 'Cheksiz qidiruv' : `Kuniga ${searchLimit} ta qidiruv`, 
                   on: true 
                 },
                 { 
                   label: 'Hujjat Nusxasini Olish', 
-                  sub: p.can_copy ? 'Ruxsat etilgan' : "Cheklangan", 
-                  on: p.can_copy 
+                  sub: `${docLimit} ta hujjatgacha`, 
+                  on: true 
                 },
                 { 
                   label: 'Hujjatni Yuklab Olish (DOCX/PDF)', 
-                  sub: p.can_download ? 'Ruxsat etilgan' : "Cheklangan", 
-                  on: p.can_download 
+                  sub: `${docLimit} ta hujjatgacha`, 
+                  on: true 
                 },
                 { 
                   label: 'Hujjatni Tahrirlash', 
-                  sub: p.can_edit ? 'Toʻliq interaktiv tahrirlash' : "Cheklangan", 
-                  on: p.can_edit 
+                  sub: 'Interaktiv tahrirlash', 
+                  on: true 
                 },
                 { 
                   label: 'Ustuvor Javob Vaqti', 
@@ -150,8 +154,8 @@ export default function PricingPage() {
                 },
               ],
               apiNote: {
-                title: 'Imkoniyatlar',
-                sub: `Kunlik savol limiti: ${p.daily_question_limit} ta | Amal qilish muddati: ${p.duration_days} kun`
+                title: 'Foydalanish meʼyori',
+                sub: `Kunlik savollar: ${questionLimit} · Hujjatlar: ${docLimit} ta · Qidiruvlar: ${searchLimit >= 999999 ? 'Cheksiz' : `${searchLimit} ta`}`
               }
             };
           });

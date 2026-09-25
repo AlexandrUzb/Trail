@@ -104,6 +104,7 @@ export default function ChatPage() {
   const [selectedLawGroup, setSelectedLawGroup] = useState<string>(activeConversation?.lawGroup || 'all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthGateModal, setShowAuthGateModal] = useState<boolean>(false);
+  const [showLimitExceededModal, setShowLimitExceededModal] = useState<boolean>(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -120,9 +121,14 @@ export default function ChatPage() {
       }
 
       try {
-        // 1. Load today's AI question usage
-        const usageCount = await getTodayAiUsage(user.id);
-        if (isMounted) setTodayUsage(usageCount);
+        // 1. Load today's AI question usage from Supabase and backend store
+        const [usageCount, serverUsageRes] = await Promise.all([
+          getTodayAiUsage(user.id).catch(() => 0),
+          safeFetchJson(`/api/chat/usage/${user.id}`).catch(() => null),
+        ]);
+        const serverUsed = serverUsageRes?.data?.data?.daily_used || 0;
+        const maxUsed = Math.max(usageCount, serverUsed);
+        if (isMounted) setTodayUsage(maxUsed);
 
         // 2. Load conversations from public.conversations
         const dbConvs = await getUserConversations(user.id);
@@ -377,6 +383,11 @@ export default function ChatPage() {
           }),
         });
 
+        if (res.status === 429) {
+          setShowLimitExceededModal(true);
+          throw new Error(res.data?.message || "Bugungi savollar limitingiz tugadi.");
+        }
+
         if (!res.ok) {
           throw new Error(res.error || `Server xatosi: ${res.status}`);
         }
@@ -384,6 +395,13 @@ export default function ChatPage() {
         const json = res.data;
 
         if (json && json.data) {
+          // Update usage count immediately for UI
+          if (json.data.usage?.daily_used !== undefined) {
+            setTodayUsage(Number(json.data.usage.daily_used));
+          } else {
+            setTodayUsage((prev) => prev + 1);
+          }
+
           const aiMsg: Message = {
             id: `a_${Date.now()}`,
             text: json.data.text || "Javob matni olinmadi.",
@@ -415,8 +433,7 @@ export default function ChatPage() {
                 updated_at: new Date().toISOString(),
               }).eq('id', persistentConvId);
 
-              // Update usage count
-              setTodayUsage((prev) => prev + 1);
+              incrementUserUsage(user.id, 'question').catch(() => {});
             } catch (saveErr) {
               console.warn('[ChatPage] Supabase post-save notice:', saveErr);
             }
@@ -466,15 +483,21 @@ export default function ChatPage() {
     [activeConvId, activeConversation?.title, isLoggedIn, loading, messages, selectedLawGroup, user?.id]
   );
 
+  const dailyLimit = user?.dailyLimit ?? 10;
+
   const handleAttemptSend = useCallback(
     (text: string) => {
       if (!isLoggedIn) {
         setShowAuthGateModal(true);
         return;
       }
+      if (dailyLimit < 999999 && todayUsage >= dailyLimit) {
+        setShowLimitExceededModal(true);
+        return;
+      }
       sendMessage(text);
     },
-    [isLoggedIn, sendMessage]
+    [isLoggedIn, dailyLimit, todayUsage, sendMessage]
   );
 
   // Submit feedback on an AI message directly to Supabase public.feedback
@@ -531,8 +554,6 @@ export default function ChatPage() {
       }
     }
   };
-
-  const dailyLimit = user?.dailyLimit || 5;
 
   return (
     <div className="pt-16 h-screen flex overflow-hidden bg-gray-50 text-gray-900">
@@ -608,12 +629,14 @@ export default function ChatPage() {
           <div className="p-3 border-t border-gray-100 bg-gray-50/80">
             <div className="flex items-center justify-between text-xs mb-1.5">
               <span className="text-gray-600 font-medium">Kunlik savollar:</span>
-              <span className="font-bold text-teal-700">{todayUsage} / {dailyLimit}</span>
+              <span className="font-bold text-teal-700">
+                {todayUsage} / {dailyLimit >= 999999 ? 'Cheksiz' : dailyLimit}
+              </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
               <div 
                 className="bg-teal-600 h-full rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, Math.round((todayUsage / Math.max(1, dailyLimit)) * 100))}%` }}
+                style={{ width: `${dailyLimit >= 999999 ? 100 : Math.min(100, Math.round((todayUsage / Math.max(1, dailyLimit)) * 100))}%` }}
               ></div>
             </div>
           </div>
@@ -939,6 +962,42 @@ export default function ChatPage() {
               >
                 <i className="ri-login-box-line"></i>
                 <span>Kirish</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LIMIT EXCEEDED MODAL */}
+      {showLimitExceededModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 text-center shadow-2xl border border-slate-100">
+            <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-100 shadow-xs">
+              <i className="ri-alarm-warning-line text-3xl"></i>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Kunlik savollar limitingiz tugadi</h3>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              Bugungi rejangiz bo'yicha belgilangan savollar limitingiz ({dailyLimit} ta) to'ldi. Ko'proq savollar berish va cheksiz imkoniyatlardan foydalanish uchun rejangizni yangilang:
+              <br /><strong className="text-teal-700">Pro:</strong> kuniga 100 ta savol · <strong className="text-teal-700">Premium:</strong> cheksiz savollar.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLimitExceededModal(false)}
+                className="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer order-2 sm:order-1"
+              >
+                Yopish
+              </button>
+              <Link
+                to="/pricing"
+                className="w-full py-3 px-4 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer order-1 sm:order-2"
+              >
+                <i className="ri-vip-crown-line text-amber-300"></i>
+                <span>Tariflarni ko'rish</span>
               </Link>
             </div>
           </div>

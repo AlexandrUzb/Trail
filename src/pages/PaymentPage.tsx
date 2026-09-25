@@ -48,12 +48,13 @@ export default function PaymentPage() {
       id: 'pro',
       name: 'Pro',
       priceUzs: 18000,
-      dailyLimit: 50,
+      dailyLimit: 100,
       features: [
-        'Kuniga 50 ta yuridik savol',
+        'Kuniga 100 ta yuridik savol',
+        '10 ta rasmiy hujjat yaratish',
+        'Kuniga 30 ta qonun qidiruvi',
         'Barcha 5 ta rasmiy qonun kodeksi',
         'Eng tezkor AI yuridik tahlil (3-5 soniya)',
-        'Rasmiy hujjat shablonlaridan cheksiz foydalanish',
         'Rasmiy Lex.uz havolalari bilan toʻliq asos'
       ],
     },
@@ -61,12 +62,13 @@ export default function PaymentPage() {
       id: 'premium',
       name: 'Premium',
       priceUzs: 30000,
-      dailyLimit: 200,
+      dailyLimit: 999999,
       features: [
-        'Kuniga 200 ta savol / Yuqori korporativ hajm',
+        'Cheksiz yuridik savollar',
+        '100 ta rasmiy hujjat yaratish',
+        'Cheksiz qonun qidiruvi',
         'Toʻliq Lex.uz milliy qonunchilik bazasi',
         'Ustuvor VIP AI hisoblash quvvati',
-        'Murakkab daʼvo arizalari va shartnomalar tahlili',
         '24/7 shaxsiy texnik yordam va kafolat'
       ],
     },

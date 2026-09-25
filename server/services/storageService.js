@@ -100,11 +100,13 @@ const DEFAULT_PLANS = [
     price: 0,
     currency: 'so\'m',
     daily_limit: 10,
-    monthly_limit: 100,
+    monthly_limit: 300,
+    document_limit: 2,
+    search_limit: 3,
     features: [
       { label: 'AdvokatAI Chatbot', sub: 'Kuniga 10 ta savol', on: true },
-      { label: 'Rasmiy Qonunchilik Bazasi', sub: '5 ta kodeks (3,000+ modda)', on: true },
-      { label: 'Hujjat Shablonlari', sub: 'Asosiy shablonlar', on: true },
+      { label: 'Rasmiy Qonunchilik Bazasi', sub: 'Kuniga 3 ta qidiruv', on: true },
+      { label: 'Hujjat Shablonlari', sub: '2 ta hujjat yaratish', on: true },
       { label: 'O\'zbek tili va qidiruv', sub: 'Lotin va Kirill', on: true },
       { label: 'Maxsus yurist konsultatsiyasi', sub: '', on: false },
       { label: 'Cheksiz savollar', sub: '', on: false }
@@ -118,12 +120,14 @@ const DEFAULT_PLANS = [
     name: 'Pro',
     price: 18000,
     currency: 'so\'m',
-    daily_limit: 50,
-    monthly_limit: 500,
+    daily_limit: 100,
+    monthly_limit: 3000,
+    document_limit: 10,
+    search_limit: 30,
     features: [
-      { label: 'AdvokatAI Chatbot', sub: 'Kuniga 50 ta savol', on: true },
-      { label: 'Rasmiy Qonunchilik Bazasi', sub: 'Kengaytirilgan RAG qidiruv', on: true },
-      { label: 'Hujjat Shablonlari', sub: 'Barcha shablonlar', on: true },
+      { label: 'AdvokatAI Chatbot', sub: 'Kuniga 100 ta savol', on: true },
+      { label: 'Rasmiy Qonunchilik Bazasi', sub: 'Kuniga 30 ta qidiruv', on: true },
+      { label: 'Hujjat Shablonlari', sub: '10 ta hujjat yaratish', on: true },
       { label: 'O\'zbek tili va qidiruv', sub: 'Yuqori tezlikda tahlil', on: true },
       { label: 'Ustuvor javob vaqti', sub: '2 soniyadan kam', on: true },
       { label: 'Cheksiz savollar', sub: '', on: false }
@@ -137,12 +141,14 @@ const DEFAULT_PLANS = [
     name: 'Premium',
     price: 30000,
     currency: 'so\'m',
-    daily_limit: 200,
-    monthly_limit: 2000,
+    daily_limit: 999999,
+    monthly_limit: 999999,
+    document_limit: 100,
+    search_limit: 999999,
     features: [
-      { label: 'AdvokatAI Chatbot', sub: 'Kuniga 200 ta savol', on: true },
-      { label: 'Rasmiy Qonunchilik Bazasi', sub: 'To\'liq chuqur huquqiy tahlil', on: true },
-      { label: 'Hujjat Shablonlari', sub: 'Cheksiz generatsiya', on: true },
+      { label: 'AdvokatAI Chatbot', sub: 'Cheksiz savollar', on: true },
+      { label: 'Rasmiy Qonunchilik Bazasi', sub: 'Cheksiz qonun qidiruv', on: true },
+      { label: 'Hujjat Shablonlari', sub: '100 ta hujjat yaratish', on: true },
       { label: 'O\'zbek tili va qidiruv', sub: 'Eng yuqori ustuvorlik', on: true },
       { label: 'Ustuvor javob vaqti', sub: '500ms dan kam', on: true },
       { label: 'Tezkor texnik ko\'mak', sub: '24/7', on: true }
@@ -281,39 +287,23 @@ class StorageService {
     const plan = this.getPlanById(user.plan_id);
 
     const now = new Date();
-    const dayKey = `${userId}:${now.toISOString().slice(0, 10)}`; // YYYY-MM-DD
-    const monthKey = `${userId}:${now.toISOString().slice(0, 7)}`; // YYYY-MM
+    const today = now.toISOString().slice(0, 10);
+    const dayKey = `${userId}_${today}`;
+    const colonDayKey = `${userId}:${today}`;
+    const monthKey = `${userId}_${now.toISOString().slice(0, 7)}`;
 
     const usageStore = readJson('usage', {});
-    const dailyUsed = usageStore[dayKey] || 0;
-    const monthlyUsed = usageStore[monthKey] || 0;
+    const dailyUsed = usageStore[dayKey] ?? usageStore[colonDayKey] ?? 0;
+    const monthlyUsed = usageStore[monthKey] ?? usageStore[`${userId}:${now.toISOString().slice(0, 7)}`] ?? 0;
 
-    // Feature flag: ENABLE_DAILY_LIMIT (defaults to false for open testing)
-    const ENABLE_DAILY_LIMIT = process.env.ENABLE_DAILY_LIMIT === 'true';
-    if (!ENABLE_DAILY_LIMIT) {
-      usageStore[dayKey] = dailyUsed + 1;
-      usageStore[monthKey] = monthlyUsed + 1;
-      writeJson('usage', usageStore);
-      return {
-        allowed: true,
-        usage: {
-          daily_used: dailyUsed + 1,
-          daily_limit: 999999,
-          monthly_used: monthlyUsed + 1,
-          monthly_limit: 999999,
-          plan: plan.name
-        }
-      };
-    }
+    const dailyLimit = plan.daily_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 100 : 10);
+    const monthlyLimit = plan.monthly_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 3000 : 300);
 
-    const dailyLimit = plan.daily_limit;
-    const monthlyLimit = plan.monthly_limit;
-
-    if (dailyUsed >= dailyLimit) {
+    if (dailyLimit < 999999 && dailyUsed >= dailyLimit) {
       return {
         allowed: false,
         reason: 'daily_limit',
-        message: "Bugungi bepul foydalanish limitingiz tugadi. Ertaga foydalanishni davom ettirishingiz yoki Pro rejaga o'tishingiz mumkin.",
+        message: `Bugungi savollar limitingiz (${dailyLimit} ta) tugadi. Ertaga davom ettirishingiz yoki rejangizni yangilashingiz mumkin.`,
         usage: {
           daily_used: dailyUsed,
           daily_limit: dailyLimit,
@@ -324,11 +314,11 @@ class StorageService {
       };
     }
 
-    if (monthlyUsed >= monthlyLimit) {
+    if (monthlyLimit < 999999 && monthlyUsed >= monthlyLimit) {
       return {
         allowed: false,
         reason: 'monthly_limit',
-        message: "Ushbu oy uchun belgilangan so'rovlar limitingiz tugadi. Keyingi oyda qayta tiklanadi yoki rejangizni yangilang.",
+        message: "Ushbu oy uchun belgilangan so'rovlar limitingiz tugadi. Rejangizni yangilang.",
         usage: {
           daily_used: dailyUsed,
           daily_limit: dailyLimit,
@@ -349,26 +339,7 @@ class StorageService {
       const sb = getSupabaseServerClient();
       const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (sb && UUID_REGEX.test(userId)) {
-        const today = now.toISOString().slice(0, 10);
-        sb.from('ai_usage')
-          .select('id, question_count')
-          .eq('user_id', userId)
-          .eq('usage_date', today)
-          .maybeSingle()
-          .then(({ data: existingUsage }) => {
-            if (existingUsage) {
-              sb.from('ai_usage').update({
-                question_count: (existingUsage.question_count || 0) + 1,
-                updated_at: new Date().toISOString()
-              }).eq('id', existingUsage.id).then(() => {});
-            } else {
-              sb.from('ai_usage').insert({
-                user_id: userId,
-                usage_date: today,
-                question_count: 1
-              }).then(() => {});
-            }
-          }).catch(() => {});
+        sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'question' }).catch(() => {});
       }
     } catch {}
 
@@ -384,24 +355,137 @@ class StorageService {
     };
   }
 
+  checkAndConsumeDocumentQuota(userId) {
+    const user = this.getUser(userId);
+    const plan = this.getPlanById(user.plan_id);
+    const docLimit = plan.document_limit ?? (plan.plan_id === 'premium' ? 100 : plan.plan_id === 'pro' ? 10 : 2);
+
+    const now = new Date();
+    const dayKey = `${userId}_doc_${now.toISOString().slice(0, 10)}`;
+    const usageStore = readJson('usage', {});
+    const docUsed = usageStore[dayKey] || 0;
+
+    if (docUsed >= docLimit) {
+      return {
+        allowed: false,
+        reason: 'document_limit',
+        message: `Hujjat yaratish limitingiz (${docLimit} ta) tugadi. Ko'proq hujjatlar yaratish uchun rejangizni yangilang.`,
+        usage: {
+          used: docUsed,
+          limit: docLimit,
+          plan: plan.name
+        }
+      };
+    }
+
+    usageStore[dayKey] = docUsed + 1;
+    writeJson('usage', usageStore);
+
+    try {
+      const sb = getSupabaseServerClient();
+      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (sb && UUID_REGEX.test(userId)) {
+        sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'document' }).catch(() => {});
+      }
+    } catch {}
+
+    return {
+      allowed: true,
+      usage: {
+        used: docUsed + 1,
+        limit: docLimit,
+        plan: plan.name
+      }
+    };
+  }
+
+  checkAndConsumeSearchQuota(userId) {
+    const user = this.getUser(userId);
+    const plan = this.getPlanById(user.plan_id);
+    const searchLimit = plan.search_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 30 : 3);
+
+    const now = new Date();
+    const dayKey = `${userId}_search_${now.toISOString().slice(0, 10)}`;
+    const usageStore = readJson('usage', {});
+    const searchUsed = usageStore[dayKey] || 0;
+
+    if (searchLimit < 999999 && searchUsed >= searchLimit) {
+      return {
+        allowed: false,
+        reason: 'search_limit',
+        message: `Kunlik qonun qidiruv limitingiz (${searchLimit} ta) tugadi. Ko'proq qidiruvlar uchun rejangizni yangilang.`,
+        usage: {
+          used: searchUsed,
+          limit: searchLimit,
+          plan: plan.name
+        }
+      };
+    }
+
+    usageStore[dayKey] = searchUsed + 1;
+    writeJson('usage', usageStore);
+
+    try {
+      const sb = getSupabaseServerClient();
+      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (sb && UUID_REGEX.test(userId)) {
+        sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'search' }).catch(() => {});
+      }
+    } catch {}
+
+    return {
+      allowed: true,
+      usage: {
+        used: searchUsed + 1,
+        limit: searchLimit,
+        plan: plan.name
+      }
+    };
+  }
+
+  logLoginEvent({ userId, email, timestamp }) {
+    try {
+      const analytics = readJson('analytics', {});
+      if (!analytics.logins) analytics.logins = [];
+      analytics.logins.push({
+        userId: userId || 'anonymous',
+        email: email || null,
+        timestamp: timestamp || new Date().toISOString()
+      });
+      // Keep last 1000 logins
+      if (analytics.logins.length > 1000) {
+        analytics.logins = analytics.logins.slice(-1000);
+      }
+      writeJson('analytics', analytics);
+    } catch {}
+  }
+
   getUserUsage(userId) {
     const user = this.getUser(userId);
     const plan = this.getPlanById(user.plan_id);
     const now = new Date();
-    const dayKey = `${userId}:${now.toISOString().slice(0, 10)}`;
-    const monthKey = `${userId}:${now.toISOString().slice(0, 7)}`;
+    const today = now.toISOString().slice(0, 10);
+    const dayKey = `${userId}_${today}`;
+    const docKey = `${userId}_doc_${today}`;
+    const searchKey = `${userId}_search_${today}`;
+    const monthKey = `${userId}_${now.toISOString().slice(0, 7)}`;
 
     const usageStore = readJson('usage', {});
     return {
-      daily_used: usageStore[dayKey] || 0,
-      daily_limit: plan.daily_limit,
-      monthly_used: usageStore[monthKey] || 0,
-      monthly_limit: plan.monthly_limit,
+      daily_used: usageStore[dayKey] ?? usageStore[`${userId}:${today}`] ?? 0,
+      daily_limit: plan.daily_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 100 : 10),
+      document_used: usageStore[docKey] || 0,
+      document_limit: plan.document_limit ?? (plan.plan_id === 'premium' ? 100 : plan.plan_id === 'pro' ? 10 : 2),
+      search_used: usageStore[searchKey] || 0,
+      search_limit: plan.search_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 30 : 3),
+      monthly_used: usageStore[monthKey] ?? usageStore[`${userId}:${now.toISOString().slice(0, 7)}`] ?? 0,
+      monthly_limit: plan.monthly_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 3000 : 300),
       plan: plan.name,
       plan_id: plan.plan_id,
       expires_at: user.plan_expires_at
     };
   }
+
 
   // --- PAYMENTS ---
   createPayment({ userId, planId, amount, currency = 'so\'m', paymentMethod = 'card', transactionReference, payerName }) {

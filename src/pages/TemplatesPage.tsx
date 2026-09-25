@@ -12,7 +12,7 @@ import {
 } from '../utils/documentRenderer';
 import { safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../utils/supabase';
+import { supabase, getTodayUserUsage, incrementUserUsage } from '../utils/supabase';
 
 const categoryColors: Record<string, string> = {
   'Uy-joy va mulk': 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -33,6 +33,26 @@ export default function TemplatesPage() {
 
   const [dbTemplates, setDbTemplates] = useState<(LegalTemplate & { supabaseId?: string })[]>([]);
   const [savedTemplateIds, setSavedTemplateIds] = useState<string[]>([]);
+  const [docCount, setDocCount] = useState<number>(0);
+  const [showDocLimitModal, setShowDocLimitModal] = useState<boolean>(false);
+
+  const documentLimit = user?.documentLimit ?? (user?.plan?.toLowerCase().includes('premium') ? 100 : user?.plan?.toLowerCase().includes('pro') ? 10 : 2);
+
+  // Load user today's document count
+  useEffect(() => {
+    let isMounted = true;
+    if (user?.id) {
+      getTodayUserUsage(user.id).then((u) => {
+        if (isMounted) setDocCount(u.document_count);
+      }).catch(() => {});
+      safeFetchJson(`/api/chat/usage/${user.id}`).then((res) => {
+        if (isMounted && res.data?.data?.document_used !== undefined) {
+          setDocCount((prev) => Math.max(prev, res.data.data.document_used));
+        }
+      }).catch(() => {});
+    }
+    return () => { isMounted = false; };
+  }, [user?.id]);
 
   // Live Supabase query for document_templates
   useEffect(() => {
@@ -317,13 +337,9 @@ export default function TemplatesPage() {
     executeFn: () => void | Promise<void>
   ) => {
     if (isLoggedIn) {
-      // Permission verification from user subscription (plans table)
-      if (actionType === 'copy' && user?.canCopy === false) {
-        alert("Sizning hozirgi tarif rejangizda nusxa olish imkoniyati cheklangan. Iltimos, obunangizni yangilang.");
-        return;
-      }
-      if (actionType.startsWith('download') && user?.canDownload === false) {
-        alert("Sizning hozirgi tarif rejangizda hujjatni yuklab olish imkoniyati cheklangan. Iltimos, obunangizni yangilang.");
+      // Check document quota limit: 2 for Free, 10 for Pro, 100 for Premium
+      if (documentLimit < 999999 && docCount >= documentLimit) {
+        setShowDocLimitModal(true);
         return;
       }
 
@@ -345,6 +361,14 @@ export default function TemplatesPage() {
         } catch (e) {
           console.warn('[TemplatesPage] Save user_document warning:', e);
         }
+
+        // Increment usage
+        setDocCount((prev) => prev + 1);
+        incrementUserUsage(user.id, 'document').catch(() => {});
+        safeFetchJson('/api/templates/track-document', {
+          method: 'POST',
+          body: JSON.stringify({ userId: user.id }),
+        }).catch(() => {});
 
         const endpoint = actionType.startsWith('download') ? 'download' : 'copy';
         safeFetchJson(`/api/templates/${selected.id}/${endpoint}`, {
@@ -440,9 +464,17 @@ export default function TemplatesPage() {
           <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-900 mt-2 mb-3 tracking-tight">
             Huquqiy Hujjat Shablonlari
           </h1>
-          <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto mb-6 leading-relaxed">
+          <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto mb-4 leading-relaxed">
             Oʻzbekiston qonunchiligi asosida tayyorlangan rasmiy shartnoma, ariza, da’vo va murojaat loyihalari
           </p>
+
+          {/* Quota Indicator */}
+          {isLoggedIn && (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-xs font-semibold text-teal-800 mb-6 shadow-2xs">
+              <i className="ri-file-list-3-line text-teal-600"></i>
+              <span>Hujjatlar limitingiz: <strong>{docCount}</strong> / <strong>{documentLimit >= 999999 ? 'Cheksiz' : `${documentLimit} ta`}</strong></span>
+            </div>
+          )}
 
           {/* Search Bar */}
           <div className="max-w-xl mx-auto relative">
@@ -1097,6 +1129,57 @@ export default function TemplatesPage() {
               >
                 <i className="ri-user-add-line text-base"></i>
                 <span>Roʻyxatdan oʻtish (Bepul)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DOCUMENT LIMIT MODAL */}
+      {showDocLimitModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 text-center shadow-2xl border border-slate-100 relative">
+            <button
+              onClick={() => setShowDocLimitModal(false)}
+              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer transition-colors"
+            >
+              <i className="ri-close-line text-xl"></i>
+            </button>
+
+            <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 border border-amber-100">
+              <i className="ri-file-warning-line"></i>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              Hujjat yaratish limitingiz tugadi
+            </h3>
+            <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
+              Sizning tarifingiz bo'yicha belgilangan hujjatlar soni ({documentLimit} ta) to'ldi. Ko'proq rasmiy shartnoma va arizalarni yuklab olish hamda tahrirlash uchun rejangizni yangilang:
+              <br /><strong className="text-teal-700">Pro:</strong> 10 ta hujjat · <strong className="text-teal-700">Premium:</strong> 100 ta hujjat!
+            </p>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDocLimitModal(false);
+                  navigate('/pricing');
+                }}
+                className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <i className="ri-vip-crown-line text-amber-300"></i>
+                <span>Tariflarni ko'rish</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDocLimitModal(false)}
+                className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+              >
+                Yopish
               </button>
             </div>
           </div>

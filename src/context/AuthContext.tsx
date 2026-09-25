@@ -18,11 +18,14 @@ export interface AuthUser {
   activeSubscription?: UserSubscription | null;
   planDetails?: Plan | null;
   dailyLimit: number;
+  documentLimit: number;
+  searchLimit: number;
   canCopy: boolean;
   canDownload: boolean;
   canEdit: boolean;
   [key: string]: any;
 }
+
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -94,11 +97,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         plan_expires_at: subscription?.expires_at || null,
         activeSubscription: subscription,
         planDetails: plan,
-        dailyLimit: plan?.daily_question_limit ?? 5,
-        canCopy: plan?.can_copy ?? false,
-        canDownload: plan?.can_download ?? false,
-        canEdit: plan?.can_edit ?? false,
+        dailyLimit: plan?.daily_question_limit ?? (planName.toLowerCase().includes('premium') ? 999999 : planName.toLowerCase().includes('pro') || planName.toLowerCase().includes('standard') ? 100 : 10),
+        documentLimit: (plan as any)?.document_limit ?? (planName.toLowerCase().includes('premium') ? 100 : planName.toLowerCase().includes('pro') || planName.toLowerCase().includes('standard') ? 10 : 2),
+        searchLimit: (plan as any)?.search_limit ?? (planName.toLowerCase().includes('premium') ? 999999 : planName.toLowerCase().includes('pro') || planName.toLowerCase().includes('standard') ? 30 : 3),
+        canCopy: plan?.can_copy ?? (planName.toLowerCase() !== 'bepul' && planName.toLowerCase() !== 'free'),
+        canDownload: plan?.can_download ?? (planName.toLowerCase() !== 'bepul' && planName.toLowerCase() !== 'free'),
+        canEdit: plan?.can_edit ?? (planName.toLowerCase() !== 'bepul' && planName.toLowerCase() !== 'free'),
       };
+
 
       setUser(authUser);
       setIsLoggedIn(true);

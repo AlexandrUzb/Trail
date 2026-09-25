@@ -215,14 +215,52 @@ router.get('/me', requireAuth, (req, res) => {
 });
 
 /**
- * POST /api/auth/logout
- * Explicit logout endpoint: clears any potential cookies and confirms session termination.
+ * POST /api/auth/confirm-user
+ * Auto-confirms a user email in Supabase Auth if needed
  */
-router.post('/logout', (req, res) => {
-  res.json({
-    success: true,
-    message: "Tizimdan muvaffaqiyatli chiqildi."
-  });
+router.post('/confirm-user', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ success: false, error: "Email kiritilmadi" });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    const sb = getSupabaseServerClient();
+    if (sb && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const { data: usersData, error: listErr } = await sb.auth.admin.listUsers({ perPage: 1000 });
+      if (!listErr && usersData?.users) {
+        const target = usersData.users.find(u => u.email?.toLowerCase() === cleanEmail);
+        if (target) {
+          await sb.auth.admin.updateUserById(target.id, { email_confirm: true });
+          await sb.rpc('record_user_login', { p_user_id: target.id }).catch(() => {});
+          return res.json({ success: true, message: "Email tasdiqlandi" });
+        }
+      }
+    }
+    return res.json({ success: true, message: "Tekshirildi" });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/auth/track-login
+ * Records login event in analytics and Supabase
+ */
+router.post('/track-login', async (req, res) => {
+  try {
+    const { userId, email } = req.body || {};
+    const sb = getSupabaseServerClient();
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (sb && userId && UUID_REGEX.test(userId)) {
+      await sb.rpc('record_user_login', { p_user_id: userId }).catch(() => {});
+    }
+    storageService.logLoginEvent({ userId, email, timestamp: new Date().toISOString() });
+    return res.json({ success: true });
+  } catch (err) {
+    return res.json({ success: false });
+  }
 });
 
 export default router;
+

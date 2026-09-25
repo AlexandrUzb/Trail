@@ -9,6 +9,8 @@ export interface Profile {
   avatar_url: string | null;
   phone: string | null;
   role: 'user' | 'admin';
+  login_count?: number;
+  last_login_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -20,12 +22,15 @@ export interface Plan {
   price_uzs: number;
   duration_days: number;
   daily_question_limit: number;
+  document_limit?: number;
+  search_limit?: number;
   can_copy: boolean;
   can_download: boolean;
   can_edit: boolean;
   is_active: boolean;
   created_at: string;
 }
+
 
 export interface UserSubscription {
   id: string; // uuid PRIMARY KEY
@@ -122,9 +127,12 @@ export interface AiUsage {
   conversation_id: string | null; // references public.conversations.id
   usage_date: string;
   question_count: number;
+  document_count?: number;
+  search_count?: number;
   created_at: string;
   updated_at: string;
 }
+
 
 export interface Feedback {
   id: string; // uuid PRIMARY KEY
@@ -402,24 +410,139 @@ export async function getUserFavorites(userId: string): Promise<Favorite[]> {
 }
 
 /**
- * Check and get today's AI usage count for an authenticated user
+ * Check and get today's comprehensive usage counts for an authenticated user
  */
-export async function getTodayAiUsage(userId: string): Promise<number> {
+export async function getTodayUserUsage(userId: string): Promise<{ question_count: number; document_count: number; search_count: number }> {
   try {
+    const { data, error } = await supabase.rpc('get_user_usage', { p_user_id: userId });
+    if (!error && data) {
+      return {
+        question_count: Number(data.question_count || 0),
+        document_count: Number(data.document_count || 0),
+        search_count: Number(data.search_count || 0),
+      };
+    }
+
     const today = new Date().toISOString().split('T')[0];
-    const { data, error } = await supabase
+    const { data: rowData, error: rowError } = await supabase
       .from('ai_usage')
-      .select('question_count')
+      .select('question_count, document_count, search_count')
       .eq('user_id', userId)
       .eq('usage_date', today)
       .maybeSingle();
 
-    if (error || !data) return 0;
-    return data.question_count || 0;
+    if (rowError || !rowData) {
+      return { question_count: 0, document_count: 0, search_count: 0 };
+    }
+
+    return {
+      question_count: Number(rowData.question_count || 0),
+      document_count: Number(rowData.document_count || 0),
+      search_count: Number(rowData.search_count || 0),
+    };
   } catch {
-    return 0;
+    return { question_count: 0, document_count: 0, search_count: 0 };
   }
 }
+
+/**
+ * Backward-compatible helper for today's AI question count
+ */
+export async function getTodayAiUsage(userId: string): Promise<number> {
+  const usage = await getTodayUserUsage(userId);
+  return usage.question_count;
+}
+
+/**
+ * Increment user usage counter atomically in Supabase
+ */
+export async function incrementUserUsage(
+  userId: string, 
+  type: 'question' | 'document' | 'search'
+): Promise<{ question_count: number; document_count: number; search_count: number }> {
+  try {
+    const { data, error } = await supabase.rpc('increment_user_usage', {
+      p_user_id: userId,
+      p_usage_type: type
+    });
+
+    if (!error && data) {
+      return {
+        question_count: Number(data.question_count || 0),
+        document_count: Number(data.document_count || 0),
+        search_count: Number(data.search_count || 0),
+      };
+    }
+
+    // Fallback: direct table select and upsert
+    const today = new Date().toISOString().split('T')[0];
+    const { data: existing } = await supabase
+      .from('ai_usage')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('usage_date', today)
+      .maybeSingle();
+
+    const currentQuestions = existing?.question_count || 0;
+    const currentDocs = existing?.document_count || 0;
+    const currentSearches = existing?.search_count || 0;
+
+    const newQuestions = type === 'question' ? currentQuestions + 1 : currentQuestions;
+    const newDocs = type === 'document' ? currentDocs + 1 : currentDocs;
+    const newSearches = type === 'search' ? currentSearches + 1 : currentSearches;
+
+    if (existing) {
+      await supabase
+        .from('ai_usage')
+        .update({
+          question_count: newQuestions,
+          document_count: newDocs,
+          search_count: newSearches,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existing.id);
+    } else {
+      await supabase.from('ai_usage').insert({
+        user_id: userId,
+        usage_date: today,
+        question_count: newQuestions,
+        document_count: newDocs,
+        search_count: newSearches,
+      });
+    }
+
+    return {
+      question_count: newQuestions,
+      document_count: newDocs,
+      search_count: newSearches,
+    };
+  } catch (err) {
+    console.warn('[Supabase] incrementUserUsage notice:', err);
+    return { question_count: 0, document_count: 0, search_count: 0 };
+  }
+}
+
+/**
+ * Record user login event in Supabase profiles
+ */
+export async function recordUserLogin(userId: string): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('record_user_login', { p_user_id: userId });
+    if (error) {
+      // Direct update fallback
+      await supabase
+        .from('profiles')
+        .update({
+          last_login_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+    }
+  } catch (err) {
+    console.warn('[Supabase] recordUserLogin notice:', err);
+  }
+}
+
 
 /**
  * Retrieve user notifications from public.notifications

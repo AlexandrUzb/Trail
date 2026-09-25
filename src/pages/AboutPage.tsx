@@ -146,21 +146,129 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Loyiha ishlab chiquvchisi */}
-      <section className="py-16 bg-gray-50/50 border-t border-gray-100">
-        <div className="max-w-4xl mx-auto px-8 text-center">
-          <span className="text-teal-600 text-xs font-semibold uppercase tracking-widest">Muallif</span>
-          <h2 className="text-2xl font-bold text-gray-900 mt-2 mb-6">Loyiha ishlab chiquvchisi</h2>
-          <div className="inline-flex items-center gap-5 bg-white border border-gray-200/90 rounded-2xl p-5 text-left max-w-md shadow-xs hover:shadow-sm transition-shadow">
-            <img
-              src="/zafar_zokirov.jpg"
-              alt="Zafar Zokirov"
-              className="w-16 h-20 rounded-xl object-cover border border-gray-200 shadow-2xs flex-shrink-0"
-              loading="lazy"
-            />
-            <div>
-              <h3 className="text-base font-bold text-gray-900">Zafar Zokirov</h3>
-              <p className="text-teal-700 text-xs font-medium mt-0.5">AdvokatAI loyihasi ishlab chiquvchisi</p>
+      {/* Loyiha Asoschisi va Dasturchisi */}
+      <section className="py-24 bg-gradient-to-b from-white via-gray-50/70 to-teal-50/30 border-t border-gray-100">
+        <div className="max-w-5xl mx-auto px-6 sm:px-8">
+          <div className="text-center mb-12">
+            <span className="text-teal-600 text-xs sm:text-sm font-semibold uppercase tracking-widest bg-teal-50 px-3.5 py-1 rounded-full border border-teal-100">
+              Loyiha Asoschisi
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-3 mb-4">
+              Loyiha Asoschisi va Bosh Dasturchisi
+            </h2>
+            <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base">
+              O'zbekistonda yuridik sohada sun'iy intellektni joriy etish va fuqarolarning huquqiy savodxonligini oshirish tashabbuskori
+            </p>
+          </div>
+
+          <div className="bg-white border border-gray-200/90 rounded-3xl p-6 sm:p-10 shadow-lg hover:shadow-xl transition-all">
+            <div className="grid md:grid-cols-12 gap-8 items-center">
+              {/* Photo & quick info */}
+              <div className="md:col-span-4 flex flex-col items-center text-center">
+                <div className="relative mb-4 group">
+                  <div className="absolute -inset-1.5 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-3xl blur-xs opacity-60 group-hover:opacity-100 transition duration-300"></div>
+                  <img
+                    src="/zafar_zokirov.jpg"
+                    alt="Zafar Zokirov"
+                    className="relative w-44 h-56 object-cover rounded-2xl border-2 border-white shadow-md"
+                    loading="lazy"
+                  />
+                  <div className="absolute bottom-2 right-2 bg-teal-600 text-white p-1.5 rounded-xl shadow-sm">
+                    <i className="ri-verified-badge-fill text-lg"></i>
+                  </div>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Zafar Zokirov</h3>
+                <p className="text-teal-700 font-semibold text-sm mt-0.5">Asoschi va Bosh Dasturchi</p>
+                <span className="inline-block mt-2 px-3 py-1 bg-teal-50 text-teal-800 rounded-full text-xs font-medium border border-teal-200/80">
+                  Termiz Prezident maktabi · 11-sinf
+                </span>
+              </div>
+
+              {/* Bio & Details */}
+              <div className="md:col-span-8 space-y-5 text-left">
+                <div>
+                  <h4 className="text-lg font-bold text-gray-900 mb-2">Huquqiy Texnologiyalar (LegalTech) Kelajagi</h4>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-3">
+                    Men Zafar Zokirov, Surxondaryo viloyati Termiz shahridagi Prezident maktabining 11-sinf o'quvchisiman. <strong>AdvokatAI</strong> loyihasini yaratishdan asosiy maqsadim — O'zbekiston fuqarolariga o'z huquqlarini chuqur anglash, murakkab huquqiy me'yorlarni oddiy tilda tushunish va har qanday sharoitda professional yuridik yordam olish imkoniyatini taqdim etishdir.
+                  </p>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Platforma Retrieval-Augmented Generation (RAG) texnologiyasiga tayanadi. Barcha javoblar O'zbekiston Respublikasining Lex.uz rasmiy qonunchilik bazasiga, 5 ta asosiy kodeks va 3,000 dan ortiq huquqiy moddalarga qat'iy asoslangan holda shakllantiriladi.
+                  </p>
+                </div>
+
+                {/* Achievements / Highlights */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <i className="ri-graduation-cap-line text-teal-600 text-lg flex-shrink-0 mt-0.5"></i>
+                    <div>
+                      <div className="text-xs font-bold text-gray-800">Ta'lim</div>
+                      <div className="text-xs text-gray-500">Termiz shahridagi Prezident maktabi 11-sinf</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <i className="ri-code-s-slash-line text-teal-600 text-lg flex-shrink-0 mt-0.5"></i>
+                    <div>
+                      <div className="text-xs font-bold text-gray-800">Ixtisoslashuv</div>
+                      <div className="text-xs text-gray-500">AI & Full-stack LegalTech muhandisligi</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <i className="ri-scales-3-line text-teal-600 text-lg flex-shrink-0 mt-0.5"></i>
+                    <div>
+                      <div className="text-xs font-bold text-gray-800">Loyiha yo'nalishi</div>
+                      <div className="text-xs text-gray-500">Milliy qonunchilik bo'yicha mustaqil AI</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <i className="ri-shield-star-line text-teal-600 text-lg flex-shrink-0 mt-0.5"></i>
+                    <div>
+                      <div className="text-xs font-bold text-gray-800">Maqsad</div>
+                      <div className="text-xs text-gray-500">Har bir fuqaro uchun bepul va qulay yuridik himoya</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Channels */}
+                <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3">
+                  <span className="text-xs font-bold text-gray-700">Bog'lanish va ijtimoiy tarmoqlar:</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href="https://www.linkedin.com/in/zafar-zokirov-5222a2354/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0077b5]/10 hover:bg-[#0077b5] text-[#0077b5] hover:text-white rounded-xl text-xs font-semibold transition-all border border-[#0077b5]/20 shadow-2xs"
+                    >
+                      <i className="ri-linkedin-box-fill text-sm"></i>
+                      <span>LinkedIn</span>
+                    </a>
+                    <a
+                      href="https://t.me/alexandr_o9"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#229ED9]/10 hover:bg-[#229ED9] text-[#229ED9] hover:text-white rounded-xl text-xs font-semibold transition-all border border-[#229ED9]/20 shadow-2xs"
+                    >
+                      <i className="ri-telegram-fill text-sm"></i>
+                      <span>Telegram: @alexandr_o9</span>
+                    </a>
+                    <a
+                      href="https://instagram.com/alexandr_2oo9"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#E1306C]/10 hover:bg-[#E1306C] text-[#E1306C] hover:text-white rounded-xl text-xs font-semibold transition-all border border-[#E1306C]/20 shadow-2xs"
+                    >
+                      <i className="ri-instagram-fill text-sm"></i>
+                      <span>Instagram: @alexandr_2oo9</span>
+                    </a>
+                    <a
+                      href="mailto:zokirovzafar881@gmail.com"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gray-100 hover:bg-gray-800 text-gray-700 hover:text-white rounded-xl text-xs font-semibold transition-all border border-gray-200 shadow-2xs"
+                    >
+                      <i className="ri-mail-fill text-sm"></i>
+                      <span>zokirovzafar881@gmail.com</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

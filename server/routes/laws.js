@@ -1,6 +1,7 @@
 import express from 'express';
 import { ragService } from '../services/ragService.js';
 import { getSupabaseServerClient } from '../services/supabaseClient.js';
+import { storageService } from '../services/storageService.js';
 
 const router = express.Router();
 
@@ -149,6 +150,21 @@ router.get('/:id', async (req, res) => {
     return res.status(404).json({ success: false, error: "Qonun moddasi topilmadi." });
   }
   res.json({ success: true, data: article });
+});
+
+/**
+ * POST /api/laws/track-search
+ * Tracks user law search quota
+ */
+router.post('/track-search', (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    if (!userId) return res.json({ allowed: true });
+    const result = storageService.checkAndConsumeSearchQuota(userId);
+    return res.json(result);
+  } catch (err) {
+    return res.json({ allowed: true });
+  }
 });
 
 export default router;

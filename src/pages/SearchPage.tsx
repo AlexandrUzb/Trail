@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { lawArticlesDatabase, LawArticle } from '../data/lawArticles';
-import { safeStorage } from '../utils/api';
+import { safeStorage, safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../utils/supabase';
+import { supabase, getTodayUserUsage, incrementUserUsage } from '../utils/supabase';
 
 export const legalCategories = [
   'Barchasi',
@@ -117,7 +117,7 @@ const INTENT_CATEGORY_BOOST: { [key: string]: string[] } = {
 };
 
 export default function SearchPage() {
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Barchasi');
@@ -129,6 +129,47 @@ export default function SearchPage() {
   const [selectedArticle, setSelectedArticle] = useState<LawArticle | null>(null);
   const [dbArticles, setDbArticles] = useState<LawArticle[]>([]);
   const [dbCategories, setDbCategories] = useState<{ id: string; name_uz: string }[]>([]);
+
+  const [searchCount, setSearchCount] = useState<number>(0);
+  const [showSearchLimitModal, setShowSearchLimitModal] = useState<boolean>(false);
+  const searchLimit = user?.searchLimit ?? (user?.plan?.toLowerCase().includes('premium') ? 999999 : user?.plan?.toLowerCase().includes('pro') ? 30 : 3);
+  const lastTrackedQueryRef = useRef<string>('');
+
+  // Load today's search usage
+  useEffect(() => {
+    let isMounted = true;
+    if (user?.id) {
+      getTodayUserUsage(user.id).then((u) => {
+        if (isMounted) setSearchCount(u.search_count);
+      }).catch(() => {});
+      safeFetchJson(`/api/chat/usage/${user.id}`).then((res) => {
+        if (isMounted && res.data?.data?.search_used !== undefined) {
+          setSearchCount((prev) => Math.max(prev, res.data.data.search_used));
+        }
+      }).catch(() => {});
+    }
+    return () => { isMounted = false; };
+  }, [user?.id]);
+
+  // Track search query and check limit
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length >= 3 && trimmed !== lastTrackedQueryRef.current) {
+      if (searchLimit < 999999 && searchCount >= searchLimit) {
+        setShowSearchLimitModal(true);
+        return;
+      }
+      lastTrackedQueryRef.current = trimmed;
+      setSearchCount((prev) => prev + 1);
+      if (user?.id) {
+        incrementUserUsage(user.id, 'search').catch(() => {});
+        safeFetchJson('/api/laws/track-search', {
+          method: 'POST',
+          body: JSON.stringify({ userId: user.id }),
+        }).catch(() => {});
+      }
+    }
+  }, [query, searchLimit, searchCount, user?.id]);
 
   // Fetch live legal categories and legal articles from Supabase
   useEffect(() => {
@@ -442,9 +483,17 @@ export default function SearchPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-2 mb-3">
             Oʻzbekiston Qonunlarini Qidiring
           </h1>
-          <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto mb-8">
+          <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto mb-4">
             20 ta huquqiy soha boʻyicha rasmiy moddalar, qonun matnlari va Lex.uz havolalari
           </p>
+
+          {/* Quota Indicator */}
+          {isLoggedIn && (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-xs font-semibold text-teal-800 mb-6 shadow-2xs">
+              <i className="ri-search-line text-teal-600"></i>
+              <span>Qidiruv limitingiz: <strong>{searchCount}</strong> / <strong>{searchLimit >= 999999 ? 'Cheksiz' : `${searchLimit} ta`}</strong></span>
+            </div>
+          )}
 
           <div className="max-w-2xl mx-auto">
             <div className="flex gap-2">
@@ -920,6 +969,53 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
           </div>
         </div>
       </div>
+
+      {/* SEARCH LIMIT MODAL */}
+      {showSearchLimitModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 text-center shadow-2xl border border-slate-100 relative">
+            <button
+              onClick={() => setShowSearchLimitModal(false)}
+              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer transition-colors"
+            >
+              <i className="ri-close-line text-xl"></i>
+            </button>
+
+            <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 border border-amber-100">
+              <i className="ri-file-search-line"></i>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              Qonun qidiruv limitingiz tugadi
+            </h3>
+            <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
+              Bugungi rejangiz bo'yicha belgilangan qidiruvlar soni ({searchLimit} ta) to'ldi. Ko'proq rasmiy moddalar va qonunlarni qidirish uchun tarifingizni yangilang:
+              <br /><strong className="text-teal-700">Pro:</strong> kuniga 30 ta qidiruv · <strong className="text-teal-700">Premium:</strong> cheksiz qidiruv!
+            </p>
+
+            <div className="space-y-3">
+              <Link
+                to="/pricing"
+                className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <i className="ri-vip-crown-line text-amber-300"></i>
+                <span>Tariflarni ko'rish</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowSearchLimitModal(false)}
+                className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { supabase, getProfile } from '../utils/supabase';
+import { supabase, getProfile, getActiveSubscription, recordUserLogin } from '../utils/supabase';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -12,9 +12,20 @@ export default function LoginPage() {
   const { login, isLoggedIn } = useAuth();
 
   const [form, setForm] = useState({ email: '', password: '' });
+  const [rememberMe, setRememberMe] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Load remembered email on mount
+  useEffect(() => {
+    try {
+      const savedEmail = localStorage.getItem('advokatai_saved_email');
+      if (savedEmail) {
+        setForm((prev) => ({ ...prev, email: savedEmail }));
+      }
+    } catch {}
+  }, []);
 
   // If already logged in, redirect immediately to /chat
   useEffect(() => {
@@ -53,10 +64,28 @@ export default function LoginPage() {
 
     try {
       // 1. Authenticate with Supabase Auth
-      const { data: authData, error: sbError } = await supabase.auth.signInWithPassword({
+      let { data: authData, error: sbError } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password: cleanPassword,
       });
+
+      // Auto-confirm fallback: if email not confirmed, trigger server auto-confirm and retry
+      if (sbError && sbError.message.includes('Email not confirmed')) {
+        try {
+          await safeFetchJson('/api/auth/confirm-user', {
+            method: 'POST',
+            body: JSON.stringify({ email: cleanEmail })
+          });
+          const retry = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: cleanPassword,
+          });
+          if (!retry.error && retry.data) {
+            authData = retry.data;
+            sbError = null;
+          }
+        } catch {}
+      }
 
       if (sbError) {
         // Fallback to backend API if needed
@@ -70,7 +99,7 @@ export default function LoginPage() {
           const errText = sbError.message.includes('Invalid login credentials')
             ? "Email yoki parol notoʻgʻri."
             : sbError.message.includes('Email not confirmed')
-              ? "Email manzilingiz tasdiqlanmagan. Iltimos, pochtangizni tekshiring."
+              ? "Email manzilingiz tasdiqlanmagan. Iltimos, qayta urinib ko'ring."
               : res.error || "Email yoki parol notoʻgʻri.";
           setError(errText);
           return;
@@ -80,11 +109,19 @@ export default function LoginPage() {
         const token = res.data?.data?.token;
         if (userData && token) {
           login(userData, token);
+          recordUserLogin(userData.id).catch(() => {});
+          safeFetchJson('/api/auth/track-login', {
+            method: 'POST',
+            body: JSON.stringify({ userId: userData.id, email: cleanEmail })
+          }).catch(() => {});
         }
       } else if (authData?.user) {
-        // Fetch profile from public.profiles
+        // Fetch profile and subscription from Supabase
         const profile = await getProfile(authData.user.id);
+        const { subscription, plan } = await getActiveSubscription(authData.user.id);
         const displayName = profile?.full_name || authData.user.user_metadata?.full_name || cleanEmail.split('@')[0];
+        const planName = plan?.name || 'Bepul';
+
         const authUser: any = {
           id: authData.user.id,
           userId: authData.user.id,
@@ -92,14 +129,33 @@ export default function LoginPage() {
           name: displayName,
           full_name: profile?.full_name || null,
           role: profile?.role || 'user',
-          plan: 'Bepul',
-          dailyLimit: 5,
-          canCopy: false,
-          canDownload: false,
-          canEdit: false,
+          plan: planName,
+          plan_id: plan?.id,
+          plan_expires_at: subscription?.expires_at || null,
+          dailyLimit: plan?.daily_question_limit ?? (planName.toLowerCase().includes('premium') ? 999999 : planName.toLowerCase().includes('pro') ? 100 : 10),
+          documentLimit: (plan as any)?.document_limit ?? (planName.toLowerCase().includes('premium') ? 100 : planName.toLowerCase().includes('pro') ? 10 : 2),
+          searchLimit: (plan as any)?.search_limit ?? (planName.toLowerCase().includes('premium') ? 999999 : planName.toLowerCase().includes('pro') ? 30 : 3),
+          canCopy: plan?.can_copy ?? (planName.toLowerCase() !== 'bepul'),
+          canDownload: plan?.can_download ?? (planName.toLowerCase() !== 'bepul'),
+          canEdit: plan?.can_edit ?? (planName.toLowerCase() !== 'bepul'),
         };
+
         login(authUser, authData.session?.access_token);
+        recordUserLogin(authData.user.id).catch(() => {});
+        safeFetchJson('/api/auth/track-login', {
+          method: 'POST',
+          body: JSON.stringify({ userId: authData.user.id, email: cleanEmail })
+        }).catch(() => {});
       }
+
+      // Handle rememberMe
+      try {
+        if (rememberMe) {
+          localStorage.setItem('advokatai_saved_email', cleanEmail);
+        } else {
+          localStorage.removeItem('advokatai_saved_email');
+        }
+      } catch {}
 
       setLoading(false);
       setSubmitted(true);
@@ -157,8 +213,10 @@ export default function LoginPage() {
           )}
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+              <label htmlFor="login-email" className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
               <input
+                id="login-email"
+                name="email"
                 type="email"
                 value={form.email}
                 maxLength={120}
@@ -169,12 +227,15 @@ export default function LoginPage() {
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
                 placeholder="email@example.com"
-                autoComplete="email"
+                autoComplete="username email"
+                required
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Parol</label>
+              <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700 mb-2">Parol</label>
               <input
+                id="login-password"
+                name="password"
                 type="password"
                 value={form.password}
                 maxLength={64}
@@ -186,11 +247,19 @@ export default function LoginPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
                 placeholder="••••••••"
                 autoComplete="current-password"
+                required
               />
             </div>
             <div className="flex items-center">
               <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input type="checkbox" className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500" />
+                <input 
+                  type="checkbox" 
+                  id="remember-me"
+                  name="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 cursor-pointer" 
+                />
                 <span className="text-sm text-gray-600">Eslab qolish</span>
               </label>
             </div>

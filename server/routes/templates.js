@@ -324,4 +324,19 @@ router.post('/:id/export', requireAuth, (req, res) => {
   });
 });
 
+/**
+ * POST /api/templates/track-document
+ * Consumes document generation/export quota for user
+ */
+router.post('/track-document', (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    if (!userId) return res.json({ allowed: true });
+    const result = storageService.checkAndConsumeDocumentQuota(userId);
+    return res.json(result);
+  } catch (err) {
+    return res.json({ allowed: true });
+  }
+});
+
 export default router;

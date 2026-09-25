@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { supabase, ensureProfile } from '../utils/supabase';
+import { supabase, ensureProfile, recordUserLogin } from '../utils/supabase';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -112,10 +112,27 @@ export default function RegisterPage() {
         const token = res.data?.data?.token;
         if (userData && token) {
           login(userData, token);
+          recordUserLogin(userData.id).catch(() => {});
+          safeFetchJson('/api/auth/track-login', {
+            method: 'POST',
+            body: JSON.stringify({ userId: userData.id, email: cleanEmail })
+          }).catch(() => {});
         }
       } else if (authData?.user) {
         // Ensure profile row exists in public.profiles (SOURCE OF TRUTH)
         await ensureProfile(authData.user.id, cleanEmail, cleanName);
+
+        // Immediate login if session not returned directly
+        let sessionToken = authData.session?.access_token;
+        if (!sessionToken) {
+          const loginRes = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: cleanPassword,
+          });
+          if (loginRes.data?.session?.access_token) {
+            sessionToken = loginRes.data.session.access_token;
+          }
+        }
 
         const authUser: any = {
           id: authData.user.id,
@@ -125,13 +142,25 @@ export default function RegisterPage() {
           full_name: cleanName,
           role: 'user',
           plan: 'Bepul',
-          dailyLimit: 5,
+          dailyLimit: 10,
+          documentLimit: 2,
+          searchLimit: 3,
           canCopy: false,
           canDownload: false,
           canEdit: false,
         };
-        login(authUser, authData.session?.access_token);
+        login(authUser, sessionToken);
+        recordUserLogin(authData.user.id).catch(() => {});
+        safeFetchJson('/api/auth/track-login', {
+          method: 'POST',
+          body: JSON.stringify({ userId: authData.user.id, email: cleanEmail })
+        }).catch(() => {});
       }
+
+      // Save email for quick login later
+      try {
+        localStorage.setItem('advokatai_saved_email', cleanEmail);
+      } catch {}
 
       setLoading(false);
       setSubmitted(true);
@@ -190,8 +219,10 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Ism</label>
+              <label htmlFor="register-name" className="block text-sm font-semibold text-gray-700 mb-2">Ism</label>
               <input
+                id="register-name"
+                name="name"
                 type="text"
                 disabled={loading}
                 value={form.name}
@@ -202,11 +233,15 @@ export default function RegisterPage() {
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
                 placeholder="Ismingiz"
+                autoComplete="name"
+                required
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+              <label htmlFor="register-email" className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
               <input
+                id="register-email"
+                name="email"
                 type="email"
                 disabled={loading}
                 value={form.email}
@@ -217,11 +252,15 @@ export default function RegisterPage() {
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
                 placeholder="email@example.com"
+                autoComplete="username email"
+                required
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Parol</label>
+              <label htmlFor="register-password" className="block text-sm font-semibold text-gray-700 mb-2">Parol</label>
               <input
+                id="register-password"
+                name="password"
                 type="password"
                 disabled={loading}
                 value={form.password}
@@ -234,6 +273,8 @@ export default function RegisterPage() {
                   passwordTooShort ? 'border-amber-400 focus:ring-amber-400' : 'border-gray-300 focus:ring-teal-500'
                 }`}
                 placeholder="••••••••"
+                autoComplete="new-password"
+                required
               />
               {passwordTooShort && (
                 <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1 font-medium">
@@ -242,13 +283,17 @@ export default function RegisterPage() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Parolni tasdiqlang</label>
+              <label htmlFor="register-confirm-password" className="block text-sm font-semibold text-gray-700 mb-2">Parolni tasdiqlang</label>
               <div className="relative">
                 <input
+                  id="register-confirm-password"
+                  name="confirmPassword"
                   type="password"
                   disabled={loading}
                   value={form.confirmPassword}
                   maxLength={64}
+                  autoComplete="new-password"
+                  required
                   onChange={(e) => {
                     setForm({ ...form, confirmPassword: e.target.value });
                     if (error) setError('');
