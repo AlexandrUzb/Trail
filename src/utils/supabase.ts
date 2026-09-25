@@ -439,4 +439,21 @@ export async function getUserNotifications(userId: string): Promise<Notification
   }
 }
 
+/**
+ * Mark a notification as read in public.notifications
+ */
+export async function markNotificationAsRead(notificationId: string, userId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .eq('user_id', userId);
+
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export default supabase;
