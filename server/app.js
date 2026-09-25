@@ -53,10 +53,11 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Netlify Serverless Function URL Normalization:
-// If forwarded as /.netlify/functions/api/... strip prefix so Express routes match reliably.
+// Ensures incoming /.netlify/functions/api/... is normalized to standard /api/...
 app.use((req, res, next) => {
   if (req.url.startsWith('/.netlify/functions/api')) {
-    req.url = req.url.replace('/.netlify/functions/api', '') || '/';
+    const stripped = req.url.replace('/.netlify/functions/api', '');
+    req.url = stripped ? (stripped.startsWith('/') ? `/api${stripped}` : `/api/${stripped}`) : '/api';
   }
   next();
 });
@@ -73,7 +74,7 @@ import adminRouter from './routes/admin.js';
 import authRouter from './routes/auth.js';
 import notificationsRouter from './routes/notifications.js';
 
-// Mount on standard /api/* paths
+// Mount all backend endpoints on standard /api/* paths
 app.use('/api/health', healthRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/laws', lawsRouter);
@@ -85,17 +86,8 @@ app.use('/api/admin', adminRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/notifications', notificationsRouter);
 
-// Also mount without /api prefix for serverless environments where /api is stripped by redirects
+// Health check alias for cloud platforms (Render / Docker / Load Balancers)
 app.use('/health', healthRouter);
-app.use('/chat', chatRouter);
-app.use('/laws', lawsRouter);
-app.use('/templates', templatesRouter);
-app.use('/plans', plansRouter);
-app.use('/payments', paymentsRouter);
-app.use('/feedback', feedbackRouter);
-app.use('/admin', adminRouter);
-app.use('/auth', authRouter);
-app.use('/notifications', notificationsRouter);
 
 // --- UNIFIED FULL-STACK STATIC SERVING (RENDER / RAILWAY / LOCAL) ---
 const distPath = path.resolve(__dirname, '../dist');
@@ -156,13 +148,18 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler - ALWAYS returns JSON
+// Global error handler - ALWAYS returns JSON and never exposes sensitive details in production
 app.use((err, req, res, next) => {
-  console.error('[API Error Handler]:', err);
+  console.error('[API Error Handler]:', err.message || err);
   const status = err.statusCode || err.status || 500;
+  const isProd = process.env.NODE_ENV === 'production';
+  const errorMessage = (status >= 500 && isProd)
+    ? "Serverda ichki xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
+    : (err.message || "Serverda ichki xatolik yuz berdi.");
+
   res.status(status).json({
     success: false,
-    error: err.message || "Serverda ichki xatolik yuz berdi."
+    error: errorMessage
   });
 });
 
