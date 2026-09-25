@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { safeFetchJson, safeStorage } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 interface PaymentItem {
   id: string;
@@ -44,6 +45,7 @@ interface AdminUser {
 }
 
 export default function AdminPage() {
+  const { user } = useAuth();
   const [adminKey, setAdminKey] = useState<string>(() => {
     return safeStorage.getItem('advokatai_admin_key', '') || '';
   });
@@ -67,44 +69,26 @@ export default function AdminPage() {
   const [notification, setNotification] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const verifyKey = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (loading) return;
-    setLoginError(null);
-    setLoading(true);
-    try {
-      const res = await safeFetchJson('/api/admin/payments', {
-        headers: { 'x-admin-key': adminKey.trim() },
-      });
-      if (res.ok) {
-        setIsAuthenticated(true);
-        safeStorage.setItem('advokatai_admin_key', adminKey.trim());
-        loadAllData();
-      } else {
-        setLoginError("Notoʻgʻri Admin kaliti! Iltimos, qaytadan tekshirib koʻring.");
-      }
-    } catch (e: any) {
-      setLoginError("Server bilan bogʻlanib boʻlmadi. Qayta urinib koʻring.");
-    } finally {
-      setLoading(false);
+  const getAdminHeaders = useCallback(() => {
+    const headers: Record<string, string> = {};
+    if (adminKey && adminKey.trim()) {
+      headers['x-admin-key'] = adminKey.trim();
     }
-  };
+    const token = safeStorage.getItem('advokatai_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  }, [adminKey]);
 
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     try {
+      const headers = getAdminHeaders();
       const [pRes, aRes, uRes, sRes] = await Promise.all([
-        safeFetchJson<{ success: boolean; data: PaymentItem[] }>('/api/admin/payments', {
-          headers: { 'x-admin-key': adminKey },
-        }),
-        safeFetchJson<{ success: boolean; data: { analytics: AnalyticsData; feedback: FeedbackData } }>('/api/admin/analytics', {
-          headers: { 'x-admin-key': adminKey },
-        }),
-        safeFetchJson<{ success: boolean; data: AdminUser[] }>('/api/admin/users', {
-          headers: { 'x-admin-key': adminKey },
-        }),
-        safeFetchJson<{ success: boolean; data: any }>('/api/admin/settings', {
-          headers: { 'x-admin-key': adminKey },
-        }),
+        safeFetchJson<{ success: boolean; data: PaymentItem[] }>('/api/admin/payments', { headers }),
+        safeFetchJson<{ success: boolean; data: { analytics: AnalyticsData; feedback: FeedbackData } }>('/api/admin/analytics', { headers }),
+        safeFetchJson<{ success: boolean; data: AdminUser[] }>('/api/admin/users', { headers }),
+        safeFetchJson<{ success: boolean; data: any }>('/api/admin/settings', { headers }),
       ]);
 
       if (pRes.ok && pRes.data?.success) setPayments(pRes.data.data || []);
@@ -117,20 +101,48 @@ export default function AdminPage() {
     } catch (e) {
       console.error('Failed to load admin data:', e);
     }
+  }, [getAdminHeaders]);
+
+  const verifyKey = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (loading) return;
+    setLoginError(null);
+    setLoading(true);
+    try {
+      const res = await safeFetchJson('/api/admin/payments', {
+        headers: getAdminHeaders(),
+      });
+      if (res.ok) {
+        setIsAuthenticated(true);
+        if (adminKey.trim()) {
+          safeStorage.setItem('advokatai_admin_key', adminKey.trim());
+        }
+        loadAllData();
+      } else {
+        setLoginError("Notoʻgʻri Admin kaliti yoki admin ruxsati mavjud emas.");
+      }
+    } catch (e: any) {
+      setLoginError("Server bilan bogʻlanib boʻlmadi. Qayta urinib koʻring.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    if (adminKey) {
+    if (user?.role === 'admin') {
+      setIsAuthenticated(true);
+      loadAllData();
+    } else if (adminKey) {
       verifyKey();
     }
-  }, []);
+  }, [user?.role, adminKey, loadAllData]);
 
   const handleVerifyPayment = async (paymentId: string, status: 'PAID' | 'REJECTED') => {
     setActionLoading(paymentId);
     try {
       const res = await safeFetchJson<{ success: boolean; error?: string }>(`/api/admin/payments/${paymentId}/verify`, {
         method: 'POST',
-        headers: { 'x-admin-key': adminKey },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ status }),
       });
       if (res.ok && res.data?.success) {
@@ -153,7 +165,7 @@ export default function AdminPage() {
     try {
       const res = await safeFetchJson<{ success: boolean; error?: string }>('/api/admin/settings', {
         method: 'POST',
-        headers: { 'x-admin-key': adminKey },
+        headers: getAdminHeaders(),
         body: JSON.stringify(settings),
       });
       if (res.ok && res.data?.success) {

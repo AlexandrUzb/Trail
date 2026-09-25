@@ -1,19 +1,31 @@
 import express from 'express';
 import { storageService } from '../services/storageService.js';
-import { getSupabaseServerClient } from '../services/supabaseClient.js';
+import { getSupabaseServerClient, verifySupabaseToken } from '../services/supabaseClient.js';
 
 const router = express.Router();
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Admin authorization middleware
-function adminAuth(req, res, next) {
+// Admin authorization middleware supporting both x-admin-key and Supabase profiles.role === 'admin'
+async function adminAuth(req, res, next) {
   const secret = process.env.ADMIN_API_KEY || 'advokatai_admin_secret_2025';
   const provided = req.headers['x-admin-key'] || req.query.admin_key;
 
-  if (!provided || provided !== secret) {
-    return res.status(401).json({ success: false, error: "Ruxsat etilmagan: Noto'g'ri admin kaliti." });
+  if (provided && provided === secret) {
+    return next();
   }
-  next();
+
+  // Support Supabase Auth token if the profile has admin role
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7).trim();
+    const sbResult = await verifySupabaseToken(token);
+    if (sbResult.valid && sbResult.user && sbResult.user.role === 'admin') {
+      req.user = sbResult.user;
+      return next();
+    }
+  }
+
+  return res.status(401).json({ success: false, error: "Ruxsat etilmagan: Noto'g'ri admin kaliti yoki admin huquqi talab qilinadi." });
 }
 
 router.use(adminAuth);

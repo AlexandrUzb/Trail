@@ -51,7 +51,21 @@ export async function verifySupabaseToken(token) {
     if (error || !user) {
       return { valid: false, error: error?.message || 'Invalid user token' };
     }
-    return { valid: true, user };
+    let role = 'user';
+    try {
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profile && profile.role) {
+        role = profile.role;
+      }
+    } catch {
+      // Retain default 'user' if lookup fails
+    }
+
+    return { valid: true, user: { ...user, role } };
   } catch (err) {
     return { valid: false, error: err.message };
   }
