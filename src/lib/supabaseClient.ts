@@ -1,16 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const DEFAULT_SUPABASE_URL = 'https://gkztwgxxcahwmzwvimzi.supabase.co';
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0';
+
+const supabaseUrl = 
+  import.meta.env.VITE_SUPABASE_URL || 
+  DEFAULT_SUPABASE_URL;
+
 const supabasePublishableKey = 
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
   import.meta.env.VITE_SUPABASE_ANON_KEY || 
-  '';
-
-if (!supabaseUrl || !supabasePublishableKey) {
-  console.warn(
-    '[SupabaseClient] Warning: VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY is not defined in the environment.'
-  );
-}
+  DEFAULT_SUPABASE_PUBLISHABLE_KEY;
 
 /**
  * Reusable Supabase client for the React / Vite application.

@@ -120,10 +120,16 @@ function Layout() {
 }
 
 export default function App() {
+  const base = import.meta.env.BASE_URL || '/';
+  // Avoid relative './' or '/./' from viteSingleFile breaking React Router matching on root URLs
+  const routerBasename = (base === './' || base === '/./' || base === '.' || base === '/') 
+    ? undefined 
+    : base.replace(/\/+$/, '');
+
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Router basename={import.meta.env.BASE_URL}>
+        <Router basename={routerBasename}>
           <Layout />
         </Router>
       </AuthProvider>
