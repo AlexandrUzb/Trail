@@ -765,8 +765,10 @@ Jinoyat kodeksi 211-moddasining to‘rtinchi qismiga asosan, basharti shaxsga ni
       }
     }
 
-    if (responseObj.needs_clarification) {
+    if (responseObj.needs_clarification && responseObj.source !== 'low_confidence_guardrail' && responseObj.confidenceLevel !== 'LOW') {
       finalLevel = 'HIGH'; // Clarification requests themselves are high confidence when intentional
+    } else if (responseObj.confidenceLevel === 'LOW' || responseObj.source === 'low_confidence_guardrail') {
+      finalLevel = 'LOW';
     }
 
     const confidenceReason = this.generateConfidenceReason(scenario, validationResult, finalLevel);

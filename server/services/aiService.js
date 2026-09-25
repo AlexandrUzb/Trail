@@ -607,7 +607,7 @@ export async function generateLegalAdvice({ message, law_group = null, history =
     eventDate: scenario.eventDate,
     isCurrentOnly: !scenario.isHistorical,
     topK: intentResult.intent === 'SPECIFIC_ARTICLE' ? 1 : 2,
-    minScore: 3
+    minScore: 16
   });
 
   const retrievedArticles = retrieval.articles;
@@ -622,15 +622,8 @@ export async function generateLegalAdvice({ message, law_group = null, history =
   const confidenceLevel = initialComposite.level;
 
   // STEP 4: WEAK RETRIEVAL GUARDRAIL (Zero Hallucination)
-  if (confidenceLevel === 'LOW' || retrievedArticles.length === 0) {
-    const fallbackMessage = `Vaziyatingizni tushundim, lekin hozircha ushbu holatga bevosita tegishli qonun normasini ishonchli aniqlash uchun ma’lumot yetarli emas.
-
-Aniq va asosli javob berishimiz uchun quyidagi savollarga oydinlik kiritib bera olasizmi:
-1. Ushbu nizo yoki holat qaysi munosabatga oid (masalan: mehnat, turar joy ijarasi, qarz, oilaviy masala yoki jarima)?
-2. Taraflar o‘rtasida qandaydir yozma shartnoma, rasmiy hujjat yoki kvitansiya tuzilganmi?
-3. Vaziyat qachon sodir bo‘ldi va siz aynan qanday huquqiy natijaga erishmoqchisiz?
-
-AdvokatAI asossiz yoki noto‘g‘ri qonun moddalarini keltirmaydi. Tafsilotlarni yozsangiz, rasmiy moddalar asosida to‘liq yordam beraman.`;
+  if (confidenceLevel === 'LOW' || retrievedArticles.length === 0 || (retrievedArticles[0]?.relevance_score || 0) < 20) {
+    const fallbackMessage = "Rahmat. Ushbu savol bo‘yicha O‘zbekiston qonunchiligida bevosita qo‘llaniladigan norma topilmadi. Shu sababli faqat O‘zbekiston qonunchiligiga asoslangan aniq javob berib bo‘lmaydi.";
 
     const latencyMs = Date.now() - startTime;
     storageService.logQuery({

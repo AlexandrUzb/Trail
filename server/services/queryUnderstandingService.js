@@ -27,7 +27,7 @@ const HOW_TO_ASK_EXPLANATION = `Savol berishda vaziyatni iloji boricha aniq bayo
 
 Marhamat, savolingizni yozing!`;
 
-const OUT_OF_SCOPE_EXPLANATION = "Ushbu umumiy mavzu bo‘yicha savolingizni tushundim. Biroq men AdvokatAI yuridik maslahatchisiman va O‘zbekiston Respublikasi qonunchiligi, huquqiy muammolar, shartnomalar, mehnat, mulk va sud amaliyoti bo‘yicha savollarga ixtisoslashganman. Ob-havo, taomlar yoki boshqa umumiy mavzularda ma'lumot bera olmayman. Agar qonunlar yoki huquqlaringiz bo‘yicha savolingiz bo‘lsa, bajonidil yordam beraman!";
+const OUT_OF_SCOPE_EXPLANATION = "Rahmat. Bu savol O‘zbekiston qonunchiligiga bevosita taalluqli emas. AdvokatAI faqat O‘zbekiston qonunchiligi asosida huquqiy axborot beradi, shuning uchun bu savolga qonunchilikka asoslangan javob bera olmayman.";
 
 // 19+ Legal Taxonomy (Section 17)
 export const LEGAL_TAXONOMY = {
@@ -1504,10 +1504,11 @@ Tafsilotlarni bildirsangiz, tegishli qonunchilik asosida qayerga va qanday tarti
     }
 
     // 8. GENERAL NON-LEGAL
-    const outOfScopeRegex = /^(ob-havo|ob\s*havo|havo\s*qanday|bugun\s*havo|ertaga\s*havo|ovqat\s*pishirish|tort\s*tayyorlash|matematika|futbol|kino|qo['‘`]?shiq)\b/i;
+    const outOfScopeRegex = /^(ob-havo|ob\s*havo|havo\s*qanday|bugun\s*havo|ertaga\s*havo|ovqat\s*pishirish|tort\s*tayyorlash|palov\s*(?:qanday|tayyorlash|pishirish)|taom\s*tayyorlash|retsept|matematika|futbol|kino|qo['‘`]?shiq|soch\s*(?:uzunligi|o['‘`]?stirish|turmagi|qirqish|bo['‘`]?yash)|soch\s*qanday|soch\s*parvarishi)\b/i;
     const fantasyRegex = /(marsga|oyga\s*uchish|kosmik\s*kema|kosmosga|boshqa\s*sayyora|raketada\s*uchish|sehrgar|afsungar)/i;
+    const everydayLifestyleRegex = /(soch\s*(?:uzunligi|o['‘`]?stirish|turmagi|qirqish)|soch\s*qanday\s*o['‘`]?stiriladi|kiyim\s*kiyish|kiyim\s*tanlash|taom\s*pishirish|palov\s*qanday|retsept)/i;
 
-    if (outOfScopeRegex.test(latin) || fantasyRegex.test(latin) || latin.includes('havo qanday') || latin.includes('ob-havo qanday')) {
+    if (outOfScopeRegex.test(latin) || fantasyRegex.test(latin) || everydayLifestyleRegex.test(latin) || latin.includes('havo qanday') || latin.includes('ob-havo qanday')) {
       const responseText = fantasyRegex.test(latin)
         ? `Oʻzbekiston Respublikasining amaldagi qonunchiligida kosmik parvozlar yoki fazoviy kema vizasi boʻyicha huquqiy normalar mavjud emas.\n\nAdvokatAI faqat amaldagi real qonunchilik asosida ish yuritadi. Agar mehnat, fuqarolik, mulk, jinoyat yoki maʼmuriy munosabatlar boʻyicha amaliy huquqiy savollaringiz boʻlsa, marhamat, murojaat qilishingiz mumkin.`
         : OUT_OF_SCOPE_EXPLANATION;

@@ -521,14 +521,24 @@ class RAGService {
       }
     }
 
-    // Stopwords filter
-    const stopwords = new Set(['va', 'yoki', 'haqida', 'to‘g‘risida', 'togrisida', 'uchun', 'bilan', 'nima', 'qanday', 'mumkin', 'kerak', 'qilish', 'buyicha', 'bo‘yicha', 'boyicha', 'deb', 'bir', 'esa', 'ҳам', 'ва', 'ёки', 'ҳақида', 'тўғрисида', 'учун', 'билан', 'нима', 'қандай', 'мумкин', 'керак']);
-    const rawTerms = queryLatin.split(/\s+/).filter(t => t.length > 1 && !stopwords.has(t));
+    // Stopwords filter - expanded with everyday non-legal question markers and auxiliaries
+    const stopwords = new Set([
+      'va', 'yoki', 'haqida', 'to‘g‘risida', 'togrisida', 'to\'g\'risida', 'uchun', 'bilan', 'nima', 'qanday', 'mumkin', 
+      'kerak', 'qilish', 'buyicha', 'bo‘yicha', 'boyicha', 'bo\'yicha', 'deb', 'bir', 'esa', 'ҳам', 'ва', 'ёки', 
+      'ҳақида', 'тўғрисида', 'учун', 'билан', 'нима', 'қандай', 'мумкин', 'керак',
+      'qancha', 'bo\'lishi', 'bolishi', 'bo‘lishi', 'qoidalar', 'qoidasi', 'tartiblar', 'tartibi', 'asosida', 'ham', 'faqat', 'bugun', 'ertaga',
+      'qilsa', 'boladi', 'bo‘ladi', 'bormi', 'yoqmi', 'yo‘qmi', 'haqda', 'tushuntir', 'tushuntiring',
+      'uzunligi', 'o\'stirish', 'ostirish', 'o‘stirish', 'kiyishim', 'kiyish', 'pishiriladi', 'pishirish', 'tanlash',
+      'nimalar', 'qanaqa', 'qaysi', 'haqidagi', 'eng', 'yaxshi', 'qayerda', 'qayerdan', 'joylashgan', 'narxi', 'qayer',
+      'katta', 'kichik', 'yangi', 'eski'
+    ]);
+    const cleanWord = w => w.replace(/[ʻ‘'`]/g, "'").trim();
+    const rawTerms = queryLatin.split(/\s+/).map(cleanWord).filter(t => t.length > 2 && !stopwords.has(t) && !stopwords.has(t.replace(/'/g, '')));
 
     if (Array.isArray(additionalTerms)) {
       for (const term of additionalTerms) {
         const tNorm = cyrillicToLatin(normalizeSearchText(term)).toLowerCase();
-        const spl = tNorm.split(/\s+/).filter(t => t.length > 1 && !stopwords.has(t));
+        const spl = tNorm.split(/\s+/).map(cleanWord).filter(t => t.length > 2 && !stopwords.has(t) && !stopwords.has(t.replace(/'/g, '')));
         rawTerms.push(...spl);
       }
     }
@@ -697,67 +707,74 @@ class RAGService {
         score += 35;
       }
 
-      // 3. Term match scoring with prefix matching (stemming)
+      // 3. Term match scoring with prefix matching (stemming) with word boundary check
       for (const term of searchTerms) {
         const tLen = term.length;
         if (tLen < 3) continue;
 
-        if (artTitle.includes(term)) {
-          score += 15;
-        } else if (tLen >= 4 && (artTitle.includes(term.slice(0, -1)) || artTitle.includes(term.slice(0, -2)))) {
-          score += 10;
+        // Word boundary regex for term and stems
+        const exactWordRe = new RegExp(`\\b${term}\\b`, 'i');
+        const stem1 = tLen >= 5 ? term.slice(0, -1) : null;
+        const stem2 = tLen >= 6 ? term.slice(0, -2) : null;
+
+        if (exactWordRe.test(artTitle)) {
+          score += 18;
+        } else if (stem1 && new RegExp(`\\b${stem1}`, 'i').test(artTitle)) {
+          score += 12;
+        } else if (stem2 && new RegExp(`\\b${stem2}`, 'i').test(artTitle)) {
+          score += 8;
         }
 
         if (artNum.includes(term)) {
           score += 20;
         }
 
-        if (artTokens.includes(term)) {
-          score += 3;
-        } else if (tLen >= 5 && artTokens.includes(term.slice(0, -1))) {
+        if (exactWordRe.test(artTokens)) {
+          score += 4;
+        } else if (stem1 && new RegExp(`\\b${stem1}`, 'i').test(artTokens)) {
           score += 2;
         }
       }
 
-      // 4. Domain & keyword boost with Uzbek morphological tolerance
+      // 4. Domain & keyword boost with Uzbek morphological tolerance (using word boundaries to avoid false positives like 'qayerda' -> 'yer')
       const qLower = cleanQuery.toLowerCase();
-      if ((qLower.includes('mehnat') || qLower.includes('ishdan') || qLower.includes('ish beruvchi') || qLower.includes('xodim') || qLower.includes('maosh') || qLower.includes('oylik') || qLower.includes('oylig')) && (art.document_id === 'labor_code' || art.category === 'Mehnat huquqi')) {
+      if (/\b(mehnat|ishdan|ish\s*beruvchi|xodim|maosh|oylik|oylig)\b/i.test(qLower) && (art.document_id === 'labor_code' || art.category === 'Mehnat huquqi')) {
         score += 25;
       }
-      if ((qLower.includes('ijara') || qLower.includes('kvartira') || qLower.includes('mulk') || qLower.includes('oldi-sotdi') || qLower.includes('pudrat') || qLower.includes('kredit') || qLower.includes('qarz') || qLower.includes('qarzdorlik')) && (art.document_id === 'civil_code' || art.category === 'Fuqarolik huquqi')) {
+      if (/\b(ijara|kvartira|mulk|oldi-sotdi|pudrat|kredit|qarz|qarzdorlik)\b/i.test(qLower) && (art.document_id === 'civil_code' || art.category === 'Fuqarolik huquqi')) {
         score += 20;
       }
-      if ((qLower.includes('jinoyat') || qLower.includes('pora') || qLower.includes('jazo') || qLower.includes('qamoq') || qLower.includes("o'g'rilik") || qLower.includes("o‘g‘rilik") || qLower.includes('firibgar')) && (art.document_id === 'criminal_code' || art.category === 'Jinoyat huquqi')) {
+      if (/\b(jinoyat|pora|jazo|qamoq|o['‘`]?g['‘`]?rilik|firibgar)\b/i.test(qLower) && (art.document_id === 'criminal_code' || art.category === 'Jinoyat huquqi')) {
         score += 30;
       }
-      if ((qLower.includes('jarima') || qLower.includes('qoidabuzarlik') || qLower.includes("ma'muriy") || qLower.includes("ma’muriy") || qLower.includes("yo'l harakati") || qLower.includes("yo‘l harakati") || qLower.includes('radar') || qLower.includes('haydovchi')) && (art.document_id === 'administrative_code' || art.category === "Ma’muriy huquq" || art.category === "Transport huquqi")) {
+      if (/\b(jarima|qoidabuzarlik|ma['‘`]?muriy|yo['‘`]?l\s*harakati|radar|haydovchi)\b/i.test(qLower) && (art.document_id === 'administrative_code' || art.category === "Ma’muriy huquq" || art.category === "Transport huquqi")) {
         score += 25;
       }
-      if ((qLower.includes('konstitutsiya') || qLower.includes('inson huquq') || qLower.includes('daxlsizlik') || qLower.includes('davlat tili')) && (art.document_id === 'constitution' || art.category === 'Konstitutsiyaviy huquq')) {
+      if (/\b(konstitutsiya|inson\s*huquq|daxlsizlik|davlat\s*tili)\b/i.test(qLower) && (art.document_id === 'constitution' || art.category === 'Konstitutsiyaviy huquq')) {
         score += 25;
       }
-      if ((qLower.includes('aliment') || qLower.includes('ajrashish') || qLower.includes('nikoh') || qLower.includes('er-xotin') || qLower.includes('farzand') || qLower.includes('ota-ona') || qLower.includes('vasiylik')) && (art.document_id === 'family_code' || art.category === 'Oila huquqi')) {
+      if (/\b(aliment|ajrashish|nikoh|er-xotin|farzand|ota-ona|vasiylik)\b/i.test(qLower) && (art.document_id === 'family_code' || art.category === 'Oila huquqi')) {
         score += 30;
       }
-      if ((qLower.includes('soliq') || qLower.includes('daromad solig') || qLower.includes('nds') || qLower.includes('qqs') || qLower.includes('foyda solig')) && (art.document_id === 'tax_code' || art.category === 'Soliq huquqi')) {
+      if (/\b(soliq|daromad\s*solig|nds|qqs|foyda\s*solig)\b/i.test(qLower) && (art.document_id === 'tax_code' || art.category === 'Soliq huquqi')) {
         score += 30;
       }
-      if ((qLower.includes('yer') || qLower.includes('kadastr') || qLower.includes('uchastka')) && (art.document_id === 'land_code' || art.category === 'Yer huquqi')) {
+      if (/\b(yer|kadastr|uchastka)\b/i.test(qLower) && (art.document_id === 'land_code' || art.category === 'Yer huquqi')) {
         score += 25;
       }
-      if ((qLower.includes('meros') || qLower.includes('vasiyatnoma') || qLower.includes('merosxo') || qLower.includes('voris')) && (art.category === 'Meros huquqi' || art.subcategory === 'Meros huquqi')) {
+      if (/\b(meros|vasiyatnoma|merosxo['‘`]?r|voris)\b/i.test(qLower) && (art.category === 'Meros huquqi' || art.subcategory === 'Meros huquqi')) {
         score += 30;
       }
-      if ((qLower.includes('tadbirkor') || qLower.includes('biznes') || qLower.includes('mchj') || qLower.includes('litsenziya') || qLower.includes('firma')) && (art.category === 'Tadbirkorlik huquqi')) {
+      if (/\b(tadbirkor|biznes|mchj|litsenziya|firma)\b/i.test(qLower) && (art.category === 'Tadbirkorlik huquqi')) {
         score += 25;
       }
-      if ((qLower.includes('bank') || qLower.includes('kredit') || qLower.includes('depozit') || qLower.includes('omonat') || qLower.includes('foiz')) && (art.category === 'Moliya va bank huquqi')) {
+      if (/\b(bank|kredit|depozit|omonat|foiz)\b/i.test(qLower) && (art.category === 'Moliya va bank huquqi')) {
         score += 25;
       }
-      if ((qLower.includes("iste'molchi") || qLower.includes("iste’molchi") || qLower.includes('kafolat') || qLower.includes('tovar qaytarish')) && (art.category === 'Iste’molchilar huquqlari')) {
+      if (/\b(iste['‘`]?molchi|kafolat|tovar\s*qaytarish)\b/i.test(qLower) && (art.category === 'Iste’molchilar huquqlari')) {
         score += 25;
       }
-      if ((qLower.includes('uy-joy') || qLower.includes('turar joy') || qLower.includes('propiska') || qLower.includes('uy ijarasi')) && (art.category === 'Uy-joy huquqi')) {
+      if (/\b(uy-joy|turar\s*joy|propiska|uy\s*ijarasi)\b/i.test(qLower) && (art.category === 'Uy-joy huquqi')) {
         score += 20;
       }
 
