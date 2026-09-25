@@ -290,5 +290,21 @@
     "plan_id": "pro",
     "plan_expires_at": "2026-10-25T08:47:16.360Z",
     "created_at": "2026-09-25T08:47:16.360Z"
+  },
+  {
+    "id": "usr_1790329120489_trrr5",
+    "name": "Chaos Tester",
+    "email": "user_chaos_1790329120479@advokatai.uz",
+    "password_hash": "3a6e9b2633a59ec7ce0009c129365f807160a9ac4e94de6e87fb13a35a3d5be5bac52b89213432c7d9dd257217d50a6e4e7cdafffce713b373e4e4e13515529a",
+    "plan": "free",
+    "created_at": "2026-09-25T09:38:40.489Z"
+  },
+  {
+    "id": "user_pay_1790329121669",
+    "email": "user_pay_1790329121669@advokatai.uz",
+    "role": "user",
+    "plan_id": "pro",
+    "plan_expires_at": "2026-10-25T09:38:41.688Z",
+    "created_at": "2026-09-25T09:38:41.688Z"
   }
 ]

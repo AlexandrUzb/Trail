@@ -79,11 +79,10 @@ Agar Blueprint ishlatmasdan qoʻlda yaratmoqchi boʻlsangiz:
 | `PAYMENT_CARD_NUMBER` | `4466 1369 5151 4448` | Toʻlov sahifasida koʻrinuvchi karta |
 | `PAYMENT_CARD_HOLDER` | `Zokirov Zafar` | Karta egasi ismi |
 | `PAYMENT_BANK_NAME` | `Humo / Uzcard / Visa` | Bank nomi |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://gkztwgxxcahwmzwvimzi.supabase.co` | Supabase URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0` | Supabase ochiq kaliti |
-| `VITE_SUPABASE_URL` | `https://gkztwgxxcahwmzwvimzi.supabase.co` | Supabase URL (Vite) |
-| `VITE_SUPABASE_ANON_KEY` | `sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0` | Supabase ochiq kaliti (Vite) |
-| `SUPABASE_SERVICE_ROLE_KEY` | *(ixtiyoriy)* | Supabase dashboard Project Settings → API dan olingan maxfiy kalit |
+| `VITE_SUPABASE_URL` | `https://gkztwgxxcahwmzwvimzi.supabase.co` | Supabase URL (Vite brauzer uchun) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0` | Supabase ochiq kaliti (Vite brauzer uchun) |
+| `SUPABASE_URL` | `https://gkztwgxxcahwmzwvimzi.supabase.co` | Supabase URL (Server/Serverless uchun) |
+| `SUPABASE_SERVICE_ROLE_KEY` | *(maxfiy kalit)* | Supabase dashboard Project Settings → API dan olingan maxfiy kalit (Faqat Server) |
 
 5. **Create Web Service** tugmasini bosing.
 

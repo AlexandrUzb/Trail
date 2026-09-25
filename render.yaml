@@ -38,16 +38,14 @@ services:
       - key: PAYMENT_BANK_NAME
         value: Humo / Uzcard / Visa
 
-      # Supabase Project Configuration
-      - key: NEXT_PUBLIC_SUPABASE_URL
-        value: https://gkztwgxxcahwmzwvimzi.supabase.co
-      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-        value: sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0
+      # Supabase Project Configuration (Frontend Vite)
       - key: VITE_SUPABASE_URL
         value: https://gkztwgxxcahwmzwvimzi.supabase.co
-      - key: VITE_SUPABASE_ANON_KEY
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
         value: sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0
-
-      # Optional: Supabase Server Service Role Key (for direct server DB access)
+      # Supabase Server Configuration
+      - key: SUPABASE_URL
+        value: https://gkztwgxxcahwmzwvimzi.supabase.co
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+

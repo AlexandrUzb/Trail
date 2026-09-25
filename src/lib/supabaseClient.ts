@@ -16,12 +16,16 @@ if (!supabaseUrl || !supabasePublishableKey) {
  * Reusable Supabase client for the React / Vite application.
  * Uses publishable / anon key only. Safe for browser execution.
  */
-export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
+export const supabase = createClient(
+  supabaseUrl,
+  supabasePublishableKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  }
+);
 
 export default supabase;

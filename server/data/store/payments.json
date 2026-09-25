@@ -1,5 +1,20 @@
 [
   {
+    "id": "pay_1790329121686_mq15e2",
+    "user_id": "user_pay_1790329121669",
+    "plan_id": "pro",
+    "plan_name": "Pro",
+    "amount": 18000,
+    "currency": "so'm",
+    "payment_method": "card",
+    "transaction_reference": "PAYME-10293847",
+    "payer_name": "Anvar Karimov",
+    "status": "PENDING",
+    "created_at": "2026-09-25T09:38:41.686Z",
+    "verified_at": null,
+    "verified_by": null
+  },
+  {
     "id": "pay_1790326036359_c82p5a",
     "user_id": "user_pay_1790326036343",
     "plan_id": "pro",

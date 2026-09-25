@@ -1,5 +1,43 @@
 [
   {
+    "id": "q_1790329121599_71wzs",
+    "timestamp": "2026-09-25T09:38:41.599Z",
+    "compositeConfidence": {
+      "score": 100,
+      "level": "HIGH",
+      "breakdown": {
+        "source_authority": 25,
+        "source_freshness": 15,
+        "article_relevance": 25,
+        "fact_completeness": 15,
+        "version_match": 10,
+        "claim_support": 10
+      }
+    },
+    "fallbackUsed": {
+      "used": true,
+      "type": "api_error_rag_fallback"
+    },
+    "safetyInterception": {
+      "intercepted": false,
+      "reason": null
+    },
+    "contradictionDetected": false,
+    "userId": "test_user_readiness",
+    "message": "Ish beruvchi xodimni sinov muddati bilan ishga qabul qilganda qanday talablar bor?",
+    "intent": "LEGAL",
+    "selectedLawGroup": null,
+    "detectedLawGroup": "labor_code",
+    "confidence": 100,
+    "confidenceLevel": "HIGH",
+    "retrievedCount": 3,
+    "citationsCount": 1,
+    "latencyMs": 1005,
+    "needsClarification": false,
+    "isError": true,
+    "errorDetails": "{\"error\":{\"code\":401,\"message\":\"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\",\"status\":\"UNAUTHENTICATED\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.ErrorInfo\",\"reason\":\"ACCESS_TOKEN_TYPE_UNSUPPORTED\",\"metadata\":{\"method\":\"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent\",\"service\":\"generativelanguage.googleapis.com\"}}]}}"
+  },
+  {
     "id": "q_1790326036278_4qed1",
     "timestamp": "2026-09-25T08:47:16.278Z",
     "compositeConfidence": {
@@ -28736,20 +28774,6 @@
     "confidence": 98,
     "retrievedCount": 1,
     "latencyMs": 4415,
-    "needsClarification": false,
-    "isError": false
-  },
-  {
-    "id": "q_1789812788980_q9ksa",
-    "timestamp": "2026-09-19T10:13:08.980Z",
-    "userId": "user_jjudko0cmu881bw2",
-    "message": "Ish beruvchi oylikni to'lamayapti",
-    "intent": "LEGAL",
-    "selectedLawGroup": null,
-    "detectedLawGroup": "labor_code",
-    "confidence": 98,
-    "retrievedCount": 1,
-    "latencyMs": 39035,
     "needsClarification": false,
     "isError": false
   }

@@ -2,14 +2,18 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = 
   process.env.SUPABASE_URL || 
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 
-  'https://gkztwgxxcahwmzwvimzi.supabase.co';
+  process.env.VITE_SUPABASE_URL || 
+  '';
 
 const SUPABASE_KEY = 
   process.env.SUPABASE_SERVICE_ROLE_KEY || 
   process.env.SUPABASE_ANON_KEY || 
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 
-  'sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0';
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
+  '';
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.warn('[SupabaseServer] Warning: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY / SUPABASE_ANON_KEY not set.');
+}
 
 let supabaseInstance = null;
 
