@@ -6,7 +6,6 @@ import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
 import SearchPage from './pages/SearchPage';
 import TemplatesPage from './pages/TemplatesPage';
-import PricingPage from './pages/PricingPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import HistoryPage from './pages/HistoryPage';
@@ -15,7 +14,7 @@ import RegisterPage from './pages/RegisterPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import NotFoundPage from './pages/NotFoundPage';
-import PaymentPage from './pages/PaymentPage';
+import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import ScrollToTop from './components/ScrollToTop';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -73,15 +72,20 @@ function Layout() {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/templates" element={<TemplatesPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
           <Route
-            path="/payment"
+            path="/profile"
             element={
               <ProtectedRoute>
-                <PaymentPage />
+                <ProfilePage />
               </ProtectedRoute>
             }
           />
+          {/* Redirect all legacy pricing and payment routes to home */}
+          <Route path="/pricing" element={<Navigate to="/" replace />} />
+          <Route path="/prices" element={<Navigate to="/" replace />} />
+          <Route path="/payment" element={<Navigate to="/" replace />} />
+          <Route path="/transactions" element={<Navigate to="/" replace />} />
+          <Route path="/plans" element={<Navigate to="/" replace />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />

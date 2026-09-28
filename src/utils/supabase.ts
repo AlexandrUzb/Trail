@@ -9,17 +9,58 @@ export interface Profile {
   avatar_url: string | null;
   phone: string | null;
   role: 'user' | 'admin';
+  plan?: 'free' | 'pro' | 'premium' | string;
+  telegram_user_id?: number | null;
+  telegram_username?: string | null;
+  telegram_connected?: boolean;
+  telegram_connected_at?: string | null;
+  telegram_channel_joined?: boolean;
+  telegram_verified_at?: string | null;
+  telegram_token?: string | null;
+  referral_code?: string | null;
+  referred_by?: string | null;
+  referral_count?: number;
   login_count?: number;
   last_login_at?: string;
   created_at: string;
   updated_at: string;
 }
 
+export interface UserEntitlements {
+  userId: string;
+  plan: 'Bepul' | 'Pro' | 'Premium';
+  planCode: 'free' | 'pro' | 'premium';
+  limits: {
+    dailyQuestionLimit: number;
+    documentLimit: number;
+    searchLimit: number;
+    canCopy: boolean;
+    canDownload: boolean;
+    canEdit: boolean;
+  };
+  telegram: {
+    connected: boolean;
+    channelJoined: boolean;
+    username: string | null;
+    verificationToken?: string;
+    botUsername?: string;
+    botUrl?: string;
+    channelUrl?: string;
+  };
+  referral: {
+    code: string;
+    count: number;
+    target: number;
+    remaining: number;
+    unlocked: boolean;
+    link: string;
+  };
+}
+
 export interface Plan {
   id: string; // uuid PRIMARY KEY
   name: string;
   description: string | null;
-  price_uzs: number;
   duration_days: number;
   daily_question_limit: number;
   document_limit?: number;
@@ -156,6 +197,7 @@ export interface Notification {
 }
 
 import { supabase } from '../lib/supabaseClient';
+import { safeFetchJson } from './api';
 export { supabase };
 
 // --- HELPER QUERIES MATCHING SOURCE OF TRUTH SCHEMA ---
@@ -165,6 +207,22 @@ export { supabase };
  */
 export async function getProfile(userId: string): Promise<Profile | null> {
   try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+    if (!isUuid) {
+      const storedUser = safeStorage.getJSON<any>('advokatai_user');
+      const userEmail = storedUser?.email;
+      if (userEmail) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', userEmail.trim().toLowerCase())
+          .maybeSingle();
+
+        if (!error && data) return data as Profile;
+      }
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -209,6 +267,97 @@ export async function ensureProfile(userId: string, email: string, fullName?: st
 }
 
 /**
+ * Single Authoritative Entitlement Check
+ * The user's plan is ALWAYS determined from Supabase database.
+ * Prevents client-side manipulation and fixes the refresh bug.
+ */
+export async function checkUserEntitlements(userId: string): Promise<UserEntitlements> {
+  // 1. First attempt to fetch authoritative state from backend API
+  try {
+    const res = await safeFetchJson<{ success: boolean; data: any }>('/api/entitlements');
+    if (res.ok && res.data?.success && res.data.data) {
+      const d = res.data.data;
+      return {
+        userId,
+        plan: d.plan === 'premium' ? 'Premium' : d.plan === 'pro' ? 'Pro' : 'Bepul',
+        planCode: d.plan,
+        limits: d.limits,
+        telegram: d.telegram,
+        referral: d.referral,
+      };
+    }
+  } catch {
+    // Continue to Supabase direct query fallback
+  }
+
+  // Direct Supabase database query (authoritative source of truth)
+  let profile: any = null;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+
+  if (isUuid) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    profile = data;
+  } else {
+    const storedUser = safeStorage.getJSON<any>('advokatai_user');
+    const userEmail = storedUser?.email;
+    if (userEmail) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', userEmail.trim().toLowerCase())
+        .maybeSingle();
+      profile = data;
+    }
+  }
+
+  const rawPlan = (profile?.plan || 'free').toLowerCase();
+  const isPremium = rawPlan === 'premium';
+  const isPro = rawPlan === 'pro';
+  const planCode: 'free' | 'pro' | 'premium' = isPremium ? 'premium' : isPro ? 'pro' : 'free';
+
+  return {
+    userId,
+    plan: isPremium ? 'Premium' : isPro ? 'Pro' : 'Bepul',
+    planCode,
+    limits: {
+      dailyQuestionLimit: isPremium ? 999999 : isPro ? 100 : 10,
+      documentLimit: isPremium ? 100 : isPro ? 10 : 2,
+      searchLimit: isPremium ? 999999 : isPro ? 30 : 3,
+      canCopy: isPremium || isPro,
+      canDownload: isPremium || isPro,
+      canEdit: isPremium || isPro,
+    },
+    telegram: {
+      connected: Boolean(profile?.telegram_connected),
+      channelJoined: Boolean(profile?.telegram_channel_joined),
+      username: profile?.telegram_username || null,
+    },
+    referral: {
+      code: profile?.referral_code || '',
+      count: profile?.referral_count || 0,
+      target: 3,
+      remaining: 0,
+      unlocked: isPremium,
+      link: '',
+    },
+  };
+}
+
+
+
+/**
+ * Retrieve user's verified current plan ('Bepul' | 'Pro' | 'Premium')
+ */
+export async function getUserPlan(userId: string): Promise<'Bepul' | 'Pro' | 'Premium'> {
+  const entitlements = await checkUserEntitlements(userId);
+  return entitlements.plan;
+}
+
+/**
  * Retrieve active subscription for a user by user_id and verify current validity.
  * Joins user_subscriptions with plans to extract permissions.
  */
@@ -217,27 +366,41 @@ export async function getActiveSubscription(userId: string): Promise<{
   plan: Plan | null;
 }> {
   try {
-    const now = new Date().toISOString();
-    const { data, error } = await supabase
-      .from('user_subscriptions')
-      .select('*, plans(*)')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .lte('started_at', now)
-      .gte('expires_at', now)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const entitlements = await checkUserEntitlements(userId);
+    const activePlans = await getActivePlans();
+    const matchedPlan = activePlans.find(p => p.name.toLowerCase().includes(entitlements.planCode)) || {
+      id: entitlements.planCode,
+      name: entitlements.plan,
+      description: null,
+      duration_days: 365,
+      daily_question_limit: entitlements.limits.dailyQuestionLimit,
+      document_limit: entitlements.limits.documentLimit,
+      search_limit: entitlements.limits.searchLimit,
+      can_copy: entitlements.limits.canCopy,
+      can_download: entitlements.limits.canDownload,
+      can_edit: entitlements.limits.canEdit,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    } as Plan;
 
-    if (error || !data) {
-      return { subscription: null, plan: null };
-    }
+    const nowIso = new Date().toISOString();
+    const expiresIso = new Date(Date.now() + 365 * 86400000).toISOString();
 
-    const sub = data as any;
-    const plan = sub.plans as Plan || null;
+    const subscription: UserSubscription = {
+      id: `sub_${userId}`,
+      user_id: userId,
+      plan_id: matchedPlan.id,
+      status: 'active',
+      started_at: nowIso,
+      expires_at: expiresIso,
+      created_at: nowIso,
+      updated_at: nowIso,
+      plans: matchedPlan,
+    };
+
     return {
-      subscription: sub,
-      plan: plan
+      subscription,
+      plan: matchedPlan,
     };
   } catch {
     return { subscription: null, plan: null };
@@ -253,7 +416,7 @@ export async function getActivePlans(): Promise<Plan[]> {
       .from('plans')
       .select('*')
       .eq('is_active', true)
-      .order('price_uzs', { ascending: true });
+      .order('daily_question_limit', { ascending: true });
 
     if (error || !data) return [];
     return data as Plan[];

@@ -17,7 +17,6 @@ export default function Navbar() {
 
   const userName = user?.name || user?.email?.split('@')[0] || '';
   const userEmail = user?.email || '';
-  const userPlan = user?.plan || 'Bepul';
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
@@ -67,7 +66,6 @@ export default function Navbar() {
     { path: '/chat', label: 'AI Maslahat' },
     { path: '/search', label: 'Qonun Qidiruvi' },
     { path: '/templates', label: 'Hujjatlar' },
-    { path: '/pricing', label: 'Narxlar' },
     { path: '/about', label: 'Biz haqimizda' },
   ];
 
@@ -171,13 +169,6 @@ export default function Navbar() {
                       <span className="text-sm font-semibold text-gray-800 max-w-[130px] truncate">
                         {userName}
                       </span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                        userPlan === 'Pro' || userPlan === 'Premium'
-                          ? 'bg-teal-100 text-teal-800'
-                          : 'bg-gray-200 text-gray-700'
-                      }`}>
-                        {userPlan}
-                      </span>
                     </div>
                     <i className={`ri-arrow-down-s-line text-gray-500 text-sm transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}></i>
                   </button>
@@ -189,15 +180,17 @@ export default function Navbar() {
                         <p className="text-xs text-gray-400 font-medium">Hisob egasi</p>
                         <p className="text-sm font-bold text-gray-900 truncate">{userName}</p>
                         {userEmail && <p className="text-xs text-gray-500 truncate mt-0.5">{userEmail}</p>}
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Faol reja:</span>
-                          <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
-                            {userPlan} obuna
-                          </span>
-                        </div>
                       </div>
 
                       <div className="py-1">
+                        <Link
+                          to="/profile"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-gray-800 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                        >
+                          <i className="ri-user-settings-line text-teal-600 text-base"></i>
+                          <span>Hisobim</span>
+                        </Link>
                         <Link
                           to="/chat"
                           onClick={() => setDropdownOpen(false)}
@@ -214,14 +207,16 @@ export default function Navbar() {
                           <i className="ri-history-line text-teal-600 text-base"></i>
                           <span>Suhbatlar tarixi</span>
                         </Link>
-                        <Link
-                          to="/pricing"
+                        <a
+                          href="https://buymeacoffee.com/advokatai"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                          className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-amber-800 hover:bg-amber-50 transition-colors"
                         >
-                          <i className="ri-vip-crown-line text-amber-500 text-base"></i>
-                          <span>Tarifni oshirish</span>
-                        </Link>
+                          <i className="ri-cup-line text-amber-600 text-base"></i>
+                          <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                        </a>
                       </div>
 
                       <div className="border-t border-gray-100 pt-1">
@@ -272,32 +267,46 @@ export default function Navbar() {
 
               <div className="pt-4 border-t border-gray-100 space-y-2 mt-2">
                 {!loading && isLoggedIn && user ? (
-                  <div className="px-4 py-2 bg-gray-50 rounded-xl space-y-2">
+                  <div className="px-4 py-3 bg-gray-50 rounded-xl space-y-2.5">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-teal-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                         {firstLetter}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">{userName}</p>
-                        <p className="text-xs text-teal-700 font-medium">Reja: {userPlan}</p>
                       </div>
                     </div>
-                    <div className="pt-2 flex gap-2">
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileOpen(false)}
+                        className="bg-white border border-gray-200 text-gray-800 text-center py-2 rounded-lg text-xs font-semibold"
+                      >
+                        Hisobim
+                      </Link>
                       <Link
                         to="/chat"
                         onClick={() => setMobileOpen(false)}
-                        className="flex-1 bg-teal-600 text-white text-center py-2 rounded-lg text-xs font-semibold"
+                        className="bg-teal-600 text-white text-center py-2 rounded-lg text-xs font-semibold"
                       >
                         AI Maslahat
                       </Link>
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="px-3 bg-red-100 text-red-700 rounded-lg text-xs font-semibold"
-                      >
-                        Chiqish
-                      </button>
                     </div>
+                    <a
+                      href="https://buymeacoffee.com/advokatai"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-center py-2 px-3 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-bold"
+                    >
+                      AdvokatAI'ni qo'llab-quvvatlash ☕
+                    </a>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full py-2 bg-red-50 text-red-600 rounded-lg text-xs font-semibold cursor-pointer"
+                    >
+                      Chiqish
+                    </button>
                   </div>
                 ) : (
                   <>

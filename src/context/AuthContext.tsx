@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase, getProfile, ensureProfile, getActiveSubscription } from '../utils/supabase';
-import type { Plan, UserSubscription } from '../utils/supabase';
+import { supabase, getProfile, ensureProfile, getActiveSubscription, checkUserEntitlements } from '../utils/supabase';
+import type { Plan, UserSubscription, UserEntitlements } from '../utils/supabase';
 import { safeStorage } from '../utils/api';
 
 export interface AuthUser {
@@ -12,11 +12,12 @@ export interface AuthUser {
   avatar_url?: string | null;
   phone?: string | null;
   role: 'user' | 'admin';
-  plan: string;
+  plan: 'Bepul' | 'Pro' | 'Premium' | string;
   plan_id?: string;
   plan_expires_at?: string | null;
   activeSubscription?: UserSubscription | null;
   planDetails?: Plan | null;
+  entitlements?: UserEntitlements | null;
   dailyLimit: number;
   documentLimit: number;
   searchLimit: number;
@@ -34,6 +35,7 @@ interface AuthContextType {
   login: (userData: AuthUser, token?: string) => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  checkEntitlements: () => Promise<UserEntitlements | null>;
   updateUser: (fields: Partial<AuthUser>) => Promise<void>;
 }
 
@@ -44,6 +46,7 @@ const AuthContext = createContext<AuthContextType>({
   login: () => {},
   logout: async () => {},
   refreshUser: async () => {},
+  checkEntitlements: async () => null,
   updateUser: async () => {},
 });
 
@@ -77,11 +80,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
       }
 
-      // 2. Retrieve active subscription joined with public.plans
+      // 2. Authoritative entitlements check strictly from Supabase
+      const entitlements = await checkUserEntitlements(userId);
+      const planName = entitlements.plan; // 'Bepul' | 'Pro' | 'Premium'
+
+      // Retrieve subscription structure for backward compatibility
       const { subscription, plan } = await getActiveSubscription(userId);
 
       const displayName = profile?.full_name || sbUser.user_metadata?.full_name || userEmail.split('@')[0] || 'Foydalanuvchi';
-      const planName = plan?.name || 'Bepul';
 
       const authUser: AuthUser = {
         id: userId,
@@ -97,14 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         plan_expires_at: subscription?.expires_at || null,
         activeSubscription: subscription,
         planDetails: plan,
-        dailyLimit: plan?.daily_question_limit ?? (planName.toLowerCase().includes('premium') ? 999999 : planName.toLowerCase().includes('pro') || planName.toLowerCase().includes('standard') ? 100 : 10),
-        documentLimit: (plan as any)?.document_limit ?? (planName.toLowerCase().includes('premium') ? 100 : planName.toLowerCase().includes('pro') || planName.toLowerCase().includes('standard') ? 10 : 2),
-        searchLimit: (plan as any)?.search_limit ?? (planName.toLowerCase().includes('premium') ? 999999 : planName.toLowerCase().includes('pro') || planName.toLowerCase().includes('standard') ? 30 : 3),
-        canCopy: plan?.can_copy ?? (planName.toLowerCase() !== 'bepul' && planName.toLowerCase() !== 'free'),
-        canDownload: plan?.can_download ?? (planName.toLowerCase() !== 'bepul' && planName.toLowerCase() !== 'free'),
-        canEdit: plan?.can_edit ?? (planName.toLowerCase() !== 'bepul' && planName.toLowerCase() !== 'free'),
+        entitlements,
+        dailyLimit: entitlements.limits.dailyQuestionLimit,
+        documentLimit: entitlements.limits.documentLimit,
+        searchLimit: entitlements.limits.searchLimit,
+        canCopy: entitlements.limits.canCopy,
+        canDownload: entitlements.limits.canDownload,
+        canEdit: entitlements.limits.canEdit,
       };
-
 
       setUser(authUser);
       setIsLoggedIn(true);
@@ -213,6 +219,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loadUserData]);
 
+  const checkEntitlements = useCallback(async (): Promise<UserEntitlements | null> => {
+    if (!user?.id) return null;
+    try {
+      const entitlements = await checkUserEntitlements(user.id);
+      setUser(prev => {
+        if (!prev) return null;
+        const updated: AuthUser = {
+          ...prev,
+          plan: entitlements.plan,
+          entitlements,
+          dailyLimit: entitlements.limits.dailyQuestionLimit,
+          documentLimit: entitlements.limits.documentLimit,
+          searchLimit: entitlements.limits.searchLimit,
+          canCopy: entitlements.limits.canCopy,
+          canDownload: entitlements.limits.canDownload,
+          canEdit: entitlements.limits.canEdit,
+        };
+        safeStorage.setJSON('advokatai_user', updated);
+        return updated;
+      });
+      return entitlements;
+    } catch (err) {
+      console.error('[AuthContext] checkEntitlements error:', err);
+      return null;
+    }
+  }, [user?.id]);
+
   const updateUser = useCallback(async (fields: Partial<AuthUser>) => {
     if (!user) return;
 
@@ -238,7 +271,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, loading, login, logout, refreshUser, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoggedIn, loading, login, logout, refreshUser, checkEntitlements, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

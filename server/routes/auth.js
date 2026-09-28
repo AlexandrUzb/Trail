@@ -2,6 +2,7 @@ import express from 'express';
 import { storageService } from '../services/storageService.js';
 import { generateToken, requireAuth } from '../middleware/auth.js';
 import { getSupabaseServerClient } from '../services/supabaseClient.js';
+import { entitlementService } from '../services/entitlementService.js';
 
 const router = express.Router();
 
@@ -22,7 +23,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  */
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, confirmPassword } = req.body || {};
+    const { name, email, password, confirmPassword, ref, referralCode } = req.body || {};
 
     // 1. Basic presence and whitespace checks
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -124,6 +125,17 @@ router.post('/register', async (req, res) => {
       }
     }
 
+    // Register referral if referral code provided
+    const referralParam = ref || referralCode;
+    if (referralParam && user?.id) {
+      const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress;
+      await entitlementService.registerReferral({
+        newUserId: user.id,
+        referralCode: referralParam,
+        ipAddress: typeof ip === 'string' ? ip.split(',')[0].trim() : undefined,
+      }).catch(e => console.warn('[Auth] Referral registration notice:', e.message));
+    }
+
     // 5. Generate signed stateless auth token
     const token = generateToken(user);
 
@@ -178,6 +190,23 @@ router.post('/login', async (req, res) => {
         message: "Email yoki parol notoʻgʻri.",
         error: "Email yoki parol notoʻgʻri." 
       });
+    }
+
+    const sb = getSupabaseServerClient();
+    if (sb) {
+      try {
+        const { data: profile } = await sb
+          .from('profiles')
+          .select('id, plan, role, full_name')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        if (profile?.id) {
+          user.id = profile.id;
+          if (profile.plan) user.plan = profile.plan;
+          if (profile.role) user.role = profile.role;
+        }
+      } catch {}
     }
 
     // Generate signed stateless auth token

@@ -30,13 +30,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-      # Payment Configuration
-      - key: PAYMENT_CARD_NUMBER
-        value: 4466 1369 5151 4448
-      - key: PAYMENT_CARD_HOLDER
-        value: Zokirov Zafar
-      - key: PAYMENT_BANK_NAME
-        value: Humo / Uzcard / Visa
+
 
       # Supabase Project Configuration (Frontend Vite)
       - key: VITE_SUPABASE_URL

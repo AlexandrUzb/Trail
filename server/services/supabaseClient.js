@@ -1,41 +1,57 @@
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const SUPABASE_URL = 
-  process.env.SUPABASE_URL || 
-  process.env.VITE_SUPABASE_URL || 
-  '';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const SUPABASE_KEY = 
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 
-  process.env.SUPABASE_ANON_KEY || 
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
-  '';
+// Ensure .env is loaded regardless of ESM import hoisting
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config();
 
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.warn('[SupabaseServer] Warning: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY / SUPABASE_ANON_KEY not set.');
+const DEFAULT_SUPABASE_URL = 'https://gkztwgxxcahwmzwvimzi.supabase.co';
+
+function getCredentials() {
+  const url = 
+    process.env.SUPABASE_URL || 
+    process.env.VITE_SUPABASE_URL || 
+    DEFAULT_SUPABASE_URL;
+
+  const key = 
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 
+    process.env.SUPABASE_ANON_KEY || 
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
+    '';
+
+  return { url, key };
 }
 
 let supabaseInstance = null;
 
 export function getSupabaseServerClient() {
-  if (!supabaseInstance && SUPABASE_URL && SUPABASE_KEY) {
-    try {
-      supabaseInstance = createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      });
-    } catch (err) {
-      console.warn('[SupabaseServer] Client initialization warning:', err.message);
-      supabaseInstance = null;
+  if (!supabaseInstance) {
+    const { url, key } = getCredentials();
+    if (url && key) {
+      try {
+        supabaseInstance = createClient(url, key, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+          },
+        });
+      } catch (err) {
+        console.warn('[SupabaseServer] Client initialization warning:', err.message);
+        supabaseInstance = null;
+      }
     }
   }
   return supabaseInstance;
 }
 
 export function isSupabaseConfigured() {
-  return Boolean(SUPABASE_URL && SUPABASE_KEY);
+  const { url, key } = getCredentials();
+  return Boolean(url && key);
 }
 
 /**

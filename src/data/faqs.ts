@@ -38,11 +38,11 @@ Agar masala murakkab bo‘lsa yoki sudda/himoyada professional vakillik zarur bo
     category: 'Qonunchilik bazasi',
   },
   {
-    id: 'pricing',
-    question: 'AdvokatAI bepulmi?',
+    id: 'service-access',
+    question: 'AdvokatAIdan qanday foydalanish mumkin?',
     answer:
-      'AdvokatAI bazaviy xizmatlardan har kuni bepul foydalanish imkoniyatini taqdim etadi. Kengaytirilgan imkoniyatlar, cheksiz tahlillar va to‘liq hujjatlar generatoridan foydalanish uchun hamyonbop Pro va Premium tariflar mavjud.',
-    category: 'Foydalanish va to‘lov',
+      'AdvokatAI xizmatlaridan har kuni foydalanishingiz mumkin. Sunʼiy intellekt yordamida savollaringizga javob olishingiz, qonunlarni qidirishingiz va hujjat loyihalarini yaratishingiz mumkin. Loyihamizni qoʻllab-quvvatlashni istasangiz, ixtiyoriy ravishda kofe ulashishingiz mumkin.',
+    category: 'Foydalanish qoidalari',
   },
   {
     id: 'accuracy',

@@ -436,106 +436,30 @@ function TechSection() {
   );
 }
 
-function PricingSnippet() {
-  const plans = [
-    {
-      name: 'Bepul',
-      price: '0',
-      period: 'doim',
-      desc: "AI huquqiy yordamini o'rganayotgan shaxslar uchun ideal",
-      popular: false,
-      btnClass: 'bg-gray-900 text-white hover:bg-gray-800',
-      btnText: 'Bepul boshlash',
-      btnLink: '/chat',
-      features: [
-        { label: 'AI Huquqiy Chatbot', sub: 'Kuniga 10 ta savol', on: true },
-        { label: 'Qonun Qidiruv Tizimi', sub: 'Asosiy qidiruv', on: true },
-        { label: 'Hujjat Shablonlari', sub: 'Asosiy shablonlar', on: true },
-        { label: "Ko'p tilli qo'llab-quvvatlash", sub: "Faqat O'zbek", on: true },
-        { label: 'Maxsus Hujjat Yaratish', sub: '', on: false },
-        { label: 'Ustuvor Javob Vaqti', sub: '', on: false },
-      ],
-    },
-    {
-      name: 'Pro',
-      price: '18,000',
-      period: '/oy',
-      desc: "Ishonchli huquqiy vositalarga muhtoj mutaxassislar uchun",
-      popular: true,
-      btnClass: 'bg-white text-teal-600 hover:bg-teal-50',
-      btnText: 'Pro obunasi',
-      btnLink: '/payment?plan=pro',
-      features: [
-        { label: 'AI Huquqiy Chatbot', sub: 'Kuniga 50 ta savol', on: true },
-        { label: 'Qonun Qidiruv Tizimi', sub: "Kengaytirilgan + filtrlar", on: true },
-        { label: 'Hujjat Shablonlari', sub: 'Barcha shablonlar', on: true },
-        { label: "Ko'p tilli qo'llab-quvvatlash", sub: "O'Z, RU, EN", on: true },
-        { label: 'Maxsus Hujjat Yaratish', sub: 'Oyiga 50 ta', on: true },
-        { label: 'Ustuvor Javob Vaqti', sub: '2 soniyadan kam', on: true },
-      ],
-    },
-    {
-      name: 'Premium',
-      price: '30,000',
-      period: '/oy',
-      desc: "To'liq integratsiya va miqyos talab qiluvchi firmalar uchun",
-      popular: false,
-      btnClass: 'bg-gray-900 text-white hover:bg-gray-800',
-      btnText: 'Premium obunasi',
-      btnLink: '/payment?plan=premium',
-      features: [
-        { label: 'AI Huquqiy Chatbot', sub: "Kuniga 200 ta savol", on: true },
-        { label: 'Qonun Qidiruv Tizimi', sub: "To'liq ma'lumotlar bazasi", on: true },
-        { label: 'Hujjat Shablonlari', sub: 'Brendlangan shablonlar', on: true },
-        { label: "Ko'p tilli qo'llab-quvvatlash", sub: "O'Z, RU, EN + maxsus", on: true },
-        { label: 'Maxsus Hujjat Yaratish', sub: 'Cheksiz', on: true },
-        { label: 'Ustuvor Javob Vaqti', sub: '500ms dan kam', on: true },
-      ],
-    },
-  ];
-
+function SupportSection() {
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-8">
-        <div className="text-center mb-16">
-          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Narxlar</span>
-          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">Oddiy, Shaffof Rejalar</h2>
-          <p className="text-gray-500 max-w-2xl mx-auto">Huquqiy ehtiyojlaringizga mos rejani tanlang</p>
+    <section className="py-20 bg-slate-50 border-y border-gray-100">
+      <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm">
+          ☕
         </div>
-        <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan) => (
-            <div key={plan.name} className={`rounded-2xl p-8 relative ${plan.popular ? 'bg-teal-600 border-2 border-teal-600 shadow-xl transform scale-105' : 'bg-white border-2 border-gray-200 hover:shadow-lg transition-shadow'}`}>
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="bg-amber-400 text-gray-900 px-4 py-1 rounded-full text-xs font-bold">Mashhur</span>
-                </div>
-              )}
-              <div className="mb-6">
-                <h3 className={`text-xl font-bold mb-2 ${plan.popular ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
-                <div className="flex items-baseline mb-1">
-                  <span className={`text-4xl font-bold ${plan.popular ? 'text-white' : 'text-gray-900'}`}>{plan.price}</span>
-                  <span className={`ml-1.5 text-sm ${plan.popular ? 'text-teal-100' : 'text-gray-500'}`}> so'm {plan.period}</span>
-                </div>
-                <p className={`text-sm ${plan.popular ? 'text-teal-100' : 'text-gray-500'}`}>{plan.desc}</p>
-              </div>
-              <div className="space-y-4 mb-8">
-                {plan.features.map((f) => (
-                  <div key={f.label} className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <i className={`text-lg ${f.on ? (plan.popular ? 'ri-check-line text-white' : 'ri-check-line text-teal-600') : (plan.popular ? 'ri-close-line text-teal-300' : 'ri-close-line text-gray-300')}`}></i>
-                    </div>
-                    <div className="flex-1">
-                      <div className={`font-medium text-sm ${f.on ? (plan.popular ? 'text-white' : 'text-gray-900') : (plan.popular ? 'text-teal-200' : 'text-gray-400')}`}>{f.label}</div>
-                      {f.sub && <div className={`text-xs ${plan.popular ? 'text-teal-100' : 'text-gray-500'}`}>{f.sub}</div>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Link to={plan.btnLink} className={`block w-full text-center py-3 rounded-xl font-semibold transition-colors text-sm cursor-pointer ${plan.btnClass}`}>
-                {plan.btnText}
-              </Link>
-            </div>
-          ))}
+        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-3">
+          AdvokatAI loyihasini qoʻllab-quvvatlang
+        </h2>
+        <p className="text-sm text-gray-600 max-w-xl mx-auto mb-8 leading-relaxed">
+          AdvokatAI har bir Oʻzbekiston fuqarosi uchun professional huquqiy yordamni qulay va ochiq qilish maqsadida yaratilgan. Loyihani rivojlantirishga hissa qoʻshish uchun muallifni qahva bilan siylab qoʻllab-quvvatlashingiz mumkin.
+        </p>
+
+        <div>
+          <a
+            href="https://buymeacoffee.com/advokatai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2.5 bg-[#FFDD00] hover:bg-[#FACC15] text-gray-900 font-extrabold px-7 py-3.5 rounded-2xl text-sm transition-transform hover:scale-105 shadow-md"
+          >
+            <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+            <i className="ri-external-link-line text-sm"></i>
+          </a>
         </div>
       </div>
     </section>
@@ -545,7 +469,7 @@ function PricingSnippet() {
 function InvestorSection() {
   const metrics = [
     { icon: 'ri-line-chart-line', color: 'bg-cyan-500', value: '50K+', label: '1-yil Maqsadli Foydalanuvchilar', sub: "O'zbek fuqaro va korxonalar" },
-    { icon: 'ri-line-chart-line', color: 'bg-teal-400', value: 'SaaS + API', label: 'Daromad Modeli', sub: 'Davriy obunalar + foydalanish' },
+    { icon: 'ri-heart-3-line', color: 'bg-teal-400', value: 'Ochiq & Qulay', label: 'Loyiha Modeli', sub: "Ixtiyoriy qo'llab-quvvatlash" },
     { icon: 'ri-line-chart-line', color: 'bg-teal-700', value: '85%+', label: 'Yalpi Margin Maqsadi', sub: "AI-quvvatlangan, past marginal xarajat" },
   ];
 
@@ -637,10 +561,10 @@ function CTASection() {
         <p className="text-teal-100 mb-10 max-w-2xl mx-auto">AdvokatAI ga ishonuvchi minglab foydalanuvchilarga qo'shiling. Bugun boshlang va huquqiy yordamning kelajagini his qiling.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/chat" className="inline-flex items-center justify-center bg-white text-teal-600 px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-50 transition-colors whitespace-nowrap cursor-pointer shadow-sm">
-            <i className="ri-chat-3-line mr-2"></i>Bepul Maslahat Boshlash
+            <i className="ri-chat-3-line mr-2"></i>AI Maslahat Boshlash
           </Link>
           <Link to="/contact" className="inline-flex items-center justify-center border-2 border-white/60 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-white/10 transition-colors whitespace-nowrap cursor-pointer">
-            <i className="ri-phone-line mr-2"></i>Savdo bilan Bog'lanish
+            <i className="ri-phone-line mr-2"></i>Biz bilan Bog'lanish
           </Link>
         </div>
       </div>
@@ -844,7 +768,7 @@ export default function HomePage() {
       <ChatDemoSection />
       <AboutSnippetSection />
       <TechSection />
-      <PricingSnippet />
+      <SupportSection />
       <InvestorSection />
       <HomeFounderSection />
       <HomeFAQSection />

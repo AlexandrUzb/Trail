@@ -654,10 +654,15 @@ export default function ChatPage() {
 
         {/* Sidebar Footer */}
         <div className="p-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs text-gray-500">
-          <Link to="/pricing" className="text-teal-700 hover:underline font-medium flex items-center gap-1">
-            <i className="ri-vip-crown-line text-amber-500"></i>
-            <span>Tarif: {user?.plan || 'Bepul'}</span>
-          </Link>
+          <a
+            href="https://buymeacoffee.com/advokatai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-amber-800 hover:text-amber-900 font-medium flex items-center gap-1.5 transition-colors"
+          >
+            <i className="ri-cup-line text-amber-600"></i>
+            <span>Qoʻllab-quvvatlash ☕</span>
+          </a>
           <Link to="/history" className="text-gray-500 hover:text-gray-700 text-[11px]">
             Toʻliq tarix →
           </Link>
@@ -912,16 +917,18 @@ export default function ChatPage() {
                   </div>
                   <div>
                     <div className="font-bold text-sm text-gray-900">Kunlik savollar limitingiz ({dailyLimit} ta) to'ldi</div>
-                    <div className="text-gray-600">Yangi savol berish va javob olish uchun tarifingizni yangilang.</div>
+                    <div className="text-gray-600">Cheklov ertaga qayta yangilanadi.</div>
                   </div>
                 </div>
-                <Link
-                  to="/pricing"
-                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
+                <a
+                  href="https://buymeacoffee.com/advokatai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
                 >
-                  <i className="ri-vip-crown-fill text-amber-300"></i>
-                  <span>Tariflarga o'tish →</span>
-                </Link>
+                  <i className="ri-cup-line"></i>
+                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                </a>
               </div>
             )}
 
@@ -1028,10 +1035,9 @@ export default function ChatPage() {
             <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-100 shadow-xs">
               <i className="ri-alarm-warning-line text-3xl"></i>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Kunlik savollar limitingiz tugadi</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Kunlik savollar limitingiz toʻldi</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-              Bugungi rejangiz bo'yicha belgilangan savollar limitingiz ({dailyLimit} ta) to'ldi. Ko'proq savollar berish va cheksiz imkoniyatlardan foydalanish uchun rejangizni yangilang:
-              <br /><strong className="text-teal-700">Pro:</strong> kuniga 100 ta savol · <strong className="text-teal-700">Premium:</strong> cheksiz savollar.
+              Bugungi belgilangan savollar limitingiz ({dailyLimit} ta) toʻldi. Tizim resurslarini adolatli taqsimlash maqsadida cheklov ertaga yangilanadi.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
@@ -1041,14 +1047,16 @@ export default function ChatPage() {
               >
                 Yopish
               </button>
-              <Link
-                to="/pricing"
+              <a
+                href="https://buymeacoffee.com/advokatai"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => setShowLimitExceededModal(false)}
-                className="w-full py-3.5 px-4 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
               >
-                <i className="ri-vip-crown-fill text-amber-300"></i>
-                <span>Tariflarni ko'rish va obuna bo'lish</span>
-              </Link>
+                <i className="ri-cup-line"></i>
+                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+              </a>
             </div>
           </div>
         </div>

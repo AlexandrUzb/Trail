@@ -40,7 +40,7 @@ export default function Footer() {
             <h4 className="text-sm font-semibold text-gray-900 mb-4">Kompaniya</h4>
             <ul className="space-y-2 text-sm text-gray-500">
               <li><Link to="/about" className="hover:text-teal-600 cursor-pointer">Biz haqimizda</Link></li>
-              <li><Link to="/pricing" className="hover:text-teal-600 cursor-pointer">Narxlar</Link></li>
+              <li><a href="https://buymeacoffee.com/advokatai" target="_blank" rel="noopener noreferrer" className="hover:text-amber-800 text-amber-700 font-medium cursor-pointer">AdvokatAI'ni qo'llab-quvvatlash ☕</a></li>
               <li><Link to="/terms" className="hover:text-teal-600 cursor-pointer">Foydalanish shartlari</Link></li>
               <li><Link to="/privacy" className="hover:text-teal-600 cursor-pointer">Maxfiylik siyosati</Link></li>
             </ul>

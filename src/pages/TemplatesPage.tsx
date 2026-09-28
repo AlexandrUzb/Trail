@@ -730,16 +730,18 @@ export default function TemplatesPage() {
                         </div>
                         <div>
                           <div className="font-bold text-sm text-gray-900">Hujjat yaratish limitingiz ({documentLimit} ta) to'ldi</div>
-                          <div className="text-gray-600">Yangi rasmiy shartnoma va arizalarni yuklab olish yoki nusxa olish uchun tarifingizni yangilang.</div>
+                          <div className="text-gray-600">Cheklov ertaga qayta yangilanadi.</div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => navigate('/pricing')}
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
+                      <a
+                        href="https://buymeacoffee.com/advokatai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
                       >
-                        <i className="ri-vip-crown-fill text-amber-300"></i>
-                        <span>Tariflarga o'tish →</span>
-                      </button>
+                        <i className="ri-cup-line"></i>
+                        <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                      </a>
                     </div>
                   )}
 
@@ -1167,7 +1169,7 @@ export default function TemplatesPage() {
                 className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <i className="ri-user-add-line text-base"></i>
-                <span>Roʻyxatdan oʻtish (Bepul)</span>
+                <span>Roʻyxatdan oʻtish</span>
               </button>
             </div>
           </div>
@@ -1194,25 +1196,23 @@ export default function TemplatesPage() {
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-              Hujjat yaratish limitingiz tugadi
+              Hujjat yaratish limitingiz to'ldi
             </h3>
             <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
-              Sizning tarifingiz bo'yicha belgilangan hujjatlar soni ({documentLimit} ta) to'ldi. Ko'proq rasmiy shartnoma va arizalarni yuklab olish hamda tahrirlash uchun rejangizni yangilang:
-              <br /><strong className="text-teal-700">Pro:</strong> 10 ta hujjat · <strong className="text-teal-700">Premium:</strong> 100 ta hujjat!
+              Bugungi belgilangan hujjatlar soni ({documentLimit} ta) to'ldi. Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi.
             </p>
 
             <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDocLimitModal(false);
-                  navigate('/pricing');
-                }}
-                className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              <a
+                href="https://buymeacoffee.com/advokatai"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setShowDocLimitModal(false)}
+                className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
-                <i className="ri-vip-crown-fill text-amber-300"></i>
-                <span>Tariflarni ko'rish va obuna bo'lish</span>
-              </button>
+                <i className="ri-cup-line"></i>
+                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+              </a>
               <button
                 type="button"
                 onClick={() => setShowDocLimitModal(false)}

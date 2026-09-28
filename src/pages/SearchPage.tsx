@@ -516,16 +516,18 @@ export default function SearchPage() {
                 </div>
                 <div>
                   <div className="font-bold text-sm text-gray-900">Kunlik qidiruv limitingiz ({searchLimit} ta) to'ldi</div>
-                  <div className="text-gray-600">Qonunlar bazasidan yangi qidiruvlar qilish uchun tarifingizni yangilang.</div>
+                  <div className="text-gray-600">Qidiruvlar ertaga qayta tiklanadi.</div>
                 </div>
               </div>
-              <Link
-                to="/pricing"
-                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
+              <a
+                href="https://buymeacoffee.com/advokatai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
               >
-                <i className="ri-vip-crown-fill text-amber-300"></i>
-                <span>Tariflarga o'tish →</span>
-              </Link>
+                <i className="ri-cup-line"></i>
+                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+              </a>
             </div>
           )}
 
@@ -692,17 +694,18 @@ export default function SearchPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Qonun qidiruv limitingiz to'ldi</h3>
               <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
-                Siz bugungi belgilangan bepul qidiruvlar sonidan ({searchLimit} ta) to'liq foydalandingiz. Yangi qidiruv natijalarini ko'rish va cheksiz qidirish uchun tarifingizni yangilang:
-                <br /><strong className="text-teal-700">Pro:</strong> kuniga 30 ta qidiruv · <strong className="text-teal-700">Premium:</strong> cheksiz qidiruv!
+                Siz bugungi belgilangan qidiruvlar sonidan ({searchLimit} ta) to'liq foydalandingiz. Qidiruv cheklovi ertaga qayta tiklanadi.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Link
-                  to="/pricing"
-                  className="w-full sm:w-auto px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                <a
+                  href="https://buymeacoffee.com/advokatai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-6 py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <i className="ri-vip-crown-fill text-amber-300"></i>
-                  <span>Tariflarni ko'rish va obuna bo'lish</span>
-                </Link>
+                  <i className="ri-cup-line"></i>
+                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                </a>
               </div>
             </div>
           ) : primaryArticles.length === 0 ? (
@@ -1060,22 +1063,23 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-              Qonun qidiruv limitingiz tugadi
+              Kunlik qidiruv limitingiz to'ldi
             </h3>
             <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
-              Bugungi rejangiz bo'yicha belgilangan qidiruvlar soni ({searchLimit} ta) to'ldi. Ko'proq rasmiy moddalar va qonunlarni qidirish uchun tarifingizni yangilang:
-              <br /><strong className="text-teal-700">Pro:</strong> kuniga 30 ta qidiruv · <strong className="text-teal-700">Premium:</strong> cheksiz qidiruv!
+              Bugungi belgilangan qidiruvlar soni ({searchLimit} ta) to'ldi. Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi.
             </p>
 
             <div className="space-y-3">
-              <Link
-                to="/pricing"
+              <a
+                href="https://buymeacoffee.com/advokatai"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => setShowSearchLimitModal(false)}
-                className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
-                <i className="ri-vip-crown-fill text-amber-300"></i>
-                <span>Tariflarni ko'rish va obuna bo'lish</span>
-              </Link>
+                <i className="ri-cup-line"></i>
+                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+              </a>
               <button
                 type="button"
                 onClick={() => setShowSearchLimitModal(false)}

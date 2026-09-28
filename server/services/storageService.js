@@ -97,8 +97,6 @@ const DEFAULT_PLANS = [
   {
     plan_id: 'free',
     name: 'Bepul',
-    price: 0,
-    currency: 'so\'m',
     daily_limit: 10,
     monthly_limit: 300,
     document_limit: 2,
@@ -112,14 +110,11 @@ const DEFAULT_PLANS = [
       { label: 'Cheksiz savollar', sub: '', on: false }
     ],
     active: true,
-    duration: 'doim',
-    popular: false
+    duration: 'doim'
   },
   {
     plan_id: 'pro',
     name: 'Pro',
-    price: 18000,
-    currency: 'so\'m',
     daily_limit: 100,
     monthly_limit: 3000,
     document_limit: 10,
@@ -133,14 +128,11 @@ const DEFAULT_PLANS = [
       { label: 'Cheksiz savollar', sub: '', on: false }
     ],
     active: true,
-    duration: '30 kun',
-    popular: true
+    duration: '30 kun'
   },
   {
     plan_id: 'premium',
     name: 'Premium',
-    price: 30000,
-    currency: 'so\'m',
     daily_limit: 999999,
     monthly_limit: 999999,
     document_limit: 100,
@@ -154,8 +146,7 @@ const DEFAULT_PLANS = [
       { label: 'Tezkor texnik ko\'mak', sub: '24/7', on: true }
     ],
     active: true,
-    duration: '30 kun',
-    popular: false
+    duration: '30 kun'
   }
 ];
 
@@ -191,15 +182,11 @@ class StorageService {
       ]);
     }
     if (!fs.existsSync(getFilePath('usage'))) writeJson('usage', {});
-    if (!fs.existsSync(getFilePath('payments'))) writeJson('payments', []);
     if (!fs.existsSync(getFilePath('analytics'))) writeJson('analytics', []);
     if (!fs.existsSync(getFilePath('feedback'))) writeJson('feedback', []);
     if (!fs.existsSync(getFilePath('settings'))) {
       writeJson('settings', {
-        payment_card_number: process.env.PAYMENT_CARD_NUMBER || 'YOUR_CARD_NUMBER',
-        payment_card_holder: process.env.PAYMENT_CARD_HOLDER || 'AdvokatAI Rasmiy',
-        payment_bank_name: process.env.PAYMENT_BANK_NAME || 'TBC / Milliy Bank',
-        payment_instructions: "Kartaga to'lovni o'tkazing va to'lov kvitansiyasi (cheki) yoki tranzaksiya ID raqamini kiriting. Admin tasdiqlashi bilan obuna avtomatik faollashadi."
+        support_url: 'https://buymeacoffee.com/advokatai'
       });
     }
   }
@@ -487,55 +474,7 @@ class StorageService {
   }
 
 
-  // --- PAYMENTS ---
-  createPayment({ userId, planId, amount, currency = 'so\'m', paymentMethod = 'card', transactionReference, payerName }) {
-    const payments = readJson('payments', []);
-    const plan = this.getPlanById(planId);
-    const newPayment = {
-      id: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-      user_id: userId,
-      plan_id: planId,
-      plan_name: plan.name,
-      amount: amount || plan.price,
-      currency,
-      payment_method: paymentMethod,
-      transaction_reference: transactionReference || 'Noma\'lum',
-      payer_name: payerName || 'Foydalanuvchi',
-      status: 'PENDING', // PENDING | PAID | REJECTED | REFUNDED
-      created_at: new Date().toISOString(),
-      verified_at: null,
-      verified_by: null
-    };
 
-    payments.unshift(newPayment);
-    writeJson('payments', payments);
-
-    return newPayment;
-  }
-
-  verifyPayment(paymentId, status, verifiedBy = 'admin') {
-    const payments = readJson('payments', []);
-    const payment = payments.find(p => p.id === paymentId);
-    if (!payment) return null;
-
-    payment.status = status; // PAID | REJECTED | REFUNDED
-    payment.verified_at = new Date().toISOString();
-    payment.verified_by = verifiedBy;
-
-    if (status === 'PAID') {
-      this.updateUserPlan(payment.user_id, payment.plan_id, 30);
-    }
-
-    writeJson('payments', payments);
-
-    return payment;
-  }
-
-  getPayments(userId = null) {
-    const payments = readJson('payments', []);
-    if (userId) return payments.filter(p => p.user_id === userId);
-    return payments;
-  }
 
   // --- ANALYTICS & AUDIT LOGGING ---
   logQuery(record) {
@@ -662,10 +601,7 @@ class StorageService {
   // --- SETTINGS ---
   getSettings() {
     return readJson('settings', {
-      payment_card_number: process.env.PAYMENT_CARD_NUMBER || 'YOUR_CARD_NUMBER',
-      payment_card_holder: process.env.PAYMENT_CARD_HOLDER || 'AdvokatAI Rasmiy',
-      payment_bank_name: process.env.PAYMENT_BANK_NAME || 'TBC / Milliy Bank',
-      payment_instructions: "Kartaga to'lovni o'tkazing va to'lov kvitansiyasi (cheki) yoki tranzaksiya ID raqamini kiriting."
+      support_url: 'https://buymeacoffee.com/advokatai'
     });
   }
 

@@ -223,7 +223,7 @@ export default function AboutPage() {
                     <i className="ri-shield-star-line text-teal-600 text-lg flex-shrink-0 mt-0.5"></i>
                     <div>
                       <div className="text-xs font-bold text-gray-800">Maqsad</div>
-                      <div className="text-xs text-gray-500">Har bir fuqaro uchun bepul va qulay yuridik himoya</div>
+                      <div className="text-xs text-gray-500">Har bir fuqaro uchun qulay va ochiq yuridik ko'mak</div>
                     </div>
                   </div>
                 </div>
@@ -285,10 +285,10 @@ export default function AboutPage() {
       <section className="py-20 bg-teal-600">
         <div className="max-w-4xl mx-auto px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">AdvokatAI bilan tanishing</h2>
-          <p className="text-teal-100 mb-10 text-lg max-w-xl mx-auto">Huquqiy masalalaringizni bugun hal qiling — bepul boshlang</p>
+          <p className="text-teal-100 mb-10 text-lg max-w-xl mx-auto">Huquqiy masalalaringizni bugun hal qiling — tez va oson boshlang</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/chat" className="inline-flex items-center justify-center bg-white text-teal-600 px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-50 transition-colors whitespace-nowrap shadow-sm">
-              <i className="ri-chat-3-line mr-2"></i>Bepul boshlash
+              <i className="ri-chat-3-line mr-2"></i>Savol berishni boshlash
             </Link>
             <Link to="/contact" className="inline-flex items-center justify-center border-2 border-white/60 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-white/10 transition-colors whitespace-nowrap">
               <i className="ri-mail-line mr-2"></i>Biz bilan bog'laning

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -67,24 +68,22 @@ import healthRouter from './routes/health.js';
 import chatRouter from './routes/chat.js';
 import lawsRouter from './routes/laws.js';
 import templatesRouter from './routes/templates.js';
-import plansRouter from './routes/plans.js';
-import paymentsRouter from './routes/payments.js';
 import feedbackRouter from './routes/feedback.js';
 import adminRouter from './routes/admin.js';
 import authRouter from './routes/auth.js';
 import notificationsRouter from './routes/notifications.js';
+import entitlementsRouter from './routes/entitlements.js';
 
 // Mount all backend endpoints on standard /api/* paths
 app.use('/api/health', healthRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/laws', lawsRouter);
 app.use('/api/templates', templatesRouter);
-app.use('/api/plans', plansRouter);
-app.use('/api/payments', paymentsRouter);
 app.use('/api/feedback', feedbackRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/entitlements', entitlementsRouter);
 
 // Health check alias for cloud platforms (Render / Docker / Load Balancers)
 app.use('/health', healthRouter);
@@ -108,8 +107,6 @@ app.get('/api', (req, res) => {
       auth: "POST /api/auth/register, POST /api/auth/login",
       laws: "GET /api/laws?q=...&category=...",
       templates: "GET /api/templates",
-      plans: "GET /api/plans",
-      payments: "GET /api/payments/config, POST /api/payments/submit",
       feedback: "POST /api/feedback",
       admin: "/api/admin/* (x-admin-key required)"
     }

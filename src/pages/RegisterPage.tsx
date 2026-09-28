@@ -15,6 +15,24 @@ export default function RegisterPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [refCode, setRefCode] = useState<string>('');
+
+  // Extract and store referral code from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const code = params.get('ref') || params.get('referral');
+    if (code) {
+      setRefCode(code.trim());
+      try {
+        localStorage.setItem('advokatai_ref', code.trim());
+      } catch {}
+    } else {
+      try {
+        const stored = localStorage.getItem('advokatai_ref');
+        if (stored) setRefCode(stored);
+      } catch {}
+    }
+  }, [location.search]);
 
   // If already logged in, redirect immediately to /chat
   useEffect(() => {
@@ -96,6 +114,7 @@ export default function RegisterPage() {
             email: cleanEmail,
             password: cleanPassword,
             confirmPassword: cleanConfirmPassword,
+            referralCode: refCode || undefined,
           }),
         });
 
@@ -122,6 +141,17 @@ export default function RegisterPage() {
         // Ensure profile row exists in public.profiles (SOURCE OF TRUTH)
         await ensureProfile(authData.user.id, cleanEmail, cleanName);
 
+        // Track referral in backend if refCode was supplied
+        if (refCode) {
+          safeFetchJson('/api/entitlements/referral/track', {
+            method: 'POST',
+            body: JSON.stringify({
+              newUserId: authData.user.id,
+              referralCode: refCode,
+            }),
+          }).catch(() => {});
+        }
+
         // Immediate login if session not returned directly
         let sessionToken = authData.session?.access_token;
         if (!sessionToken) {
@@ -141,7 +171,7 @@ export default function RegisterPage() {
           name: cleanName,
           full_name: cleanName,
           role: 'user',
-          plan: 'Bepul',
+          plan: 'free',
           dailyLimit: 10,
           documentLimit: 2,
           searchLimit: 3,

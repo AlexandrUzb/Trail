@@ -19,26 +19,39 @@ CREATE TABLE IF NOT EXISTS public.users (
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 CREATE INDEX IF NOT EXISTS idx_users_plan ON public.users(plan_id);
 
--- 2. PAYMENTS TABLE
+-- 2. PAYMENTS TABLE (REAL PAYMENT GATEWAYS)
 CREATE TABLE IF NOT EXISTS public.payments (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  plan_id TEXT NOT NULL,
-  plan_name TEXT,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  plan TEXT NOT NULL,
   amount NUMERIC NOT NULL,
-  currency TEXT DEFAULT 'so''m',
-  payment_method TEXT DEFAULT 'card',
-  transaction_reference TEXT,
-  payer_name TEXT,
-  status TEXT DEFAULT 'PENDING', -- PENDING | PAID | REJECTED | REFUNDED
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  verified_at TIMESTAMPTZ,
-  verified_by TEXT
+  currency TEXT NOT NULL DEFAULT 'UZS',
+  provider TEXT NOT NULL,
+  provider_transaction_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending', -- pending | paid | failed | cancelled | refunded
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  paid_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ
 );
 
 CREATE INDEX IF NOT EXISTS idx_payments_user_id ON public.payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON public.payments(status);
-CREATE INDEX IF NOT EXISTS idx_payments_tx ON public.payments(transaction_reference);
+CREATE INDEX IF NOT EXISTS idx_payments_provider_tx ON public.payments(provider, provider_transaction_id);
+
+-- 2.1 SUBSCRIPTIONS TABLE (SERVER-SIDE SUBSCRIPTION SOURCE OF TRUTH)
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  plan TEXT NOT NULL, -- 'pro' | 'premium'
+  status TEXT NOT NULL DEFAULT 'active', -- 'active' | 'expired' | 'cancelled'
+  started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON public.subscriptions(status);
 
 -- 3. PLANS TABLE
 CREATE TABLE IF NOT EXISTS public.plans (
@@ -158,6 +171,7 @@ ON CONFLICT (key) DO NOTHING;
 -- Enable RLS across all tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.template_actions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_templates ENABLE ROW LEVEL SECURITY;
@@ -174,12 +188,24 @@ DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public settings readable by everyone') THEN
     CREATE POLICY "Public settings readable by everyone" ON public.settings FOR SELECT USING (true);
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own payments') THEN
+    CREATE POLICY "Users can view own payments" ON public.payments FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own subscriptions') THEN
+    CREATE POLICY "Users can view own subscriptions" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
+  END IF;
 END $$;
 
 -- Service role: full access to all tables for server backend operations
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Service role full access on users') THEN
     CREATE POLICY "Service role full access on users" ON public.users FOR ALL USING (auth.role() = 'service_role');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Service role full access on payments') THEN
+    CREATE POLICY "Service role full access on payments" ON public.payments FOR ALL USING (auth.role() = 'service_role');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Service role full access on subscriptions') THEN
+    CREATE POLICY "Service role full access on subscriptions" ON public.subscriptions FOR ALL USING (auth.role() = 'service_role');
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Service role full access on payments') THEN
     CREATE POLICY "Service role full access on payments" ON public.payments FOR ALL USING (auth.role() = 'service_role');
