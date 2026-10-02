@@ -99,6 +99,17 @@ export default function Navbar() {
 
           {/* User Profile / Auth Area */}
           <div className="hidden md:flex items-center space-x-3">
+            <a
+              href="https://buymeacoffee.com/advokatai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 hover:border-amber-300 transition-all shadow-2xs hover:scale-105"
+              title="AdvokatAI dasturchisini qoʻllab-quvvatlash va kofe ulashish"
+            >
+              <span className="text-sm">☕</span>
+              <span>Qoʻllab-quvvatlash</span>
+            </a>
+
             {!loading && isLoggedIn && user ? (
               <>
                 {/* Notification Bell */}

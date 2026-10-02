@@ -104,7 +104,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'offline'>('checking');
-  const [aiMode, setAiMode] = useState<string>('Yuklanmoqda...');
+  const [aiMode, setAiMode] = useState<string>('AdvokatAI');
   const [selectedLawGroup, setSelectedLawGroup] = useState<string>(activeConversation?.lawGroup || 'all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthGateModal, setShowAuthGateModal] = useState<boolean>(false);
@@ -222,7 +222,7 @@ export default function ChatPage() {
         if (res.ok && res.data) {
           if (isMounted) {
             setBackendStatus('connected');
-            setAiMode(res.data.mode || 'Google Gemini');
+            setAiMode(res.data.ai?.provider || res.data.mode || 'AdvokatAI');
           }
         } else {
           if (isMounted) setBackendStatus('offline');
@@ -653,19 +653,28 @@ export default function ChatPage() {
         )}
 
         {/* Sidebar Footer */}
-        <div className="p-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs text-gray-500">
+        <div className="p-3 border-t border-gray-100 bg-gradient-to-br from-amber-50/70 via-amber-50/40 to-orange-50/30">
+          <div className="flex items-start gap-2.5 mb-2.5">
+            <span className="text-xl shrink-0">☕</span>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-gray-900">Loyihani qoʻllab-quvvatlang</p>
+              <p className="text-[11px] text-gray-600 leading-tight">AdvokatAI bepul xizmat. Dasturchiga kofe ulashib hissa qoʻshing!</p>
+            </div>
+          </div>
           <a
             href="https://buymeacoffee.com/advokatai"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-amber-800 hover:text-amber-900 font-medium flex items-center gap-1.5 transition-colors"
+            className="w-full py-1.5 px-3 bg-[#FFDD00] hover:bg-[#FACC15] text-gray-900 text-xs font-extrabold rounded-xl flex items-center justify-center gap-1.5 transition-transform hover:scale-[1.02] shadow-2xs"
           >
-            <i className="ri-cup-line text-amber-600"></i>
-            <span>Qoʻllab-quvvatlash ☕</span>
+            <i className="ri-cup-line text-xs"></i>
+            <span>Kofe ulashish ☕</span>
           </a>
-          <Link to="/history" className="text-gray-500 hover:text-gray-700 text-[11px]">
-            Toʻliq tarix →
-          </Link>
+          <div className="mt-2 text-right">
+            <Link to="/history" className="text-gray-500 hover:text-gray-700 text-[11px]">
+              Toʻliq tarix →
+            </Link>
+          </div>
         </div>
       </aside>
 
@@ -708,7 +717,7 @@ export default function ChatPage() {
                 ></span>
                 <span className="truncate">
                   {backendStatus === 'connected'
-                    ? `${aiMode} · Lex.uz integratsiyasi`
+                    ? 'AdvokatAI · Lex.uz integratsiyasi'
                     : 'Lokal qidiruv rejimi'}
                 </span>
               </div>
@@ -736,6 +745,17 @@ export default function ChatPage() {
                 ))}
               </select>
             </div>
+
+            <a
+              href="https://buymeacoffee.com/advokatai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg font-bold transition-all shadow-2xs hover:scale-105"
+              title="AdvokatAI loyihasini qoʻllab-quvvatlash"
+            >
+              <i className="ri-cup-line text-amber-600"></i>
+              <span className="hidden sm:inline">Qoʻllab-quvvatlash ☕</span>
+            </a>
 
             <button
               type="button"
@@ -827,9 +847,9 @@ export default function ChatPage() {
                   </div>
                 )}
 
-                {/* Feedback rating buttons for AI answers */}
+                {/* Feedback rating buttons & support link for AI answers */}
                 {msg.sender === 'ai' && !msg.isError && (
-                  <div className="flex items-center gap-1.5 mt-1 text-gray-400">
+                  <div className="flex items-center gap-2 mt-1 text-gray-400">
                     <button
                       type="button"
                       onClick={() => handleFeedback(msg.id, 1)}
@@ -850,6 +870,16 @@ export default function ChatPage() {
                     >
                       <i className="ri-thumb-down-line"></i>
                     </button>
+                    <span className="text-gray-200 text-xs">·</span>
+                    <a
+                      href="https://buymeacoffee.com/advokatai"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/90 px-2 py-0.5 rounded-md font-semibold transition-colors border border-amber-200/50"
+                      title="AdvokatAI dasturchisiga kofe ulashish"
+                    >
+                      <span>☕ Dasturchiga kofe</span>
+                    </a>
                   </div>
                 )}
               </div>
@@ -948,7 +978,7 @@ export default function ChatPage() {
                 rows={1}
                 placeholder={
                   isLimitReached
-                    ? `Kunlik savollar limitingiz (${dailyLimit} ta) to'ldi. Davom ettirish uchun tarifingizni yangilang...`
+                    ? `Kunlik savollar limitingiz (${dailyLimit} ta) to'ldi. Cheklov ertaga yangilanadi.`
                     : "Huquqiy savolingizni yozing (masalan: Ish beruvchi ish haqini o'z vaqtida to'lamasa nima qilish kerak?)..."
                 }
                 className="w-full resize-none bg-transparent px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none max-h-32 min-h-[40px] leading-relaxed disabled:cursor-not-allowed disabled:text-gray-400"
@@ -970,19 +1000,29 @@ export default function ChatPage() {
                     ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-xs'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
-                title={isLimitReached ? "Savollar limiti to'lgan (Tariflarga o'tish)" : "Yuborish (Enter)"}
+                title={isLimitReached ? "Savollar limiti to'lgan" : "Yuborish (Enter)"}
               >
                 <i className={isLimitReached ? "ri-lock-line text-base" : "ri-send-plane-2-fill text-base"}></i>
               </button>
             </div>
 
-            <div className="flex items-center justify-between mt-2 px-1 text-[11px] text-gray-400">
+            <div className="flex flex-wrap items-center justify-between mt-2 px-1 text-[11px] text-gray-400 gap-2">
               <span className="truncate">
                 AdvokatAI sunʼiy intellekt yordamchisidir. Javoblar Lex.uz qonunchiligiga asoslanadi.
               </span>
-              <span className="hidden sm:inline-block ml-2 text-gray-400 flex-shrink-0">
-                Enter — yuborish · Shift+Enter — yangi qator
-              </span>
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://buymeacoffee.com/advokatai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-amber-700 hover:text-amber-900 font-semibold transition-colors"
+                >
+                  <span>Dasturchiga kofe ulashish ☕</span>
+                </a>
+                <span className="hidden sm:inline-block text-gray-400">
+                  Enter — yuborish
+                </span>
+              </div>
             </div>
           </div>
         </div>

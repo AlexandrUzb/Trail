@@ -17,10 +17,10 @@ router.get('/', (req, res) => {
     version: '2.0.0',
     timestamp: new Date().toISOString(),
     ai: {
-      provider: 'Google Gemini',
-      model: 'gemini-3.6-flash',
+      provider: 'AdvokatAI',
+      model: 'advokatai-legal-v2',
       configured: geminiConfigured,
-      mode: geminiConfigured ? 'live_rag_gemini' : 'local_rag_fallback'
+      mode: geminiConfigured ? 'AdvokatAI' : 'local_rag_fallback'
     },
     rag: {
       totalDocuments: ragStats.totalDocuments,
