@@ -1,0 +1,24 @@
+{
+  "name": "advokatai-backend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AdvokatAI Node.js Express Legal AI & RAG Engine (Hosted on Render)",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node tests/relevanceGating.test.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.22.0",
+    "@supabase/supabase-js": "^2.117.1",
+    "cors": "^2.8.6",
+    "docx": "^9.7.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

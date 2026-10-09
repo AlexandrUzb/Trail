@@ -1,18 +1,17 @@
 # ============================================================================
-# AdvokatAI - Render Blueprint Specification
-# Single Unified Full-Stack Service (Node.js + React 19 + Express 5)
+# AdvokatAI - Render Blueprint Specification (Backend Web Service)
 # Docs: https://render.com/docs/blueprint-spec
 # ============================================================================
 
 services:
   - type: web
-    name: advokatai
+    name: advokatai-api
     runtime: node
     plan: free
-    region: frankfurt # Frankfurt (EU Central) - lowest latency to Uzbekistan
-    buildCommand: npm install && npm run build
-    startCommand: npm start
-    autoDeploy: true
+    region: frankfurt # Frankfurt (EU Central)
+    buildCommand: npm install
+    startCommand: node index.js
+    autoDeploy: false
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
@@ -20,26 +19,26 @@ services:
       - key: NODE_ENV
         value: production
 
-      # Server-only AI Key (Prompted securely in Render Dashboard)
+      # Server-only AI Key
       - key: GEMINI_API_KEY
         sync: false
 
-      # Admin Secret Key (Prompted securely in Render Dashboard)
+      # Admin Secret Key
       - key: ADMIN_API_KEY
         sync: false
 
-      # Stateless Session Token Secret (Auto-generated cryptographic secret)
+      # Stateless Session Token Secret
       - key: JWT_SECRET
         generateValue: true
 
-      # Supabase Frontend & Server Configuration
-      - key: VITE_SUPABASE_URL
-        value: https://gkztwgxxcahwmzwvimzi.supabase.co
-      - key: VITE_SUPABASE_PUBLISHABLE_KEY
-        value: sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0
+      # Supabase Server Configuration
       - key: SUPABASE_URL
         value: https://gkztwgxxcahwmzwvimzi.supabase.co
       - key: SUPABASE_ANON_KEY
         value: sb_publishable_CujwKGKQIc70VQo4wQZWXw_r3O3Bhk0
       - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+      # Allowed Frontend Origin for CORS
+      - key: FRONTEND_URL
         sync: false

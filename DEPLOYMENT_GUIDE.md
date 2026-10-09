@@ -10,7 +10,7 @@ Bu qoʻllanma **AdvokatAI** loyihasini **Render** (yoki **Railway**) platformasi
 * **Nima uchun Render Web Service?**
   * Frontend (React 19 + Vite 7) va Backend (Express 5 + RAG) **bitta xizmatda va bitta domenda** (`https://sizning-saytingiz.onrender.com`) ishlaydi.
   * CORS xatoliklari, alohida domenlar orasidagi aloqa muammolari butunlay yoʻqoladi.
-  * Foydalanuvchi saytga kirganda (`/`, `/chat`, `/login`, `/templates`, `/pricing`), Express toʻgʻridan-toʻgʻri `dist/index.html` ni koʻrsatadi. `/api/*` soʻrovlari esa ichki API orqali bajariladi.
+  * Foydalanuvchi saytga kirganda (`/`, `/chat`, `/login`, `/templates`, `/pricing`), Express toʻgʻridan-toʻgʻri `frontend/dist/index.html` ni koʻrsatadi. `/api/*` soʻrovlari esa ichki API orqali bajariladi.
   * Render doimiy bepul tarifga (Free Tier) ega va GitHub bilan avtomatik yangilanishni (Auto-Deploy) qoʻllab-quvvatlaydi.
 
 ---
