@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
     }
 
     // Server-side usage quota verification
-    const quotaCheck = storageService.checkAndConsumeQuota(userId);
+    const quotaCheck = await storageService.checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
       return res.status(429).json({
         success: false,
@@ -65,9 +65,9 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/chat/usage/:userId - get user usage stats
-router.get('/usage/:userId', (req, res) => {
+router.get('/usage/:userId', async (req, res) => {
   try {
-    const usage = storageService.getUserUsage(req.params.userId);
+    const usage = await storageService.getUserUsage(req.params.userId);
     res.json({ success: true, data: usage });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

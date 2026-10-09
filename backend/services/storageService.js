@@ -268,10 +268,10 @@ class StorageService {
     return readJson('users', []);
   }
 
-  // --- ATOMIC USAGE TRACKING ---
-  checkAndConsumeQuota(userId) {
-    const user = this.getUser(userId);
-    const plan = this.getPlanById(user.plan_id);
+  // --- ATOMIC USAGE TRACKING (SUPABASE BACKED + MEMORY FALLBACK) ---
+  async checkAndConsumeQuota(userId) {
+    let user = this.getUser(userId);
+    let plan = this.getPlanById(user.plan_id);
 
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
@@ -280,8 +280,28 @@ class StorageService {
     const monthKey = `${userId}_${now.toISOString().slice(0, 7)}`;
 
     const usageStore = readJson('usage', {});
-    const dailyUsed = usageStore[dayKey] ?? usageStore[colonDayKey] ?? 0;
-    const monthlyUsed = usageStore[monthKey] ?? usageStore[`${userId}:${now.toISOString().slice(0, 7)}`] ?? 0;
+    let dailyUsed = usageStore[dayKey] ?? usageStore[colonDayKey] ?? 0;
+    let monthlyUsed = usageStore[monthKey] ?? usageStore[`${userId}:${now.toISOString().slice(0, 7)}`] ?? 0;
+
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const sb = getSupabaseServerClient();
+
+    if (userId && UUID_REGEX.test(userId) && sb) {
+      try {
+        const [rpcRes, profRes] = await Promise.all([
+          sb.rpc('get_user_usage', { p_user_id: userId }),
+          sb.from('profiles').select('plan').eq('id', userId).maybeSingle()
+        ]);
+        if (profRes?.data?.plan) {
+          plan = this.getPlanById(profRes.data.plan.toLowerCase());
+        }
+        if (rpcRes?.data) {
+          dailyUsed = Math.max(dailyUsed, Number(rpcRes.data.question_count || 0));
+        }
+      } catch (e) {
+        console.warn('[StorageService] checkQuota Supabase sync notice:', e.message);
+      }
+    }
 
     const dailyLimit = plan.daily_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 100 : 10);
     const monthlyLimit = plan.monthly_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 3000 : 300);
@@ -316,43 +336,69 @@ class StorageService {
       };
     }
 
-    // Atomic increment
-    usageStore[dayKey] = dailyUsed + 1;
-    usageStore[monthKey] = monthlyUsed + 1;
+    dailyUsed += 1;
+    monthlyUsed += 1;
+    usageStore[dayKey] = dailyUsed;
+    usageStore[monthKey] = monthlyUsed;
     writeJson('usage', usageStore);
 
-    // Sync to Supabase public.ai_usage if userId is valid UUID
-    try {
-      const sb = getSupabaseServerClient();
-      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (sb && UUID_REGEX.test(userId)) {
-        sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'question' }).catch(() => {});
+    if (userId && UUID_REGEX.test(userId) && sb) {
+      try {
+        const incRes = await sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'question' });
+        if (incRes?.data?.question_count !== undefined) {
+          dailyUsed = Number(incRes.data.question_count);
+          usageStore[dayKey] = dailyUsed;
+          writeJson('usage', usageStore);
+        }
+      } catch (e) {
+        console.warn('[StorageService] increment_user_usage question warning:', e.message);
       }
-    } catch {}
+    }
 
     return {
       allowed: true,
       usage: {
-        daily_used: dailyUsed + 1,
+        daily_used: dailyUsed,
         daily_limit: dailyLimit,
-        monthly_used: monthlyUsed + 1,
+        monthly_used: monthlyUsed,
         monthly_limit: monthlyLimit,
         plan: plan.name
       }
     };
   }
 
-  checkAndConsumeDocumentQuota(userId) {
-    const user = this.getUser(userId);
-    const plan = this.getPlanById(user.plan_id);
+  async checkAndConsumeDocumentQuota(userId) {
+    let user = this.getUser(userId);
+    let plan = this.getPlanById(user.plan_id);
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const dayKey = `${userId}_doc_${today}`;
+    const usageStore = readJson('usage', {});
+    let docUsed = usageStore[dayKey] || 0;
+
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const sb = getSupabaseServerClient();
+
+    if (userId && UUID_REGEX.test(userId) && sb) {
+      try {
+        const [rpcRes, profRes] = await Promise.all([
+          sb.rpc('get_user_usage', { p_user_id: userId }),
+          sb.from('profiles').select('plan').eq('id', userId).maybeSingle()
+        ]);
+        if (profRes?.data?.plan) {
+          plan = this.getPlanById(profRes.data.plan.toLowerCase());
+        }
+        if (rpcRes?.data) {
+          docUsed = Math.max(docUsed, Number(rpcRes.data.document_count || 0));
+        }
+      } catch (e) {
+        console.warn('[StorageService] checkDoc Supabase sync notice:', e.message);
+      }
+    }
+
     const docLimit = plan.document_limit ?? (plan.plan_id === 'premium' ? 100 : plan.plan_id === 'pro' ? 10 : 2);
 
-    const now = new Date();
-    const dayKey = `${userId}_doc_${now.toISOString().slice(0, 10)}`;
-    const usageStore = readJson('usage', {});
-    const docUsed = usageStore[dayKey] || 0;
-
-    if (docUsed >= docLimit) {
+    if (docLimit < 999999 && docUsed >= docLimit) {
       return {
         allowed: false,
         reason: 'document_limit',
@@ -365,36 +411,63 @@ class StorageService {
       };
     }
 
-    usageStore[dayKey] = docUsed + 1;
+    docUsed += 1;
+    usageStore[dayKey] = docUsed;
     writeJson('usage', usageStore);
 
-    try {
-      const sb = getSupabaseServerClient();
-      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (sb && UUID_REGEX.test(userId)) {
-        sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'document' }).catch(() => {});
+    if (userId && UUID_REGEX.test(userId) && sb) {
+      try {
+        const incRes = await sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'document' });
+        if (incRes?.data?.document_count !== undefined) {
+          docUsed = Number(incRes.data.document_count);
+          usageStore[dayKey] = docUsed;
+          writeJson('usage', usageStore);
+        }
+      } catch (e) {
+        console.warn('[StorageService] increment_user_usage doc warning:', e.message);
       }
-    } catch {}
+    }
 
     return {
       allowed: true,
       usage: {
-        used: docUsed + 1,
+        used: docUsed,
         limit: docLimit,
         plan: plan.name
       }
     };
   }
 
-  checkAndConsumeSearchQuota(userId) {
-    const user = this.getUser(userId);
-    const plan = this.getPlanById(user.plan_id);
-    const searchLimit = plan.search_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 30 : 3);
-
+  async checkAndConsumeSearchQuota(userId) {
+    let user = this.getUser(userId);
+    let plan = this.getPlanById(user.plan_id);
     const now = new Date();
-    const dayKey = `${userId}_search_${now.toISOString().slice(0, 10)}`;
+    const today = now.toISOString().slice(0, 10);
+    const dayKey = `${userId}_search_${today}`;
     const usageStore = readJson('usage', {});
-    const searchUsed = usageStore[dayKey] || 0;
+    let searchUsed = usageStore[dayKey] || 0;
+
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const sb = getSupabaseServerClient();
+
+    if (userId && UUID_REGEX.test(userId) && sb) {
+      try {
+        const [rpcRes, profRes] = await Promise.all([
+          sb.rpc('get_user_usage', { p_user_id: userId }),
+          sb.from('profiles').select('plan').eq('id', userId).maybeSingle()
+        ]);
+        if (profRes?.data?.plan) {
+          plan = this.getPlanById(profRes.data.plan.toLowerCase());
+        }
+        if (rpcRes?.data) {
+          searchUsed = Math.max(searchUsed, Number(rpcRes.data.search_count || 0));
+        }
+      } catch (e) {
+        console.warn('[StorageService] checkSearch Supabase sync notice:', e.message);
+      }
+    }
+
+    const searchLimit = plan.search_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 30 : 3);
 
     if (searchLimit < 999999 && searchUsed >= searchLimit) {
       return {
@@ -409,21 +482,27 @@ class StorageService {
       };
     }
 
-    usageStore[dayKey] = searchUsed + 1;
+    searchUsed += 1;
+    usageStore[dayKey] = searchUsed;
     writeJson('usage', usageStore);
 
-    try {
-      const sb = getSupabaseServerClient();
-      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (sb && UUID_REGEX.test(userId)) {
-        sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'search' }).catch(() => {});
+    if (userId && UUID_REGEX.test(userId) && sb) {
+      try {
+        const incRes = await sb.rpc('increment_user_usage', { p_user_id: userId, p_usage_type: 'search' });
+        if (incRes?.data?.search_count !== undefined) {
+          searchUsed = Number(incRes.data.search_count);
+          usageStore[dayKey] = searchUsed;
+          writeJson('usage', usageStore);
+        }
+      } catch (e) {
+        console.warn('[StorageService] increment_user_usage search warning:', e.message);
       }
-    } catch {}
+    }
 
     return {
       allowed: true,
       usage: {
-        used: searchUsed + 1,
+        used: searchUsed,
         limit: searchLimit,
         plan: plan.name
       }
@@ -447,9 +526,9 @@ class StorageService {
     } catch {}
   }
 
-  getUserUsage(userId) {
-    const user = this.getUser(userId);
-    const plan = this.getPlanById(user.plan_id);
+  async getUserUsage(userId) {
+    let user = this.getUser(userId);
+    let plan = this.getPlanById(user.plan_id);
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
     const dayKey = `${userId}_${today}`;
@@ -458,15 +537,55 @@ class StorageService {
     const monthKey = `${userId}_${now.toISOString().slice(0, 7)}`;
 
     const usageStore = readJson('usage', {});
+    let dailyUsed = usageStore[dayKey] ?? usageStore[`${userId}:${today}`] ?? 0;
+    let docUsed = usageStore[docKey] || 0;
+    let searchUsed = usageStore[searchKey] || 0;
+    let monthlyUsed = usageStore[monthKey] ?? usageStore[`${userId}:${now.toISOString().slice(0, 7)}`] ?? 0;
+
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const sb = getSupabaseServerClient();
+
+    if (userId && UUID_REGEX.test(userId) && sb) {
+      try {
+        const [rpcRes, profRes] = await Promise.all([
+          sb.rpc('get_user_usage', { p_user_id: userId }),
+          sb.from('profiles').select('plan').eq('id', userId).maybeSingle()
+        ]);
+
+        if (profRes?.data?.plan) {
+          plan = this.getPlanById(profRes.data.plan.toLowerCase());
+        }
+
+        if (rpcRes?.data) {
+          dailyUsed = Math.max(dailyUsed, Number(rpcRes.data.question_count || 0));
+          docUsed = Math.max(docUsed, Number(rpcRes.data.document_count || 0));
+          searchUsed = Math.max(searchUsed, Number(rpcRes.data.search_count || 0));
+
+          // Sync memory store with live Supabase counts
+          usageStore[dayKey] = dailyUsed;
+          usageStore[docKey] = docUsed;
+          usageStore[searchKey] = searchUsed;
+          writeJson('usage', usageStore);
+        }
+      } catch (err) {
+        console.warn('[StorageService] Supabase usage fetch notice:', err.message);
+      }
+    }
+
+    const dailyLimit = plan.daily_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 100 : 10);
+    const docLimit = plan.document_limit ?? (plan.plan_id === 'premium' ? 100 : plan.plan_id === 'pro' ? 10 : 2);
+    const searchLimit = plan.search_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 30 : 3);
+    const monthlyLimit = plan.monthly_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 3000 : 300);
+
     return {
-      daily_used: usageStore[dayKey] ?? usageStore[`${userId}:${today}`] ?? 0,
-      daily_limit: plan.daily_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 100 : 10),
-      document_used: usageStore[docKey] || 0,
-      document_limit: plan.document_limit ?? (plan.plan_id === 'premium' ? 100 : plan.plan_id === 'pro' ? 10 : 2),
-      search_used: usageStore[searchKey] || 0,
-      search_limit: plan.search_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 30 : 3),
-      monthly_used: usageStore[monthKey] ?? usageStore[`${userId}:${now.toISOString().slice(0, 7)}`] ?? 0,
-      monthly_limit: plan.monthly_limit ?? (plan.plan_id === 'premium' ? 999999 : plan.plan_id === 'pro' ? 3000 : 300),
+      daily_used: dailyUsed,
+      daily_limit: dailyLimit,
+      document_used: docUsed,
+      document_limit: docLimit,
+      search_used: searchUsed,
+      search_limit: searchLimit,
+      monthly_used: monthlyUsed,
+      monthly_limit: monthlyLimit,
       plan: plan.name,
       plan_id: plan.plan_id,
       expires_at: user.plan_expires_at

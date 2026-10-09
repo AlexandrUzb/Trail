@@ -156,11 +156,11 @@ router.get('/:id', async (req, res) => {
  * POST /api/laws/track-search
  * Tracks user law search quota
  */
-router.post('/track-search', (req, res) => {
+router.post('/track-search', async (req, res) => {
   try {
     const { userId } = req.body || {};
-    if (!userId) return res.json({ allowed: true });
-    const result = storageService.checkAndConsumeSearchQuota(userId);
+    if (!userId) return res.json({ allowed: true, guest: true });
+    const result = await storageService.checkAndConsumeSearchQuota(userId);
     if (!result.allowed) {
       return res.status(429).json(result);
     }

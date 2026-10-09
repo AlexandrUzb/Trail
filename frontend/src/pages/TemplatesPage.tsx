@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   legalTemplatesDatabase,
   LegalTemplate,
@@ -13,6 +13,11 @@ import {
 import { safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { supabase, getTodayUserUsage, incrementUserUsage } from '../utils/supabase';
+import {
+  getTodayGuestUsage,
+  incrementGuestUsage,
+  GUEST_DAILY_DOCUMENT_LIMIT
+} from '../utils/guestUsage';
 
 const categoryColors: Record<string, string> = {
   'Uy-joy va mulk': 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -35,25 +40,32 @@ export default function TemplatesPage() {
   const [savedTemplateIds, setSavedTemplateIds] = useState<string[]>([]);
   const [docCount, setDocCount] = useState<number>(0);
   const [showDocLimitModal, setShowDocLimitModal] = useState<boolean>(false);
+  const [trackedTemplateIds, setTrackedTemplateIds] = useState<Set<string>>(new Set());
 
-  const documentLimit = user?.documentLimit ?? (user?.plan?.toLowerCase().includes('premium') ? 100 : user?.plan?.toLowerCase().includes('pro') ? 10 : 2);
-  const isDocLimitReached = Boolean(isLoggedIn && documentLimit < 999999 && docCount >= documentLimit);
+  const isGuest = !isLoggedIn;
+  const documentLimit = isGuest
+    ? GUEST_DAILY_DOCUMENT_LIMIT
+    : (user?.documentLimit ?? (user?.plan?.toLowerCase().includes('premium') ? 100 : user?.plan?.toLowerCase().includes('pro') ? 10 : 2));
+  const isDocLimitReached = Boolean(documentLimit < 999999 && docCount >= documentLimit);
 
-  // Load user today's document count
+  // Load today's document count (Supabase + backend for authenticated, persistent localStorage for guest)
   useEffect(() => {
     let isMounted = true;
-    if (user?.id) {
+    if (isLoggedIn && user?.id) {
       getTodayUserUsage(user.id).then((u) => {
         if (isMounted) setDocCount(u.document_count);
       }).catch(() => {});
       safeFetchJson(`/api/chat/usage/${user.id}`).then((res) => {
         if (isMounted && res.data?.data?.document_used !== undefined) {
-          setDocCount((prev) => Math.max(prev, res.data.data.document_used));
+          setDocCount((prev) => Math.max(prev, Number(res.data.data.document_used)));
         }
       }).catch(() => {});
+    } else {
+      const guestUsage = getTodayGuestUsage();
+      if (isMounted) setDocCount(guestUsage.document_count);
     }
     return () => { isMounted = false; };
-  }, [user?.id]);
+  }, [isLoggedIn, user?.id]);
 
   // Live Supabase query for document_templates
   useEffect(() => {
@@ -279,7 +291,36 @@ export default function TemplatesPage() {
     }
   }, [selected, formData]);
 
+  const trackDocumentUsage = () => {
+    if (!selected) return;
+    const key = String(selected.id);
+    if (trackedTemplateIds.has(key)) return;
+
+    if (isDocLimitReached) {
+      setShowDocLimitModal(true);
+      return;
+    }
+
+    setTrackedTemplateIds((prev) => new Set(prev).add(key));
+    const nextCount = docCount + 1;
+    setDocCount(nextCount);
+
+    if (isLoggedIn && user?.id) {
+      incrementUserUsage(user.id, 'document').catch(() => {});
+      safeFetchJson('/api/templates/track-document', {
+        method: 'POST',
+        body: JSON.stringify({ userId: user.id }),
+      }).catch(() => {});
+    } else {
+      incrementGuestUsage('document');
+    }
+  };
+
   const selectTemplate = (t: LegalTemplate) => {
+    if (isDocLimitReached && !trackedTemplateIds.has(String(t.id))) {
+      setShowDocLimitModal(true);
+      return;
+    }
     setSelected(t);
     setFormData({});
     setCopied(false);
@@ -290,6 +331,13 @@ export default function TemplatesPage() {
   };
 
   const handleFieldChange = (key: string, val: string) => {
+    if (isDocLimitReached) {
+      setShowDocLimitModal(true);
+      return;
+    }
+    if (val.trim().length > 0 && selected && !trackedTemplateIds.has(String(selected.id))) {
+      trackDocumentUsage();
+    }
     setFormData((prev) => ({ ...prev, [key]: val }));
   };
 
@@ -337,6 +385,11 @@ export default function TemplatesPage() {
     actionTitle: string,
     executeFn: () => void | Promise<void>
   ) => {
+    if (isDocLimitReached) {
+      setShowDocLimitModal(true);
+      return;
+    }
+
     if (isLoggedIn) {
       // Check document quota limit: 2 for Free, 10 for Pro, 100 for Premium
       if (documentLimit < 999999 && docCount >= documentLimit) {
@@ -363,13 +416,10 @@ export default function TemplatesPage() {
           console.warn('[TemplatesPage] Save user_document warning:', e);
         }
 
-        // Increment usage
-        setDocCount((prev) => prev + 1);
-        incrementUserUsage(user.id, 'document').catch(() => {});
-        safeFetchJson('/api/templates/track-document', {
-          method: 'POST',
-          body: JSON.stringify({ userId: user.id }),
-        }).catch(() => {});
+        // Increment usage if not already tracked for this template
+        if (!trackedTemplateIds.has(String(selected.id))) {
+          trackDocumentUsage();
+        }
 
         const endpoint = actionType.startsWith('download') ? 'download' : 'copy';
         safeFetchJson(`/api/templates/${selected.id}/${endpoint}`, {
@@ -379,6 +429,9 @@ export default function TemplatesPage() {
       }
       executeFn();
     } else {
+      if (!trackedTemplateIds.has(String(selected?.id || ''))) {
+        trackDocumentUsage();
+      }
       setAuthModalAction(actionTitle);
       setPendingAuthAction({
         type: actionType,
@@ -387,6 +440,17 @@ export default function TemplatesPage() {
       });
       setShowAuthModal(true);
     }
+  };
+
+  const handlePreviewOpen = () => {
+    if (isDocLimitReached) {
+      setShowDocLimitModal(true);
+      return;
+    }
+    if (selected && !trackedTemplateIds.has(String(selected.id))) {
+      trackDocumentUsage();
+    }
+    setIsPreviewModalOpen(true);
   };
 
   const handleCopy = () => {
@@ -486,7 +550,12 @@ export default function TemplatesPage() {
           </p>
 
           {/* Quota Indicator */}
-          {isLoggedIn && (
+          {isGuest ? (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-xs font-semibold text-amber-800 mb-6 shadow-2xs">
+              <i className="ri-file-list-3-line text-amber-600"></i>
+              <span>Mehmon limitingiz: <strong>{docCount}</strong> / <strong>{documentLimit} ta</strong></span>
+            </div>
+          ) : (
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-xs font-semibold text-teal-800 mb-6 shadow-2xs">
               <i className="ri-file-list-3-line text-teal-600"></i>
               <span>Hujjatlar limitingiz: <strong>{docCount}</strong> / <strong>{documentLimit >= 999999 ? 'Cheksiz' : `${documentLimit} ta`}</strong></span>
@@ -678,7 +747,12 @@ export default function TemplatesPage() {
                             <select
                               value={formData[field.key] || ''}
                               onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
+                              disabled={isDocLimitReached}
+                              className={`w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none transition-all ${
+                                isDocLimitReached
+                                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                  : 'border-gray-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white'
+                              }`}
                             >
                               <option value="">Tanlang...</option>
                               {field.options?.map((o) => (
@@ -693,7 +767,12 @@ export default function TemplatesPage() {
                               onChange={(e) => handleFieldChange(field.key, e.target.value)}
                               placeholder={field.placeholder}
                               rows={3}
-                              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none resize-none leading-relaxed"
+                              disabled={isDocLimitReached}
+                              className={`w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none resize-none leading-relaxed transition-all ${
+                                isDocLimitReached
+                                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                  : 'border-gray-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white'
+                              }`}
                             />
                           ) : (
                             <input
@@ -701,7 +780,12 @@ export default function TemplatesPage() {
                               value={formData[field.key] || ''}
                               onChange={(e) => handleFieldChange(field.key, e.target.value)}
                               placeholder={field.placeholder}
-                              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                              disabled={isDocLimitReached}
+                              className={`w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none transition-all ${
+                                isDocLimitReached
+                                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                  : 'border-gray-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white'
+                              }`}
                             />
                           )}
                         </div>
@@ -730,18 +814,37 @@ export default function TemplatesPage() {
                         </div>
                         <div>
                           <div className="font-bold text-sm text-gray-900">Hujjat yaratish limitingiz ({documentLimit} ta) to'ldi</div>
-                          <div className="text-gray-600">Cheklov ertaga qayta yangilanadi.</div>
+                          <div className="text-gray-600">
+                            {isGuest ? "Ko'proq hujjat tayyorlash uchun hisobingizga kiring." : "Cheklov ertaga qayta yangilanadi."}
+                          </div>
                         </div>
                       </div>
-                      <a
-                        href="https://buymeacoffee.com/advokatai"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
-                      >
-                        <i className="ri-cup-line"></i>
-                        <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
-                      </a>
+                      {isGuest ? (
+                        <div className="flex items-center gap-2 self-end sm:self-center">
+                          <Link
+                            to="/register"
+                            className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs shadow-sm transition-all"
+                          >
+                            Roʻyxatdan oʻtish
+                          </Link>
+                          <Link
+                            to="/login"
+                            className="px-3.5 py-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition-all"
+                          >
+                            Kirish
+                          </Link>
+                        </div>
+                      ) : (
+                        <a
+                          href="https://buymeacoffee.com/advokatai"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
+                        >
+                          <i className="ri-cup-line"></i>
+                          <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                        </a>
+                      )}
                     </div>
                   )}
 
@@ -769,7 +872,7 @@ export default function TemplatesPage() {
                               onClick={() => setViewMode('paper')}
                               className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
                                 viewMode === 'paper'
-                                  ? 'bg-white text-gray-900 shadow-2xs'
+                                    ? 'bg-white text-gray-900 shadow-2xs'
                                   : 'text-gray-600 hover:text-gray-900'
                               }`}
                             >
@@ -791,7 +894,7 @@ export default function TemplatesPage() {
 
                           {/* Action Buttons: Ko'rish, PDF, Word, Nusxa */}
                           <button
-                            onClick={() => setIsPreviewModalOpen(true)}
+                            onClick={handlePreviewOpen}
                             className="flex items-center gap-1.5 px-3 py-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                             title="To‘liq ekranda ko‘rish"
                           >
@@ -834,7 +937,46 @@ export default function TemplatesPage() {
                       </div>
 
                       {/* Document Canvas Container */}
-                      <div className="p-4 sm:p-8 bg-gray-100/70 overflow-x-auto">
+                      <div className="p-4 sm:p-8 bg-gray-100/70 overflow-x-auto relative">
+                        {isDocLimitReached && (
+                          <div className="absolute inset-0 z-20 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center select-none">
+                            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl mb-3 shadow-xs">
+                              <i className="ri-file-lock-line"></i>
+                            </div>
+                            <h4 className="text-lg font-bold text-gray-900 mb-1">
+                              Hujjat yaratish limitingiz to'ldi
+                            </h4>
+                            <p className="text-xs sm:text-sm text-gray-600 max-w-md mb-4 leading-relaxed">
+                              Bugungi belgilangan {documentLimit} ta hujjat limitingiz tugadi. Yangi hujjatlar tayyorlash uchun {isGuest ? "tizimga kiring yoki bepul roʻyxatdan oʻting" : "cheklov ertaga yangilanadi"}.
+                            </p>
+                            {isGuest ? (
+                              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                                <Link
+                                  to="/register"
+                                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                                >
+                                  Roʻyxatdan oʻtish
+                                </Link>
+                                <Link
+                                  to="/login"
+                                  className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition-all"
+                                >
+                                  Kirish
+                                </Link>
+                              </div>
+                            ) : (
+                              <a
+                                href="https://buymeacoffee.com/advokatai"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                              >
+                                <i className="ri-cup-line"></i>
+                                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                              </a>
+                            )}
+                          </div>
+                        )}
                         {viewMode === 'paper' ? (
                           <div
                             id="legal-document-paper"
@@ -1199,20 +1341,41 @@ export default function TemplatesPage() {
               Hujjat yaratish limitingiz to'ldi
             </h3>
             <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
-              Bugungi belgilangan hujjatlar soni ({documentLimit} ta) to'ldi. Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi.
+              Bugungi belgilangan hujjatlar soni ({documentLimit} ta) to'ldi. {isGuest ? "Ko'proq imkoniyatlar uchun bepul roʻyxatdan oʻting." : "Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi."}
             </p>
 
             <div className="space-y-3">
-              <a
-                href="https://buymeacoffee.com/advokatai"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setShowDocLimitModal(false)}
-                className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-              >
-                <i className="ri-cup-line"></i>
-                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
-              </a>
+              {isGuest ? (
+                <>
+                  <Link
+                    to="/register"
+                    onClick={() => setShowDocLimitModal(false)}
+                    className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <i className="ri-user-add-line"></i>
+                    <span>Bepul roʻyxatdan oʻtish</span>
+                  </Link>
+                  <Link
+                    to="/login"
+                    onClick={() => setShowDocLimitModal(false)}
+                    className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <i className="ri-login-box-line"></i>
+                    <span>Hisobga kirish</span>
+                  </Link>
+                </>
+              ) : (
+                <a
+                  href="https://buymeacoffee.com/advokatai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setShowDocLimitModal(false)}
+                  className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                >
+                  <i className="ri-cup-line"></i>
+                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                </a>
+              )}
               <button
                 type="button"
                 onClick={() => setShowDocLimitModal(false)}

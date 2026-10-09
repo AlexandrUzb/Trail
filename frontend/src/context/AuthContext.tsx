@@ -138,18 +138,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function initAuth() {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        if (error || !session || !session.user) {
+        if (!error && session?.user) {
           if (mounted) {
-            clearAuthStorage();
-            setUser(null);
-            setIsLoggedIn(false);
-            setLoading(false);
+            await loadUserData(session.user, session.access_token);
           }
           return;
         }
 
+        // Fallback: Check if user session was previously stored in safeStorage
+        const storedUser = safeStorage.getJSON<AuthUser | null>('advokatai_user', null);
+        const isLoggedInFlag = safeStorage.getItem('advokatai_is_logged_in');
+
+        if (storedUser && isLoggedInFlag === 'true' && storedUser.id) {
+          if (mounted) {
+            setUser(storedUser);
+            setIsLoggedIn(true);
+            setLoading(false);
+          }
+
+          // Asynchronously refresh authoritative entitlements
+          checkUserEntitlements(storedUser.id).then((ent) => {
+            if (mounted && ent) {
+              setUser((prev) => prev ? {
+                ...prev,
+                entitlements: ent,
+                plan: ent.plan,
+                dailyLimit: ent.limits.dailyQuestionLimit,
+                documentLimit: ent.limits.documentLimit,
+                searchLimit: ent.limits.searchLimit,
+                canCopy: ent.limits.canCopy,
+                canDownload: ent.limits.canDownload,
+                canEdit: ent.limits.canEdit,
+              } : null);
+            }
+          }).catch(() => {});
+          return;
+        }
+
         if (mounted) {
-          await loadUserData(session.user, session.access_token);
+          clearAuthStorage();
+          setUser(null);
+          setIsLoggedIn(false);
+          setLoading(false);
         }
       } catch {
         if (mounted) {

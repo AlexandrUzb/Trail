@@ -4,6 +4,7 @@ import { lawArticlesDatabase, LawArticle } from '../data/lawArticles';
 import { safeStorage, safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { supabase, getTodayUserUsage, incrementUserUsage } from '../utils/supabase';
+import { getTodayGuestUsage, incrementGuestUsage, GUEST_DAILY_SEARCH_LIMIT } from '../utils/guestUsage';
 
 export const legalCategories = [
   'Barchasi',
@@ -132,8 +133,11 @@ export default function SearchPage() {
 
   const [searchCount, setSearchCount] = useState<number>(0);
   const [showSearchLimitModal, setShowSearchLimitModal] = useState<boolean>(false);
-  const searchLimit = user?.searchLimit ?? (user?.plan?.toLowerCase().includes('premium') ? 999999 : user?.plan?.toLowerCase().includes('pro') ? 30 : 3);
-  const isSearchLimitReached = Boolean(isLoggedIn && searchLimit < 999999 && searchCount >= searchLimit);
+  const isGuest = !isLoggedIn;
+  const searchLimit = isGuest
+    ? GUEST_DAILY_SEARCH_LIMIT
+    : (user?.searchLimit ?? (user?.plan?.toLowerCase().includes('premium') ? 999999 : user?.plan?.toLowerCase().includes('pro') ? 30 : 3));
+  const isSearchLimitReached = Boolean(searchLimit < 999999 && searchCount >= searchLimit);
   const lastTrackedQueryRef = useRef<string>('');
 
   const handleQueryChange = (val: string) => {
@@ -144,21 +148,27 @@ export default function SearchPage() {
     setQuery(val);
   };
 
-  // Load today's search usage
+  // Load today's search usage (Supabase + backend for authenticated, persistent localStorage for guest)
   useEffect(() => {
     let isMounted = true;
-    if (user?.id) {
+    if (isLoggedIn && user?.id) {
+      // 1. Authoritative check from Supabase ai_usage
       getTodayUserUsage(user.id).then((u) => {
         if (isMounted) setSearchCount(u.search_count);
       }).catch(() => {});
+      // 2. Fallback check from backend
       safeFetchJson(`/api/chat/usage/${user.id}`).then((res) => {
         if (isMounted && res.data?.data?.search_used !== undefined) {
-          setSearchCount((prev) => Math.max(prev, res.data.data.search_used));
+          setSearchCount((prev) => Math.max(prev, Number(res.data.data.search_used)));
         }
       }).catch(() => {});
+    } else {
+      // Persistent guest usage from localStorage
+      const guestUsage = getTodayGuestUsage();
+      if (isMounted) setSearchCount(guestUsage.search_count);
     }
     return () => { isMounted = false; };
-  }, [user?.id]);
+  }, [isLoggedIn, user?.id]);
 
   // Track search query and check limit
   useEffect(() => {
@@ -169,16 +179,20 @@ export default function SearchPage() {
         return;
       }
       lastTrackedQueryRef.current = trimmed;
-      setSearchCount((prev) => prev + 1);
-      if (user?.id) {
+      const nextCount = searchCount + 1;
+      setSearchCount(nextCount);
+
+      if (isLoggedIn && user?.id) {
         incrementUserUsage(user.id, 'search').catch(() => {});
         safeFetchJson('/api/laws/track-search', {
           method: 'POST',
           body: JSON.stringify({ userId: user.id }),
         }).catch(() => {});
+      } else {
+        incrementGuestUsage('search');
       }
     }
-  }, [query, searchLimit, searchCount, user?.id]);
+  }, [query, searchLimit, searchCount, isLoggedIn, user?.id]);
 
   // Fetch live legal categories and legal articles from Supabase
   useEffect(() => {
@@ -500,12 +514,14 @@ export default function SearchPage() {
           </p>
 
           {/* Quota Indicator */}
-          {isLoggedIn && (
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-xs font-semibold text-teal-800 mb-6 shadow-2xs">
-              <i className="ri-search-line text-teal-600"></i>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-xs font-semibold text-teal-800 mb-6 shadow-2xs">
+            <i className="ri-search-line text-teal-600"></i>
+            {isLoggedIn ? (
               <span>Qidiruv limitingiz: <strong>{searchCount}</strong> / <strong>{searchLimit >= 999999 ? 'Cheksiz' : `${searchLimit} ta`}</strong></span>
-            </div>
-          )}
+            ) : (
+              <span>Mehmon limitingiz: <strong>{searchCount}</strong> / <strong>{searchLimit} ta</strong> <span className="text-teal-600 font-normal">({Math.max(0, searchLimit - searchCount)} ta qoldi)</span></span>
+            )}
+          </div>
 
           {/* Search Limit Banner */}
           {isSearchLimitReached && (
@@ -515,19 +531,41 @@ export default function SearchPage() {
                   <i className="ri-lock-line text-base"></i>
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-gray-900">Kunlik qidiruv limitingiz ({searchLimit} ta) to'ldi</div>
-                  <div className="text-gray-600">Qidiruvlar ertaga qayta tiklanadi.</div>
+                  <div className="font-bold text-sm text-gray-900">
+                    {isGuest ? `Mehmon qidiruv limitingiz (${searchLimit} ta) to'ldi` : `Kunlik qidiruv limitingiz (${searchLimit} ta) to'ldi`}
+                  </div>
+                  <div className="text-gray-600">
+                    {isGuest ? "Ko'proq qidirish uchun bepul ro'yxatdan o'ting yoki tizimga kiring." : "Qidiruvlar ertaga qayta tiklanadi."}
+                  </div>
                 </div>
               </div>
-              <a
-                href="https://buymeacoffee.com/advokatai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
-              >
-                <i className="ri-cup-line"></i>
-                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
-              </a>
+              {isGuest ? (
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                  <Link
+                    to="/register"
+                    className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 shadow-sm transition-all whitespace-nowrap cursor-pointer"
+                  >
+                    <i className="ri-user-add-line"></i>
+                    <span>Ro'yxatdan o'tish</span>
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-semibold rounded-xl text-xs flex items-center justify-center gap-1 transition-all whitespace-nowrap cursor-pointer"
+                  >
+                    <span>Kirish</span>
+                  </Link>
+                </div>
+              ) : (
+                <a
+                  href="https://buymeacoffee.com/advokatai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
+                >
+                  <i className="ri-cup-line"></i>
+                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                </a>
+              )}
             </div>
           )}
 
@@ -822,27 +860,51 @@ export default function SearchPage() {
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-              Kunlik qidiruv limitingiz to'ldi
+              {isGuest ? "Mehmon qidiruv limitingiz to'ldi" : "Kunlik qidiruv limitingiz to'ldi"}
             </h3>
             <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
-              Bugungi belgilangan qidiruvlar soni ({searchLimit} ta) to'ldi. Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi.
+              {isGuest ? (
+                <>Siz bugungi belgilangan <strong>{searchLimit} ta</strong> mehmon qidiruvidan foydalandingiz. Davom ettirish va koʻproq imkoniyatlarga ega boʻlish uchun bepul roʻyxatdan oʻting!</>
+              ) : (
+                <>Bugungi belgilangan qidiruvlar soni ({searchLimit} ta) to'ldi. Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi.</>
+              )}
             </p>
 
             <div className="space-y-3">
-              <a
-                href="https://buymeacoffee.com/advokatai"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setShowSearchLimitModal(false)}
-                className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-              >
-                <i className="ri-cup-line"></i>
-                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
-              </a>
+              {isGuest ? (
+                <>
+                  <Link
+                    to="/register"
+                    onClick={() => setShowSearchLimitModal(false)}
+                    className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <i className="ri-user-add-line"></i>
+                    <span>Bepul roʻyxatdan oʻtish</span>
+                  </Link>
+                  <Link
+                    to="/login"
+                    onClick={() => setShowSearchLimitModal(false)}
+                    className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Mavjud hisobga kirish</span>
+                  </Link>
+                </>
+              ) : (
+                <a
+                  href="https://buymeacoffee.com/advokatai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setShowSearchLimitModal(false)}
+                  className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                >
+                  <i className="ri-cup-line"></i>
+                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                </a>
+              )}
               <button
                 type="button"
                 onClick={() => setShowSearchLimitModal(false)}
-                className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                className="w-full py-2.5 px-4 text-gray-500 hover:text-gray-700 text-xs font-medium transition-colors cursor-pointer"
               >
                 Yopish
               </button>

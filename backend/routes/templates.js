@@ -328,11 +328,11 @@ router.post('/:id/export', requireAuth, (req, res) => {
  * POST /api/templates/track-document
  * Consumes document generation/export quota for user
  */
-router.post('/track-document', (req, res) => {
+router.post('/track-document', async (req, res) => {
   try {
     const { userId } = req.body || {};
-    if (!userId) return res.json({ allowed: true });
-    const result = storageService.checkAndConsumeDocumentQuota(userId);
+    if (!userId) return res.json({ allowed: true, guest: true });
+    const result = await storageService.checkAndConsumeDocumentQuota(userId);
     if (!result.allowed) {
       return res.status(429).json(result);
     }
