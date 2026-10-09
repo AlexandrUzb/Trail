@@ -13,7 +13,7 @@ export default function AboutPage() {
             <span>Biz haqimizda</span>
           </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            AdvokatAI — har bir fuqaro uchun<br />
+            AIAdvokat — har bir fuqaro uchun<br />
             <span className="text-teal-600">huquqiy yordam</span>
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
@@ -46,7 +46,7 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
               <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Missiyamiz</span>
-              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-6">Nima uchun AdvokatAI?</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-6">Nima uchun AIAdvokat?</h2>
               <p className="text-gray-500 leading-relaxed mb-6">
                 O'zbekistonda professional huquqiy maslahat ko'pincha qimmat va noqulay. Ko'plab fuqarolar huquqlarini bilmaydi yoki uni himoya qila olmaydi.
               </p>
@@ -189,7 +189,7 @@ export default function AboutPage() {
                 <div>
                   <h4 className="text-lg font-bold text-gray-900 mb-2">Huquqiy Texnologiyalar (LegalTech) Kelajagi</h4>
                   <p className="text-gray-600 text-sm leading-relaxed mb-3">
-                    Men Zafar Zokirov, Surxondaryo viloyati Termiz shahridagi Prezident maktabining 11-sinf o'quvchisiman. <strong>AdvokatAI</strong> loyihasini yaratishdan asosiy maqsadim — O'zbekiston fuqarolariga o'z huquqlarini chuqur anglash, murakkab huquqiy me'yorlarni oddiy tilda tushunish va har qanday sharoitda professional yuridik yordam olish imkoniyatini taqdim etishdir.
+                    Men Zafar Zokirov, Surxondaryo viloyati Termiz shahridagi Prezident maktabining 11-sinf o'quvchisiman. <strong>AIAdvokat</strong> loyihasini yaratishdan asosiy maqsadim — O'zbekiston fuqarolariga o'z huquqlarini chuqur anglash, murakkab huquqiy me'yorlarni oddiy tilda tushunish va har qanday sharoitda professional yuridik yordam olish imkoniyatini taqdim etishdir.
                   </p>
                   <p className="text-gray-600 text-sm leading-relaxed">
                     Platforma Retrieval-Augmented Generation (RAG) texnologiyasiga tayanadi. Barcha javoblar O'zbekiston Respublikasining Lex.uz rasmiy qonunchilik bazasiga, 5 ta asosiy kodeks va 3,000 dan ortiq huquqiy moddalarga qat'iy asoslangan holda shakllantiriladi.
@@ -284,7 +284,7 @@ export default function AboutPage() {
       {/* CTA */}
       <section className="py-20 bg-teal-600">
         <div className="max-w-4xl mx-auto px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">AdvokatAI bilan tanishing</h2>
+          <h2 className="text-4xl font-bold text-white mb-4">AIAdvokat bilan tanishing</h2>
           <p className="text-teal-100 mb-10 text-lg max-w-xl mx-auto">Huquqiy masalalaringizni bugun hal qiling — tez va oson boshlang</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/chat" className="inline-flex items-center justify-center bg-white text-teal-600 px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-50 transition-colors whitespace-nowrap shadow-sm">

@@ -21,7 +21,8 @@ async function runQualityTests() {
   const firstSentence1 = (res1.text.split(/[.!?\n]/)[0] || '').toLowerCase();
   const t1Ok = (firstSentence1.includes('ha') || firstSentence1.includes('mumkin')) &&
                !firstSentence1.includes('assalomu alaykum') &&
-               !firstSentence1.includes('men advokatai');
+               !firstSentence1.includes('men advokatai') &&
+               !firstSentence1.includes('men aiadvokat');
   console.log(`Result: ${t1Ok ? 'PASS [✓]' : 'FAIL [✗]'}`);
   console.log(`First sentence: "${res1.text.split('\n')[0]}"\n`);
   if (t1Ok) passed++;
@@ -62,7 +63,8 @@ async function runQualityTests() {
   const res4 = await generateLegalAdvice({ message: "Uni bekor qilish tartibi qanday?", history: history4 });
   const t4Ok = !res4.text.startsWith('Assalomu alaykum') &&
                !res4.text.startsWith('Salom') &&
-               !res4.text.startsWith('Men AdvokatAI');
+               !res4.text.startsWith('Men AdvokatAI') &&
+               !res4.text.startsWith('Men AIAdvokat');
   console.log(`Result: ${t4Ok ? 'PASS [✓]' : 'FAIL [✗]'}`);
   console.log(`First 80 chars: "${res4.text.substring(0, 80)}..."\n`);
   if (t4Ok) passed++;

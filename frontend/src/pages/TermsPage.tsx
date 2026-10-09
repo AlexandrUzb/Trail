@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 const sections = [
   {
     title: '1. Umumiy qoidalar',
-    content: `AdvokatAI platformasidan foydalanish ushbu Foydalanish shartlarini qabul qilishni anglatadi. Agar siz ushbu shartlarga rozi bo'lmasangiz, platformadan foydalanmang.
+    content: `AIAdvokat platformasidan foydalanish ushbu Foydalanish shartlarini qabul qilishni anglatadi. Agar siz ushbu shartlarga rozi bo'lmasangiz, platformadan foydalanmang.
 
 Platforma O'zbekiston Respublikasi qonunchiligiga muvofiq ishlaydi va faqat ma'lumot berish maqsadida mo'ljallangan.`,
   },
   {
     title: '2. Xizmatlar tavsifi',
-    content: `AdvokatAI quyidagi xizmatlarni taqdim etadi:
+    content: `AIAdvokat quyidagi xizmatlarni taqdim etadi:
 • AI asosidagi huquqiy maslahat va savollariga javoblar
 • Huquqiy hujjat shablonlari va generatsiyasi
 • O'zbekiston qonunlari bo'yicha qidiruv tizimi
@@ -28,7 +28,7 @@ Barcha javoblar faqat ma'lumot maqsadida bo'lib, professional yurist maslahati o
   },
   {
     title: '4. Javobgarlik chegaralari',
-    content: `AdvokatAI:
+    content: `AIAdvokat:
 • Bergan ma'lumotlarning to'liqligi va aniqligi uchun kafolat bermaydi
 • Huquqiy maslahat olish natijasida yuzaga kelgan zararlar uchun javobgar emas
 • Uchinchi tomon saytlari va xizmatlari uchun javobgar emas
@@ -46,11 +46,11 @@ Platforma AI texnologiyasiga asoslangan bo'lib, barcha muhim huquqiy masalalar u
   },
   {
     title: '6. Intellektual mulk',
-    content: `Platformadagi barcha kontent, dizayn, algoritmlar va ma'lumotlar bazasi AdvokatAI ga tegishli bo'lib, mualliflik huquqi bilan himoyalangan. Foydalanuvchilar ushbu materiallarni tijorat maqsadlarda nusxalashi, tarqatishi yoki ishlatishi taqiqlanadi.`,
+    content: `Platformadagi barcha kontent, dizayn, algoritmlar va ma'lumotlar bazasi AIAdvokat ga tegishli bo'lib, mualliflik huquqi bilan himoyalangan. Foydalanuvchilar ushbu materiallarni tijorat maqsadlarda nusxalashi, tarqatishi yoki ishlatishi taqiqlanadi.`,
   },
   {
     title: '7. Shartlarni o\'zgartirish',
-    content: `AdvokatAI ushbu shartlarni istalgan vaqtda o'zgartirish huquqini o'zida saqlab qoladi. O'zgartirishlar platforma orqali e'lon qilinadi va kuchga kirgan kundan boshlab amal qiladi.`,
+    content: `AIAdvokat ushbu shartlarni istalgan vaqtda o'zgartirish huquqini o'zida saqlab qoladi. O'zgartirishlar platforma orqali e'lon qilinadi va kuchga kirgan kundan boshlab amal qiladi.`,
   },
 ];
 
@@ -72,7 +72,7 @@ export default function TermsPage() {
             <div>
               <h3 className="font-bold text-amber-900 mb-1">Muhim eslatma</h3>
               <p className="text-amber-800 text-sm leading-relaxed">
-                AdvokatAI faqat ma'lumot berish maqsadida ishlaydi va professional huquqiy maslahat o'rnini bosa olmaydi. Muhim huquqiy masalalar uchun malakali yuristga murojaat qiling.
+                AIAdvokat faqat ma'lumot berish maqsadida ishlaydi va professional huquqiy maslahat o'rnini bosa olmaydi. Muhim huquqiy masalalar uchun malakali yuristga murojaat qiling.
               </p>
             </div>
           </div>

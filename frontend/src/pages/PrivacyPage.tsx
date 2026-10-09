@@ -68,7 +68,7 @@ Ushbu huquqlardan foydalanish uchun zokirovzafar881@gmail.com ga murojaat qiling
   },
   {
     title: "7. Bolalarning maxfiyligi",
-    content: `AdvokatAI 18 yoshdan kichik shaxslarga mo'ljallanmagan. Biz ataylab 18 yoshdan kichiklar haqida ma'lumot to'plamaymiz. Agar siz ota-ona yoki qo'riqchi bo'lsangiz va farzandingiz bizga ma'lumot taqdim etganini bilsangiz, darhol biz bilan bog'laning.`,
+    content: `AIAdvokat 18 yoshdan kichik shaxslarga mo'ljallanmagan. Biz ataylab 18 yoshdan kichiklar haqida ma'lumot to'plamaymiz. Agar siz ota-ona yoki qo'riqchi bo'lsangiz va farzandingiz bizga ma'lumot taqdim etganini bilsangiz, darhol biz bilan bog'laning.`,
   },
 ];
 
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
             <div>
               <h3 className="font-bold text-teal-900 mb-1">Maxfiyligingiz bizning ustuvorligimiz</h3>
               <p className="text-teal-800 text-sm leading-relaxed">
-                AdvokatAI sizning shaxsiy ma'lumotlaringizni himoya qilishni eng muhim vazifasi deb biladi. Ushbu siyosat biz qanday ma'lumot to'plashimiz va undan qanday foydalanishimizni tushuntiradi.
+                AIAdvokat sizning shaxsiy ma'lumotlaringizni himoya qilishni eng muhim vazifasi deb biladi. Ushbu siyosat biz qanday ma'lumot to'plashimiz va undan qanday foydalanishimizni tushuntiradi.
               </p>
             </div>
           </div>

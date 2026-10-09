@@ -140,16 +140,16 @@ export default function ProfilePage() {
           </Link>
         </div>
 
-        {/* Support Section: AdvokatAI'ni qo'llab-quvvatlash ☕ */}
+        {/* Support Section: AIAdvokat'ni qo'llab-quvvatlash ☕ */}
         <div className="bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 rounded-3xl p-6 sm:p-8 border border-amber-200/80 shadow-sm text-center">
           <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto mb-3 text-2xl shadow-2xs">
             ☕
           </div>
           <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
-            AdvokatAI loyihasini rivojlantirishga hissa qoʻshing
+            AIAdvokat loyihasini rivojlantirishga hissa qoʻshing
           </h3>
           <p className="text-xs text-gray-600 max-w-lg mx-auto mb-5 leading-relaxed">
-            AdvokatAI mutlaqo ochiq va barcha foydalanuvchilar uchun qulay loyiha. Agar ushbu xizmat sizga yordam berayotgan boʻlsa, muallifni qahva bilan siylab ixtiyoriy qoʻllab-quvvatlashingiz mumkin.
+            AIAdvokat mutlaqo ochiq va barcha foydalanuvchilar uchun qulay loyiha. Agar ushbu xizmat sizga yordam berayotgan boʻlsa, muallifni qahva bilan siylab ixtiyoriy qoʻllab-quvvatlashingiz mumkin.
           </p>
 
           <div>
@@ -159,7 +159,7 @@ export default function ProfilePage() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-[#FFDD00] hover:bg-[#FACC15] text-gray-900 font-extrabold px-6 py-3 rounded-2xl text-xs sm:text-sm transition-transform hover:scale-105 shadow-md"
             >
-              <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+              <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
               <i className="ri-external-link-line text-xs"></i>
             </a>
           </div>

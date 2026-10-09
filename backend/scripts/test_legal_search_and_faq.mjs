@@ -130,12 +130,12 @@ async function runTests() {
   const faqQuery = 'AdvokatAI mening advokatim bo‘la oladimi?';
   const intentResult = queryUnderstandingService.classifyIntent(faqQuery);
   assert(intentResult.intent === 'ADVOCATE_IDENTITY_FAQ', `FAQ query classified as ADVOCATE_IDENTITY_FAQ (got: ${intentResult.intent})`);
-  assert(intentResult.directResponse && intentResult.directResponse.startsWith('Yo‘q. AdvokatAI inson advokat emas'), 'FAQ direct response starts with "Yo‘q. AdvokatAI inson advokat emas..."');
+  assert(intentResult.directResponse && (intentResult.directResponse.startsWith('Yo‘q. AIAdvokat inson advokat emas') || intentResult.directResponse.startsWith('Yo‘q. AdvokatAI inson advokat emas')), 'FAQ direct response starts with "Yo‘q. AIAdvokat inson advokat emas..."');
   assert(intentResult.requiresRetrieval === false, 'FAQ query does not require legal retrieval (requiresRetrieval = false)');
 
   // Test full chatbot pipeline response for FAQ
   const botReply = await generateLegalAdvice({ message: faqQuery });
-  assert(botReply.text && botReply.text.startsWith('Yo‘q. AdvokatAI inson advokat emas'), 'Full bot pipeline returns mandated FAQ answer');
+  assert(botReply.text && (botReply.text.startsWith('Yo‘q. AIAdvokat inson advokat emas') || botReply.text.startsWith('Yo‘q. AdvokatAI inson advokat emas')), 'Full bot pipeline returns mandated FAQ answer');
   assert(botReply.citations.length === 0, `Full bot pipeline returns 0 citations (actual: ${botReply.citations.length})`);
   assert(botReply.sources.length === 0, `Full bot pipeline returns 0 sources (actual: ${botReply.sources.length})`);
 

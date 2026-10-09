@@ -69,7 +69,7 @@ const DEFAULT_WELCOME_MESSAGE: Message = {
   id: 'init_welcome',
   sender: 'ai',
   timestamp: Date.now(),
-  text: "Assalomu alaykum! Men **AdvokatAI** — O'zbekiston qonunchiligiga asoslangan AI huquqiy yordamchi.\n\nSavolingizni erkin tilda yozing yoki kerakli kodeksni tanlab murojaat qiling.",
+  text: "Assalomu alaykum! Men **AIAdvokat** — O'zbekiston qonunchiligiga asoslangan AI huquqiy yordamchi.\n\nSavolingizni erkin tilda yozing yoki kerakli kodeksni tanlab murojaat qiling.",
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -104,7 +104,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'offline'>('checking');
-  const [aiMode, setAiMode] = useState<string>('AdvokatAI');
+  const [aiMode, setAiMode] = useState<string>('AIAdvokat');
   const [selectedLawGroup, setSelectedLawGroup] = useState<string>(activeConversation?.lawGroup || 'all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthGateModal, setShowAuthGateModal] = useState<boolean>(false);
@@ -222,7 +222,7 @@ export default function ChatPage() {
         if (res.ok && res.data) {
           if (isMounted) {
             setBackendStatus('connected');
-            setAiMode(res.data.ai?.provider || res.data.mode || 'AdvokatAI');
+            setAiMode(res.data.ai?.provider || res.data.mode || 'AIAdvokat');
           }
         } else {
           if (isMounted) setBackendStatus('offline');
@@ -658,7 +658,7 @@ export default function ChatPage() {
             <span className="text-xl shrink-0">☕</span>
             <div className="min-w-0">
               <p className="text-xs font-bold text-gray-900">Loyihani qoʻllab-quvvatlang</p>
-              <p className="text-[11px] text-gray-600 leading-tight">AdvokatAI bepul xizmat. Dasturchiga kofe ulashib hissa qoʻshing!</p>
+              <p className="text-[11px] text-gray-600 leading-tight">AIAdvokat bepul xizmat. Dasturchiga kofe ulashib hissa qoʻshing!</p>
             </div>
           </div>
           <a
@@ -706,7 +706,7 @@ export default function ChatPage() {
                   {activeConversation.title}
                 </h2>
                 <span className="hidden sm:inline-block bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-200">
-                  AdvokatAI
+                  AIAdvokat
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
@@ -751,7 +751,7 @@ export default function ChatPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg font-bold transition-all shadow-2xs hover:scale-105"
-              title="AdvokatAI loyihasini qoʻllab-quvvatlash"
+              title="AIAdvokat loyihasini qoʻllab-quvvatlash"
             >
               <i className="ri-cup-line text-amber-600"></i>
               <span className="hidden sm:inline">Qoʻllab-quvvatlash ☕</span>
@@ -876,7 +876,7 @@ export default function ChatPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-[11px] text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/90 px-2 py-0.5 rounded-md font-semibold transition-colors border border-amber-200/50"
-                      title="AdvokatAI dasturchisiga kofe ulashish"
+                      title="AIAdvokat dasturchisiga kofe ulashish"
                     >
                       <span>☕ Dasturchiga kofe</span>
                     </a>
@@ -897,7 +897,7 @@ export default function ChatPage() {
                 <span className="w-2 h-2 bg-teal-600 rounded-full animate-bounce [animation-delay:0.2s]"></span>
                 <span className="w-2 h-2 bg-teal-600 rounded-full animate-bounce [animation-delay:0.4s]"></span>
                 <span className="font-medium text-teal-900 ml-1">
-                  AdvokatAI O‘zbekiston qonunchiligini tahlil qilmoqda...
+                  AIAdvokat O‘zbekiston qonunchiligini tahlil qilmoqda...
                 </span>
               </div>
             </div>
@@ -957,7 +957,7 @@ export default function ChatPage() {
                   className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
                 </a>
               </div>
             )}
@@ -1008,7 +1008,7 @@ export default function ChatPage() {
 
             <div className="flex flex-wrap items-center justify-between mt-2 px-1 text-[11px] text-gray-400 gap-2">
               <span className="truncate">
-                AdvokatAI sunʼiy intellekt yordamchisidir. Javoblar Lex.uz qonunchiligiga asoslanadi.
+                AIAdvokat sunʼiy intellekt yordamchisidir. Javoblar Lex.uz qonunchiligiga asoslanadi.
               </span>
               <div className="flex items-center gap-3">
                 <a
@@ -1095,7 +1095,7 @@ export default function ChatPage() {
                 className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
               >
                 <i className="ri-cup-line"></i>
-                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
               </a>
             </div>
           </div>

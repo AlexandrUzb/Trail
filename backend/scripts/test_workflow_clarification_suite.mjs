@@ -54,7 +54,7 @@ async function runSuite() {
     { query: 'sudga beraman', check: 'Sudga murojaat' },
     { query: 'shikoyat qilmoqchiman', check: 'Qaysi masala bo‘yicha murojaat' },
     { query: 'ariza yozish kerak', check: 'Qaysi masala bo‘yicha murojaat' },
-    { query: 'advokat kerak', check: 'AdvokatAI' },
+    { query: 'advokat kerak', check: 'AIAdvokat' },
     { query: 'Shikoyat ariza yozish tartibi', check: 'Shikoyat yoki sudga murojaat' }
   ];
 

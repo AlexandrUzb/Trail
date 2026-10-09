@@ -187,14 +187,13 @@ export default function TemplatesPage() {
   }, [activeTemplates, idParam]);
 
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const [copied, setCopied] = useState(false);
   const [isExportingDocx, setIsExportingDocx] = useState(false);
   const [viewMode, setViewMode] = useState<'paper' | 'text'>('paper');
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalAction, setAuthModalAction] = useState('Hujjatni yuklab olish');
   const [pendingAuthAction, setPendingAuthAction] = useState<{
-    type: 'download_docx' | 'download_pdf' | 'download_txt' | 'copy';
+    type: 'download_docx' | 'download_pdf' | 'download_txt';
     templateId: string | number;
     formData?: Record<string, string>;
   } | null>(null);
@@ -223,7 +222,7 @@ export default function TemplatesPage() {
           if (resumed.type === 'download_docx') {
             try {
               const model = target.generateModel(resumed.formData || {});
-              exportToDocx(model, `${target.name}_AdvokatAI`);
+              exportToDocx(model, `${target.name}_AIAdvokat`);
             } catch (e) {
               console.error(e);
             }
@@ -239,16 +238,6 @@ export default function TemplatesPage() {
               a.download = `${target.name.replace(/\s+/g, '_')}.txt`;
               a.click();
               URL.revokeObjectURL(url);
-            } catch (e) {
-              console.error(e);
-            }
-          } else if (resumed.type === 'copy') {
-            try {
-              const txt = target.generate(resumed.formData || {});
-              navigator.clipboard.writeText(txt).then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              });
             } catch (e) {
               console.error(e);
             }
@@ -323,7 +312,6 @@ export default function TemplatesPage() {
     }
     setSelected(t);
     setFormData({});
-    setCopied(false);
     const newParams = new URLSearchParams(searchParams);
     newParams.set('id', String(t.id));
     setSearchParams(newParams);
@@ -381,7 +369,7 @@ export default function TemplatesPage() {
   };
 
   const requireAuthentication = async (
-    actionType: 'download_docx' | 'download_pdf' | 'download_txt' | 'copy',
+    actionType: 'download_docx' | 'download_pdf' | 'download_txt',
     actionTitle: string,
     executeFn: () => void | Promise<void>
   ) => {
@@ -421,7 +409,7 @@ export default function TemplatesPage() {
           trackDocumentUsage();
         }
 
-        const endpoint = actionType.startsWith('download') ? 'download' : 'copy';
+        const endpoint = 'download';
         safeFetchJson(`/api/templates/${selected.id}/${endpoint}`, {
           method: 'POST',
           body: JSON.stringify({ action: actionType, formData }),
@@ -453,27 +441,11 @@ export default function TemplatesPage() {
     setIsPreviewModalOpen(true);
   };
 
-  const handleCopy = () => {
-    if (!currentPlainText) return;
-    navigator.clipboard.writeText(currentPlainText).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const handleGuardedCopy = () => {
-    if (isDocLimitReached) {
-      setShowDocLimitModal(true);
-      return;
-    }
-    requireAuthentication('copy', 'Hujjatdan nusxa olish', handleCopy);
-  };
-
   const handleExportDocx = async () => {
     if (!currentModel || !selected) return;
     setIsExportingDocx(true);
     try {
-      await exportToDocx(currentModel, `${selected.name}_AdvokatAI`);
+      await exportToDocx(currentModel, `${selected.name}_AIAdvokat`);
     } catch (err) {
       console.error('Docx generation error:', err);
       alert('Word hujjatini yuklab olishda xatolik yuz berdi.');
@@ -842,7 +814,7 @@ export default function TemplatesPage() {
                           className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
                         >
                           <i className="ri-cup-line"></i>
-                          <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                          <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
                         </a>
                       )}
                     </div>
@@ -892,7 +864,7 @@ export default function TemplatesPage() {
                             </button>
                           </div>
 
-                          {/* Action Buttons: Ko'rish, PDF, Word, Nusxa */}
+                          {/* Action Buttons: Ko'rish, PDF, Word */}
                           <button
                             onClick={handlePreviewOpen}
                             className="flex items-center gap-1.5 px-3 py-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
@@ -900,19 +872,6 @@ export default function TemplatesPage() {
                           >
                             <i className="ri-fullscreen-line text-sm text-gray-500"></i>
                             <span>Ko‘rish</span>
-                          </button>
-
-                          <button
-                            onClick={handleGuardedCopy}
-                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer border ${
-                              copied
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                            }`}
-                            title="Nusxa olish"
-                          >
-                            <i className={copied ? 'ri-check-line text-emerald-600' : 'ri-file-copy-line text-gray-500'}></i>
-                            <span>{copied ? 'Nusxa olindi' : 'Nusxa'}</span>
                           </button>
 
                           <button
@@ -937,7 +896,19 @@ export default function TemplatesPage() {
                       </div>
 
                       {/* Document Canvas Container */}
-                      <div className="p-4 sm:p-8 bg-gray-100/70 overflow-x-auto relative">
+                      <div
+                        className="p-4 sm:p-8 bg-gray-100/70 overflow-x-auto relative unselectable-legal-doc select-none"
+                        onCopy={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onCut={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onContextMenu={(e) => { e.preventDefault(); }}
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'a' || e.key === 'A')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }
+                        }}
+                      >
                         {isDocLimitReached && (
                           <div className="absolute inset-0 z-20 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center select-none">
                             <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl mb-3 shadow-xs">
@@ -972,7 +943,7 @@ export default function TemplatesPage() {
                                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
                               >
                                 <i className="ri-cup-line"></i>
-                                <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                                <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
                               </a>
                             )}
                           </div>
@@ -980,7 +951,17 @@ export default function TemplatesPage() {
                         {viewMode === 'paper' ? (
                           <div
                             id="legal-document-paper"
-                            className="bg-white max-w-[800px] mx-auto p-8 sm:p-14 shadow-md rounded-sm border border-gray-200/80 font-serif text-gray-900 leading-relaxed text-[13px] sm:text-[14px]"
+                            className="bg-white max-w-[800px] mx-auto p-8 sm:p-14 shadow-md rounded-sm border border-gray-200/80 font-serif text-gray-900 leading-relaxed text-[13px] sm:text-[14px] unselectable-legal-doc select-none"
+                            style={{
+                              userSelect: 'none',
+                              WebkitUserSelect: 'none',
+                              MozUserSelect: 'none',
+                              msUserSelect: 'none',
+                            }}
+                            onCopy={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onCut={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onContextMenu={(e) => { e.preventDefault(); }}
+                            onDragStart={(e) => e.preventDefault()}
                           >
                             {/* Header Right / Shapka */}
                             {currentModel.headerRight && currentModel.headerRight.length > 0 && (
@@ -1096,8 +1077,17 @@ export default function TemplatesPage() {
                             )}
                           </div>
                         ) : (
-                          <div className="bg-white max-w-[800px] mx-auto p-6 rounded-xl border border-gray-200 shadow-sm">
-                            <pre className="whitespace-pre-wrap text-xs text-gray-800 font-mono leading-relaxed overflow-x-auto selection:bg-teal-100">
+                          <div
+                            className="bg-white max-w-[800px] mx-auto p-6 rounded-xl border border-gray-200 shadow-sm unselectable-legal-doc select-none"
+                            onCopy={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onCut={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onContextMenu={(e) => { e.preventDefault(); }}
+                          >
+                            <pre
+                              className="whitespace-pre-wrap text-xs text-gray-800 font-mono leading-relaxed overflow-x-auto select-none"
+                              style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                              onCopy={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            >
                               {currentPlainText}
                             </pre>
                           </div>
@@ -1166,8 +1156,17 @@ export default function TemplatesPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 sm:p-10 overflow-y-auto bg-gray-100/60">
-              <div className="bg-white p-8 sm:p-14 shadow-md rounded-sm border border-gray-200 font-serif text-gray-900 text-sm leading-relaxed max-w-3xl mx-auto">
+            <div
+              className="p-6 sm:p-10 overflow-y-auto bg-gray-100/60 unselectable-legal-doc select-none"
+              onCopy={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onCut={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onContextMenu={(e) => { e.preventDefault(); }}
+            >
+              <div
+                className="bg-white p-8 sm:p-14 shadow-md rounded-sm border border-gray-200 font-serif text-gray-900 text-sm leading-relaxed max-w-3xl mx-auto select-none"
+                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                onCopy={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              >
                 {currentModel.headerRight && currentModel.headerRight.length > 0 && (
                   <div className="text-right mb-6 text-xs text-gray-700 italic space-y-1">
                     {currentModel.headerRight.map((hr, idx) => (
@@ -1373,7 +1372,7 @@ export default function TemplatesPage() {
                   className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
                 </a>
               )}
               <button

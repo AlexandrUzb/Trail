@@ -1,5 +1,5 @@
 /**
- * AdvokatAI - Final Legal Response & Quality Validation Service
+ * AIAdvokat - Final Legal Response & Quality Validation Service
  * 
  * Enforces rigorous pre-delivery verification and modification on EVERY generated response:
  * [✓] Uzbek grammar, orthography & spelling

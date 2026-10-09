@@ -451,7 +451,7 @@ async function runChaosAndReadinessTests() {
   const distHtml = path.join(ROOT_DIR, 'dist', 'index.html');
   assert(fs.existsSync(distHtml), 'dist/index.html single-file bundle exists');
   const htmlContent = fs.readFileSync(distHtml, 'utf-8');
-  assert(htmlContent.includes('AdvokatAI'), 'Single-file bundle contains AdvokatAI application');
+  assert(htmlContent.includes('AIAdvokat') || htmlContent.includes('AdvokatAI'), 'Single-file bundle contains AIAdvokat application');
   assert(htmlContent.includes('viewport'), 'Meta viewport tag present for mobile responsiveness');
 
   const redirectsPath = path.join(ROOT_DIR, 'dist', '_redirects');

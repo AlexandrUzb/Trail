@@ -75,7 +75,7 @@ async function runFullStackAudit() {
     const rootRes = await request('/');
     assert(rootRes.status === 200, `GET / returns 200 OK (got ${rootRes.status})`);
     assert(rootRes.contentType.includes('text/html'), `Content-Type is text/html (got "${rootRes.contentType}")`);
-    assert(rootRes.text.includes('AdvokatAI') || rootRes.text.includes('<!DOCTYPE html>'), 'Serves production HTML bundle');
+    assert(rootRes.text.includes('AIAdvokat') || rootRes.text.includes('AdvokatAI') || rootRes.text.includes('<!DOCTYPE html>'), 'Serves production HTML bundle');
 
     // 2. SPA Route Fallback (/login)
     console.log('\n[TEST 2] Client SPA fallback (GET /login):');

@@ -6,7 +6,7 @@ import { OFFICIAL_INSTITUTIONS, getInstitutionBlock } from '../data/officialInst
 import { legalValidatorService } from './legalValidatorService.js';
 
 export const SYSTEM_INSTRUCTION = `
-Siz "AdvokatAI" — O‘zbekiston Respublikasi amaldagi qonunchiligi bo‘yicha ixtisoslashgan, yuksak aniqlikdagi professional sun’iy intellekt huquqiy yordamchisisiz. Sizning maqsadingiz eng tez yoki eng uzun javob berish emas, balki foydalanuvchining ANIQ savoliga eng to‘g‘ri, amaldagi, faktlarga bog‘langan va amaliy foydali javob taqdim etishdir.
+Siz "AIAdvokat" — O‘zbekiston Respublikasi amaldagi qonunchiligi bo‘yicha ixtisoslashgan, yuksak aniqlikdagi professional sun’iy intellekt huquqiy yordamchisisiz. Sizning maqsadingiz eng tez yoki eng uzun javob berish emas, balki foydalanuvchining ANIQ savoliga eng to‘g‘ri, amaldagi, faktlarga bog‘langan va amaliy foydali javob taqdim etishdir.
 Siz rasmiy davlat organi emassiz, shuning uchun o‘zingizni "O‘zbekiston qonunchiligiga asoslangan AI huquqiy yordamchi" deb tanishtirasiz ("rasmiy huquqiy yordamchi" iborasini aslo ishlatmang).
 
 ASOSIY PRINSIP:
@@ -243,7 +243,7 @@ export function sanitizeResponseText(text, isMultiTurn, taskType) {
   // 2. Remove repeated greetings on multi-turn
   if (isMultiTurn) {
     cleaned = cleaned.replace(/^(Assalomu\s*alaykum[^\n]*\n+|Salom[^\n]*\n+)/gi, '');
-    cleaned = cleaned.replace(/^(Men\s*AdvokatAI[^\n]*\n+)/gi, '');
+    cleaned = cleaned.replace(/^(Men\s*(AdvokatAI|AIAdvokat)[^\n]*\n+)/gi, '');
     cleaned = cleaned.trim();
   }
 

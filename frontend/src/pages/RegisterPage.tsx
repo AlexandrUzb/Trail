@@ -226,7 +226,7 @@ export default function RegisterPage() {
               <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
                 <i className="ri-scales-3-line text-white text-xl"></i>
               </div>
-              <span className="text-3xl font-bold text-teal-600">AdvokatAI</span>
+              <span className="text-3xl font-bold text-teal-600">AIAdvokat</span>
             </div>
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Ro'yxatdan o'tish</h1>

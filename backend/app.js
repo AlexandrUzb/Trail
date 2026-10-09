@@ -121,7 +121,7 @@ if (fs.existsSync(distPath)) {
 app.get('/api', (req, res) => {
   res.json({
     success: true,
-    message: "AdvokatAI API tizimiga xush kelibsiz!",
+    message: "AIAdvokat API tizimiga xush kelibsiz!",
     endpoints: {
       health: "GET /api/health",
       chat: "POST /api/chat",
@@ -151,7 +151,7 @@ app.use((req, res, next) => {
     } else {
       return res.json({
         success: true,
-        message: "AdvokatAI API Server ishlamoqda. Frontendni ko'rish uchun 'npm run build' buyrug'ini ishga tushiring."
+        message: "AIAdvokat API Server ishlamoqda. Frontendni ko'rish uchun 'npm run build' buyrug'ini ishga tushiring."
       });
     }
   }

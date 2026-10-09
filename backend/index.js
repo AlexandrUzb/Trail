@@ -12,7 +12,7 @@ const server = app.listen(PORT, () => {
   const supabaseActive = Boolean(process.env.SUPABASE_URL);
 
   console.log('====================================================');
-  console.log('⚖️   AdvokatAI Production API Server');
+  console.log('⚖️   AIAdvokat Production API Server');
   console.log(`📡  Status:       Online (Port: ${PORT})`);
   console.log(`🌍  Environment:  ${NODE_ENV}`);
   console.log(`🤖  AI Provider:  ${geminiActive ? 'Gemini 3.5 Flash-Lite (Active)' : 'Local RAG Lex.uz Fallback'}`);

@@ -1,4 +1,4 @@
-# AdvokatAI Frontend ⚖️💻
+# AIAdvokat Frontend ⚖️💻
 
 Modern Legal Tech Single-Page Application (SPA) built with **React 19**, **Vite**, **TypeScript**, and **Tailwind CSS**.
 

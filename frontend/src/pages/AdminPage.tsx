@@ -118,7 +118,7 @@ export default function AdminPage() {
           <div className="w-14 h-14 bg-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white text-2xl shadow-sm">
             <i className="ri-shield-keyhole-line"></i>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">AdvokatAI Boshqaruv Paneli</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">AIAdvokat Boshqaruv Paneli</h2>
           <p className="text-xs text-gray-500 mb-6">
             Tizimga kirish uchun administrator maxfiy kalitini kiriting
           </p>
@@ -169,7 +169,7 @@ export default function AdminPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-gray-900">AdvokatAI Admin Dashboard</h1>
+              <h1 className="text-2xl font-bold text-gray-900">AIAdvokat Admin Dashboard</h1>
               <span className="text-xs bg-teal-100 text-teal-800 font-bold px-2.5 py-0.5 rounded-full">
                 Jonli boshqaruv
               </span>

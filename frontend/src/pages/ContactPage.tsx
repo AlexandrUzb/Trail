@@ -167,7 +167,7 @@ export default function ContactPage() {
                 <div className="space-y-4">
                   {[
                     { icon: 'ri-telegram-line', label: 'Telegram', value: '@uzbadvokatai', href: 'https://t.me/uzbadvokatai' },
-                    { icon: 'ri-instagram-line', label: 'Instagram', value: 'advokatai.uz', href: 'https://instagram.com/advokatai.uz' },
+                    { icon: 'ri-instagram-line', label: 'Instagram', value: 'aiadvokat.uz', href: 'https://instagram.com/aiadvokat.uz' },
                   ].map((s) => (
                     <a
                       key={s.label}
@@ -191,7 +191,7 @@ export default function ContactPage() {
               {/* Quick help */}
               <div className="bg-gradient-to-br from-teal-600 to-cyan-500 rounded-2xl p-8 text-white">
                 <h3 className="text-xl font-bold mb-3">Tezkor yordam kerakmi?</h3>
-                <p className="text-teal-100 mb-6 text-sm">AdvokatAI chat orqali darhol javob olishingiz mumkin</p>
+                <p className="text-teal-100 mb-6 text-sm">AIAdvokat chat orqali darhol javob olishingiz mumkin</p>
                 <Link
                   to="/chat"
                   className="inline-block px-6 py-3 bg-white text-teal-600 rounded-xl font-semibold hover:bg-gray-50 transition-colors text-sm"

@@ -209,7 +209,7 @@ export function renderToPlainText(model: LegalDocumentModel): string {
 /**
  * Builds and downloads a real Microsoft Word (.docx) document from a LegalDocumentModel.
  */
-export async function exportToDocx(model: LegalDocumentModel, filename = 'Hujjat_AdvokatAI'): Promise<void> {
+export async function exportToDocx(model: LegalDocumentModel, filename = 'Hujjat_AIAdvokat'): Promise<void> {
   const docChildren: (Paragraph | Table)[] = [];
 
   // Header Right (Shapka for applications)
@@ -623,7 +623,7 @@ export function printLegalDocument(elementId: string): void {
     <html lang="uz">
       <head>
         <meta charset="utf-8" />
-        <title>AdvokatAI - Hujjat</title>
+        <title>AIAdvokat - Hujjat</title>
         <style>
           @page {
             size: A4;

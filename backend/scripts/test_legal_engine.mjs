@@ -15,7 +15,7 @@ async function runLegalEngineVerification() {
   console.log('[TEST 1] FAQ / Identity: "AdvokatAI mening advokatim bo‘la oladimi?"');
   const res1 = await generateLegalAdvice({ message: 'AdvokatAI mening advokatim bo‘la oladimi?' });
   const ok1 = res1.text.includes('Yo‘q') && 
-              res1.text.includes('AdvokatAI inson advokat emas') &&
+              (res1.text.includes('AIAdvokat inson advokat emas') || res1.text.includes('AdvokatAI inson advokat emas')) &&
               res1.citations.length === 0;
   if (ok1) {
     console.log('>>> PASS [✓]');

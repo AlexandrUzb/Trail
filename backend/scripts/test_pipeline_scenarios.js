@@ -13,7 +13,7 @@ async function runTests() {
   // TEST 1: "Isming nima?"
   console.log('[TEST 1]: "Isming nima?"');
   const res1 = await generateLegalAdvice({ message: "Isming nima?" });
-  const t1Ok = res1.text.includes('AdvokatAI') && 
+  const t1Ok = (res1.text.includes('AIAdvokat') || res1.text.includes('AdvokatAI')) && 
                res1.sources.length === 0 && 
                !res1.text.toLowerCase().includes('mehnat kodeksi') &&
                !res1.text.toLowerCase().includes('ogohlantirish:');
@@ -25,7 +25,7 @@ async function runTests() {
   // TEST 2: "Salom"
   console.log('[TEST 2]: "Salom"');
   const res2 = await generateLegalAdvice({ message: "Salom" });
-  const t2Ok = res2.text.includes('AdvokatAI') && 
+  const t2Ok = (res2.text.includes('AIAdvokat') || res2.text.includes('AdvokatAI')) && 
                res2.sources.length === 0 && 
                !res2.text.toLowerCase().includes('mehnat');
   console.log(`Result: ${t2Ok ? 'PASS' : 'FAIL'}`);
@@ -86,7 +86,7 @@ async function runTests() {
   console.log('[TEST 7]: "Rahmat"');
   const res7 = await generateLegalAdvice({ message: "Rahmat" });
   const t7Ok = res7.sources.length === 0 && 
-               res7.text.includes('AdvokatAI') && 
+               (res7.text.includes('AIAdvokat') || res7.text.includes('AdvokatAI')) && 
                !res7.text.toLowerCase().includes('mehnat');
   console.log(`Result: ${t7Ok ? 'PASS' : 'FAIL'}`);
   console.log(`Intent: ${res7.intent}, Sources: ${res7.sources.length}`);

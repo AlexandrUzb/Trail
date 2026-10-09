@@ -563,7 +563,7 @@ export default function SearchPage() {
                   className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
                 </a>
               )}
             </div>
@@ -742,7 +742,7 @@ export default function SearchPage() {
                   className="w-full sm:w-auto px-6 py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
                 </a>
               </div>
             </div>
@@ -821,7 +821,7 @@ export default function SearchPage() {
               </div>
               <h3 className="text-2xl font-bold mb-2">Qonun moddasini tushunishda yordam kerakmi?</h3>
               <p className="text-teal-100 text-sm mb-6 leading-relaxed">
-                AdvokatAI siz qidirayotgan har qanday moddaning mohiyatini oddiy tilda tushuntirib beradi va arizangizga mos hujjat loyihasini tayyorlaydi.
+                AIAdvokat siz qidirayotgan har qanday moddaning mohiyatini oddiy tilda tushuntirib beradi va arizangizga mos hujjat loyihasini tayyorlaydi.
               </p>
               <Link
                 to="/chat"
@@ -898,7 +898,7 @@ export default function SearchPage() {
                   className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
                 </a>
               )}
               <button
@@ -1127,7 +1127,7 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
         <div className="p-5 border-t border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-3">
           <div className="text-xs text-gray-500 flex items-center gap-1">
             <i className="ri-information-line text-teal-600"></i>
-            <span>AdvokatAI inson advokat emas · Faqat axborot va tushuntirish maqsadida</span>
+            <span>AIAdvokat inson advokat emas · Faqat axborot va tushuntirish maqsadida</span>
           </div>
 
           <div className="flex items-center gap-3">

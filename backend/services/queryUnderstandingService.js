@@ -2,13 +2,13 @@ import { cyrillicToLatin, normalizeSearchText } from '../utils/transliterate.js'
 import { conversationStateService } from './conversationStateService.js';
 
 // Pre-defined direct responses for instant greetings and everyday queries
-const CASUAL_IDENTITY_RESPONSE = "Men AdvokatAI — O‘zbekiston qonunchiligi asosida ishlovchi AI huquqiy yordamchisiman.";
+const CASUAL_IDENTITY_RESPONSE = "Men AIAdvokat — O‘zbekiston qonunchiligi asosida ishlovchi AI huquqiy yordamchisiman.";
 
-const GREETING_RESPONSE = "Assalomu alaykum! Men AdvokatAI yuridik maslahatchisiman. Sizga O‘zbekiston qonunchiligi bo‘yicha qanday yordam bera olaman?";
+const GREETING_RESPONSE = "Assalomu alaykum! Men AIAdvokat yuridik maslahatchisiman. Sizga O‘zbekiston qonunchiligi bo‘yicha qanday yordam bera olaman?";
 
-const COURTESY_RESPONSE = "Arzimaydi! AdvokatAI doim xizmatingizda. Yana qandaydir huquqiy savolingiz bo'lsa, bemalol yozishingiz mumkin.";
+const COURTESY_RESPONSE = "Arzimaydi! AIAdvokat doim xizmatingizda. Yana qandaydir huquqiy savolingiz bo'lsa, bemalol yozishingiz mumkin.";
 
-const CAPABILITIES_RESPONSE = `Men AdvokatAI — O‘zbekiston Respublikasi qonunchiligi (Konstitutsiya, Mehnat kodeksi, Fuqarolik kodeksi, Jinoyat kodeksi, Maʼmuriy javobgarlik to‘g‘risidagi kodeks va b.) bo‘yicha ixtisoslashgan intellektual huquqiy yordamchiman.
+const CAPABILITIES_RESPONSE = `Men AIAdvokat — O‘zbekiston Respublikasi qonunchiligi (Konstitutsiya, Mehnat kodeksi, Fuqarolik kodeksi, Jinoyat kodeksi, Maʼmuriy javobgarlik to‘g‘risidagi kodeks va b.) bo‘yicha ixtisoslashgan intellektual huquqiy yordamchiman.
 
 Quyidagi masalalarda yordam bera olaman:
 1. Ish beruvchi va xodim munosabatlari, maosh kechikishi, mehnat shartnomasi va mehnat huquqi.
@@ -27,7 +27,7 @@ const HOW_TO_ASK_EXPLANATION = `Savol berishda vaziyatni iloji boricha aniq bayo
 
 Marhamat, savolingizni yozing!`;
 
-const OUT_OF_SCOPE_EXPLANATION = "Rahmat. Bu savol O‘zbekiston qonunchiligiga bevosita taalluqli emas. AdvokatAI faqat O‘zbekiston qonunchiligi asosida huquqiy axborot beradi, shuning uchun bu savolga qonunchilikka asoslangan javob bera olmayman.";
+const OUT_OF_SCOPE_EXPLANATION = "Rahmat. Bu savol O‘zbekiston qonunchiligiga bevosita taalluqli emas. AIAdvokat faqat O‘zbekiston qonunchiligi asosida huquqiy axborot beradi, shuning uchun bu savolga qonunchilikka asoslangan javob bera olmayman.";
 
 // 19+ Legal Taxonomy (Section 17)
 export const LEGAL_TAXONOMY = {
@@ -659,7 +659,7 @@ export class QueryUnderstandingService {
         intent: 'ADVERSARIAL_DEFENSE',
         requiresRetrieval: false,
         needsClarification: false,
-        directResponse: "AdvokatAI faqat O‘zbekiston Respublikasining amaldagi qonunchiligi va tasdiqlangan rasmiy manbalar (Lex.uz) asosida ishlaydi. Tizim xavfsizlik qoidalarini chetlab o‘tish yoki to‘qima qonun moddalarini yaratish imkonsiz. Agar aniq huquqiy savolingiz bo‘lsa, marhamat, yozishingiz mumkin.",
+        directResponse: "AIAdvokat faqat O‘zbekiston Respublikasining amaldagi qonunchiligi va tasdiqlangan rasmiy manbalar (Lex.uz) asosida ishlaydi. Tizim xavfsizlik qoidalarini chetlab o‘tish yoki to‘qima qonun moddalarini yaratish imkonsiz. Agar aniq huquqiy savolingiz bo‘lsa, marhamat, yozishingiz mumkin.",
         confidence: 100
       };
     }
@@ -808,16 +808,16 @@ export class QueryUnderstandingService {
         intent: 'ADVOCATE_IDENTITY_FAQ',
         requiresRetrieval: false,
         needsClarification: false,
-        directResponse: `Yo‘q. AdvokatAI inson advokat emas va sizning nomingizdan sudda, davlat organlarida yoki boshqa tashkilotlarda vakillik qila olmaydi. AdvokatAI O‘zbekiston qonunchiligi asosida huquqiy ma’lumot, tushuntirish va hujjat loyihalarini tayyorlashda yordam beruvchi sun’iy intellekt yordamchisidir.
+        directResponse: `Yo‘q. AIAdvokat inson advokat emas va sizning nomingizdan sudda, davlat organlarida yoki boshqa tashkilotlarda vakillik qila olmaydi. AIAdvokat O‘zbekiston qonunchiligi asosida huquqiy ma’lumot, tushuntirish va hujjat loyihalarini tayyorlashda yordam beruvchi sun’iy intellekt yordamchisidir.
 
-AdvokatAI:
+AIAdvokat:
 • huquqiy savollarga javob berishi;
 • qonunchilikdagi tegishli normalarni tushuntirishi;
 • vaziyatni huquqiy nuqtai nazardan tahlil qilishga yordam berishi;
 • ariza, shikoyat, da’vo va boshqa hujjatlarning loyihalarini tayyorlashi;
 • kerakli huquqiy yo‘nalishni aniqlashga yordam berishi mumkin.
 
-Ammo AdvokatAI advokatning o‘rnini bosmaydi, sudda yoki boshqa organlarda sizning vakilingiz sifatida qatnasha olmaydi va advokatlik xizmatini ko‘rsatmaydi.
+Ammo AIAdvokat advokatning o‘rnini bosmaydi, sudda yoki boshqa organlarda sizning vakilingiz sifatida qatnasha olmaydi va advokatlik xizmatini ko‘rsatmaydi.
 
 Agar masala murakkab bo‘lsa yoki sudda/himoyada professional vakillik zarur bo‘lsa, malakali advokatga murojaat qilish tavsiya etiladi.`,
         confidence: 100
@@ -1184,7 +1184,7 @@ Tafsilotlarni bildirsangiz, tegishli qonunchilik asosida qayerga va qanday tarti
         intent: 'AMBIGUOUS_LAWYER_REQUEST',
         requiresRetrieval: false,
         needsClarification: true,
-        directResponse: "AdvokatAI sun’iy intellekt asosida huquqiy ma’lumot, maslahat va hujjat loyihalarini tayyorlashda yordam beradi. Qaysi masala bo‘yicha murojaat qilmoqchisiz: mehnat, oila, qarz, shartnoma, mulk, ma’muriy masala, jinoyat yoki boshqa masala?",
+        directResponse: "AIAdvokat sun’iy intellekt asosida huquqiy ma’lumot, maslahat va hujjat loyihalarini tayyorlashda yordam beradi. Qaysi masala bo‘yicha murojaat qilmoqchisiz: mehnat, oila, qarz, shartnoma, mulk, ma’muriy masala, jinoyat yoki boshqa masala?",
         confidence: 95
       };
     }
@@ -1480,7 +1480,7 @@ Tafsilotlarni bildirsangiz, tegishli qonunchilik asosida qayerga va qanday tarti
     }
 
     // 6. CASUAL / CAPABILITIES
-    const capabilitiesRegex = /(advokatai|nima(lar)?\s*qila\s*(olasan|olasiz|oladi)|nimalarga\s*qodir(san|siz)|nimalarni\s*bila(san|siz)|qanday\s*yordam\s*bera\s*(olasan|olasiz)|qanday\s*imkoniyat(laring|laringiz)\s*bor|vazifang\s*nima|funksiyalaring)/i;
+    const capabilitiesRegex = /(aiadvokat|advokatai|nima(lar)?\s*qila\s*(olasan|olasiz|oladi)|nimalarga\s*qodir(san|siz)|nimalarni\s*bila(san|siz)|qanday\s*yordam\s*bera\s*(olasan|olasiz)|qanday\s*imkoniyat(laring|laringiz)\s*bor|vazifang\s*nima|funksiyalaring)/i;
     if (capabilitiesRegex.test(latin) && (latin.includes('nima') || latin.includes('qila') || latin.includes('yordam') || latin.includes('imkoniyat') || latin.split(/\s+/).length <= 8)) {
       return {
         intent: 'ABOUT_PRODUCT',
@@ -1510,7 +1510,7 @@ Tafsilotlarni bildirsangiz, tegishli qonunchilik asosida qayerga va qanday tarti
 
     if (outOfScopeRegex.test(latin) || fantasyRegex.test(latin) || everydayLifestyleRegex.test(latin) || latin.includes('havo qanday') || latin.includes('ob-havo qanday')) {
       const responseText = fantasyRegex.test(latin)
-        ? `Oʻzbekiston Respublikasining amaldagi qonunchiligida kosmik parvozlar yoki fazoviy kema vizasi boʻyicha huquqiy normalar mavjud emas.\n\nAdvokatAI faqat amaldagi real qonunchilik asosida ish yuritadi. Agar mehnat, fuqarolik, mulk, jinoyat yoki maʼmuriy munosabatlar boʻyicha amaliy huquqiy savollaringiz boʻlsa, marhamat, murojaat qilishingiz mumkin.`
+        ? `Oʻzbekiston Respublikasining amaldagi qonunchiligida kosmik parvozlar yoki fazoviy kema vizasi boʻyicha huquqiy normalar mavjud emas.\n\nAIAdvokat faqat amaldagi real qonunchilik asosida ish yuritadi. Agar mehnat, fuqarolik, mulk, jinoyat yoki maʼmuriy munosabatlar boʻyicha amaliy huquqiy savollaringiz boʻlsa, marhamat, murojaat qilishingiz mumkin.`
         : OUT_OF_SCOPE_EXPLANATION;
 
       return {

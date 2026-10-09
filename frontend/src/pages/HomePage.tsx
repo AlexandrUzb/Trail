@@ -5,7 +5,7 @@ import { faqsData } from '../data/faqs';
 
 const initialMessage = {
   role: 'assistant',
-  text: "Salom! Men AdvokatAI — O'zbekiston qonunlari bo'yicha sun'iy intellekt yordamchingizman. Har qanday huquqiy savolingizni bering, sizga yordam beraman.",
+  text: "Salom! Men AIAdvokat — O'zbekiston qonunlari bo'yicha sun'iy intellekt yordamchingizman. Har qanday huquqiy savolingizni bering, sizga yordam beraman.",
 };
 
 const suggestions = [
@@ -22,7 +22,7 @@ function getAIResponse(question: string): string {
     return "Mehnat nizolari bo‘yicha: O‘zbekiston Respublikasi Mehnat kodeksiga asosan yakka tartibdagi mehnat nizolari mehnat nizolari komissiyasi (agar korxonada tuzilgan bo‘lsa) yoki to‘g‘ridan-to‘g‘ri fuqarolik ishlari bo‘yicha sud tomonidan ko‘rib chiqiladi. Shuningdek, xodimlar mehnat huquqlari buzilishi yuzasidan Davlat mehnat inspeksiyasiga (1176) murojaat qilishlari mumkin.";
   if (q.includes('ijara') || q.includes('ijarachi'))
     return "Ijarachilarning asosiy huquqlari: 1) Shartnomada belgilangan muddat davomida mulkdan to‘sqinliksiz foydalanish, 2) Asosiy (kapital) ta’mirlash ishlarini mulk egasidan talab qilish, 3) Qonunda belgilangan asoslarsiz va sud qarorisiz uy-joydan chiqarilmaslik. O‘zbekiston Respublikasi Fuqarolik kodeksining 535–564 va 600–615-moddalari ijara munosabatlarini tartibga soladi.";
-  return "Savolingiz uchun rahmat. O‘zbekiston qonunchiligiga ko‘ra bu masala bo‘yicha aniq huquqiy tushuntirish olish uchun AdvokatAI chat sahifasiga o‘ting.";
+  return "Savolingiz uchun rahmat. O‘zbekiston qonunchiligiga ko‘ra bu masala bo‘yicha aniq huquqiy tushuntirish olish uchun AIAdvokat chat sahifasiga o‘ting.";
 }
 
 function HeroSection() {
@@ -35,7 +35,7 @@ function HeroSection() {
           <div className="space-y-8">
             <div className="inline-flex items-center space-x-2 bg-teal-50 border border-teal-100 text-teal-700 px-4 py-2 rounded-full text-sm font-medium">
               <i className="ri-sparkling-line text-teal-500"></i>
-              <span>O'zbekiston uchun birinchi AdvokatAI</span>
+              <span>O'zbekiston uchun birinchi AIAdvokat</span>
             </div>
             <div className="space-y-4">
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
@@ -48,7 +48,7 @@ function HeroSection() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link to="/chat" className="inline-flex items-center justify-center bg-gray-900 text-white px-7 py-3.5 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap cursor-pointer shadow-sm">
-                <i className="ri-chat-3-line mr-2"></i>AdvokatAI ga So'rang →
+                <i className="ri-chat-3-line mr-2"></i>AIAdvokat dan So'rang →
               </Link>
               <Link to="/about" className="inline-flex items-center justify-center border border-gray-300 text-gray-700 px-7 py-3.5 rounded-full text-sm font-semibold hover:border-teal-500 hover:text-teal-600 transition-colors whitespace-nowrap cursor-pointer">
                 Ko'proq bilish
@@ -224,7 +224,7 @@ function ChatDemoSection() {
           <div className="space-y-8">
             <div>
               <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Hozir Sinab Ko'ring</span>
-              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">AdvokatAI dan So'rang — Jonli</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">AIAdvokat dan So'rang — Jonli</h2>
               <p className="text-gray-500 leading-relaxed">
                 Huquqiy savolingizni yozing va O'zbekiston qonunchiligiga asoslangan tezkor, aniq javob oling. Ro'yxatdan o'tish shart emas.
               </p>
@@ -255,7 +255,7 @@ function ChatDemoSection() {
                   <i className="ri-scales-3-line text-white text-lg"></i>
                 </div>
                 <div>
-                  <div className="text-white font-semibold text-sm">AdvokatAI</div>
+                  <div className="text-white font-semibold text-sm">AIAdvokat</div>
                   <div className="flex items-center space-x-1.5">
                     <span className="w-2 h-2 bg-green-300 rounded-full inline-block animate-pulse"></span>
                     <span className="text-teal-100 text-xs">Online · O'zbek Huquq Mutaxassisi</span>
@@ -338,7 +338,7 @@ function AboutSnippetSection() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative">
             <img
-              alt="AdvokatAI Jamoasi"
+              alt="AIAdvokat Jamoasi"
               className="w-full h-80 rounded-2xl shadow-lg object-cover object-top"
               src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=400&fit=crop"
             />
@@ -346,7 +346,7 @@ function AboutSnippetSection() {
           <div className="space-y-8">
             <div>
               <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Bizning Tariximiz</span>
-              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">AdvokatAI Haqida</h2>
+              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">AIAdvokat Haqida</h2>
               <p className="text-gray-500 leading-relaxed">
                 Biz an'anaviy huquqiy tajribani ilg'or sun'iy intellekt bilan birlashtirish orqali O'zbekistondagi huquqiy xizmatlarni inqilob qilmoqdamiz. Bizning maqsadimiz — professional huquqiy yordamni hamma uchun qulay, arzon va mavjud qilish.
               </p>
@@ -444,10 +444,10 @@ function SupportSection() {
           ☕
         </div>
         <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-3">
-          AdvokatAI loyihasini qoʻllab-quvvatlang
+          AIAdvokat loyihasini qoʻllab-quvvatlang
         </h2>
         <p className="text-sm text-gray-600 max-w-xl mx-auto mb-8 leading-relaxed">
-          AdvokatAI har bir Oʻzbekiston fuqarosi uchun professional huquqiy yordamni qulay va ochiq qilish maqsadida yaratilgan. Loyihani rivojlantirishga hissa qoʻshish uchun muallifni qahva bilan siylab qoʻllab-quvvatlashingiz mumkin.
+          AIAdvokat har bir Oʻzbekiston fuqarosi uchun professional huquqiy yordamni qulay va ochiq qilish maqsadida yaratilgan. Loyihani rivojlantirishga hissa qoʻshish uchun muallifni qahva bilan siylab qoʻllab-quvvatlashingiz mumkin.
         </p>
 
         <div>
@@ -457,7 +457,7 @@ function SupportSection() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2.5 bg-[#FFDD00] hover:bg-[#FACC15] text-gray-900 font-extrabold px-7 py-3.5 rounded-2xl text-sm transition-transform hover:scale-105 shadow-md"
           >
-            <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+            <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
             <i className="ri-external-link-line text-sm"></i>
           </a>
         </div>
@@ -493,7 +493,7 @@ function InvestorSection() {
         <div className="text-center mb-16">
           <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Investorlar Uchun</span>
           <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">Biznes Modeli va Bozor Imkoniyati</h2>
-          <p className="text-gray-500 max-w-2xl mx-auto">AdvokatAI tez o'sayotgan Markaziy Osiyo huquqiy-tech bozorini egallash uchun yaxshi joylashgan</p>
+          <p className="text-gray-500 max-w-2xl mx-auto">AIAdvokat tez o'sayotgan Markaziy Osiyo huquqiy-tech bozorini egallash uchun yaxshi joylashgan</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6 mb-16">
           {metrics.map((m) => (
@@ -558,7 +558,7 @@ function CTASection() {
     <section className="py-24 bg-teal-600">
       <div className="max-w-7xl mx-auto px-8 text-center">
         <h2 className="text-4xl font-bold text-white mb-4">Huquqiy Yordam Olishga Tayyormisiz?</h2>
-        <p className="text-teal-100 mb-10 max-w-2xl mx-auto">AdvokatAI ga ishonuvchi minglab foydalanuvchilarga qo'shiling. Bugun boshlang va huquqiy yordamning kelajagini his qiling.</p>
+        <p className="text-teal-100 mb-10 max-w-2xl mx-auto">AIAdvokat ga ishonuvchi minglab foydalanuvchilarga qo'shiling. Bugun boshlang va huquqiy yordamning kelajagini his qiling.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/chat" className="inline-flex items-center justify-center bg-white text-teal-600 px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-50 transition-colors whitespace-nowrap cursor-pointer shadow-sm">
             <i className="ri-chat-3-line mr-2"></i>AI Maslahat Boshlash
@@ -614,7 +614,7 @@ function HomeFounderSection() {
               <div>
                 <h4 className="text-lg font-bold text-gray-900 mb-2">Huquqiy Texnologiyalar (LegalTech) Kelajagi</h4>
                 <p className="text-gray-600 text-sm leading-relaxed mb-3">
-                  Men Zafar Zokirov, Surxondaryo viloyati Termiz shahridagi Prezident maktabining 11-sinf o'quvchisiman. <strong>AdvokatAI</strong> loyihasini yaratishdan asosiy maqsadim — O'zbekiston fuqarolariga o'z huquqlarini chuqur anglash, murakkab huquqiy me'yorlarni oddiy tilda tushunish va har qanday sharoitda professional yuridik yordam olish imkoniyatini taqdim etishdir.
+                  Men Zafar Zokirov, Surxondaryo viloyati Termiz shahridagi Prezident maktabining 11-sinf o'quvchisiman. <strong>AIAdvokat</strong> loyihasini yaratishdan asosiy maqsadim — O'zbekiston fuqarolariga o'z huquqlarini chuqur anglash, murakkab huquqiy me'yorlarni oddiy tilda tushunish va har qanday sharoitda professional yuridik yordam olish imkoniyatini taqdim etishdir.
                 </p>
                 <p className="text-gray-600 text-sm leading-relaxed">
                   Platforma Retrieval-Augmented Generation (RAG) texnologiyasiga tayanadi. Barcha javoblar O'zbekiston Respublikasining Lex.uz rasmiy qonunchilik bazasiga, 5 ta asosiy kodeks va 3,000 dan ortiq huquqiy moddalarga qat'iy asoslangan holda shakllantiriladi.
@@ -701,7 +701,7 @@ function HomeFAQSection() {
         <div className="text-center mb-12">
           <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Savol-Javob</span>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2 mb-3">Tez-tez So'raladigan Savollar</h2>
-          <p className="text-gray-500 text-sm">AdvokatAI platformasi, uning yuridik maqomi va imkoniyatlari haqida muhim ma'lumotlar</p>
+          <p className="text-gray-500 text-sm">AIAdvokat platformasi, uning yuridik maqomi va imkoniyatlari haqida muhim ma'lumotlar</p>
         </div>
 
         <div className="space-y-4">

@@ -48,7 +48,7 @@ async function runTests() {
   console.log('Running Test 3: "AdvokatAI nima qila oladi?"...');
   const res3 = await generateLegalAdvice({ message: "AdvokatAI nima qila oladi?" });
   assert(
-    res3.intent === 'ABOUT_PRODUCT' && res3.sources.length === 0 && res3.text.includes('AdvokatAI'),
+    res3.intent === 'ABOUT_PRODUCT' && res3.sources.length === 0 && (res3.text.includes('AIAdvokat') || res3.text.includes('AdvokatAI')),
     3,
     'Product explained with AdvokatAI branding and NO unnecessary legal retrieval.',
     res3

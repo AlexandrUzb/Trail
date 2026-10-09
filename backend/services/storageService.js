@@ -102,7 +102,7 @@ const DEFAULT_PLANS = [
     document_limit: 2,
     search_limit: 3,
     features: [
-      { label: 'AdvokatAI Chatbot', sub: 'Kuniga 10 ta savol', on: true },
+      { label: 'AIAdvokat Chatbot', sub: 'Kuniga 10 ta savol', on: true },
       { label: 'Rasmiy Qonunchilik Bazasi', sub: 'Kuniga 3 ta qidiruv', on: true },
       { label: 'Hujjat Shablonlari', sub: '2 ta hujjat yaratish', on: true },
       { label: 'O\'zbek tili va qidiruv', sub: 'Lotin va Kirill', on: true },
@@ -120,7 +120,7 @@ const DEFAULT_PLANS = [
     document_limit: 10,
     search_limit: 30,
     features: [
-      { label: 'AdvokatAI Chatbot', sub: 'Kuniga 100 ta savol', on: true },
+      { label: 'AIAdvokat Chatbot', sub: 'Kuniga 100 ta savol', on: true },
       { label: 'Rasmiy Qonunchilik Bazasi', sub: 'Kuniga 30 ta qidiruv', on: true },
       { label: 'Hujjat Shablonlari', sub: '10 ta hujjat yaratish', on: true },
       { label: 'O\'zbek tili va qidiruv', sub: 'Yuqori tezlikda tahlil', on: true },
@@ -138,7 +138,7 @@ const DEFAULT_PLANS = [
     document_limit: 100,
     search_limit: 999999,
     features: [
-      { label: 'AdvokatAI Chatbot', sub: 'Cheksiz savollar', on: true },
+      { label: 'AIAdvokat Chatbot', sub: 'Cheksiz savollar', on: true },
       { label: 'Rasmiy Qonunchilik Bazasi', sub: 'Cheksiz qonun qidiruv', on: true },
       { label: 'Hujjat Shablonlari', sub: '100 ta hujjat yaratish', on: true },
       { label: 'O\'zbek tili va qidiruv', sub: 'Eng yuqori ustuvorlik', on: true },
@@ -163,8 +163,8 @@ class StorageService {
       writeJson('users', [
         {
           id: 'admin_default',
-          name: 'AdvokatAI Boshqaruvchi',
-          email: 'admin@advokatai.uz',
+          name: 'AIAdvokat Boshqaruvchi',
+          email: 'admin@aiadvokat.uz',
           role: 'admin',
           plan_id: 'premium',
           password_hash: crypto.pbkdf2Sync('admin123', salt, 1000, 64, 'sha512').toString('hex'),
@@ -173,7 +173,7 @@ class StorageService {
         {
           id: 'demo_user',
           name: 'Namuna Foydalanuvchi',
-          email: 'user@advokatai.uz',
+          email: 'user@aiadvokat.uz',
           role: 'user',
           plan_id: 'free',
           password_hash: crypto.pbkdf2Sync('user123', salt, 1000, 64, 'sha512').toString('hex'),
@@ -252,7 +252,7 @@ class StorageService {
     } else {
       const newUser = {
         id: userId,
-        email: `${userId}@advokatai.uz`,
+        email: `${userId}@aiadvokat.uz`,
         role: 'user',
         plan_id: planId,
         plan_expires_at: expiresAt.toISOString(),

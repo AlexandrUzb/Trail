@@ -1,5 +1,5 @@
 /**
- * AdvokatAI - Production-Safe API Client
+ * AIAdvokat - Production-Safe API Client
  * 
  * Features:
  * - Dynamic API Base URL resolution (supports VITE_API_BASE_URL or relative /api)

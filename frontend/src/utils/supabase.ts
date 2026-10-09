@@ -1,5 +1,5 @@
 /**
- * AdvokatAI - Supabase Database Types
+ * AIAdvokat - Supabase Database Types
  * Exactly matches the SOURCE OF TRUTH schema in PostgreSQL.
  */
 export interface Profile {

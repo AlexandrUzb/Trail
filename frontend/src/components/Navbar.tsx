@@ -79,7 +79,7 @@ export default function Navbar() {
             <div className="w-9 h-9 bg-teal-600 rounded-lg flex items-center justify-center">
               <i className="ri-scales-3-line text-white text-lg"></i>
             </div>
-            <span className="text-xl font-bold text-gray-900">AdvokatAI</span>
+            <span className="text-xl font-bold text-gray-900">AIAdvokat</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
@@ -104,7 +104,7 @@ export default function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 hover:border-amber-300 transition-all shadow-2xs hover:scale-105"
-              title="AdvokatAI dasturchisini qoʻllab-quvvatlash va kofe ulashish"
+              title="AIAdvokat dasturchisini qoʻllab-quvvatlash va kofe ulashish"
             >
               <span className="text-sm">☕</span>
               <span>Qoʻllab-quvvatlash</span>
@@ -226,7 +226,7 @@ export default function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-amber-800 hover:bg-amber-50 transition-colors"
                         >
                           <i className="ri-cup-line text-amber-600 text-base"></i>
-                          <span>AdvokatAI'ni qo'llab-quvvatlash ☕</span>
+                          <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
                         </a>
                       </div>
 
@@ -309,7 +309,7 @@ export default function Navbar() {
                       rel="noopener noreferrer"
                       className="block text-center py-2 px-3 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-bold"
                     >
-                      AdvokatAI'ni qo'llab-quvvatlash ☕
+                      AIAdvokat'ni qo'llab-quvvatlash ☕
                     </a>
                     <button
                       type="button"
