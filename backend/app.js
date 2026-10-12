@@ -19,6 +19,8 @@ const app = express();
 const isAllowedOrigin = (origin) => {
   if (!origin) return true; // Server-to-server, curl, same-origin, mobile apps
   const allowedExact = [
+    'https://aiadvokat.uz',
+    'https://www.aiadvokat.uz',
     'https://v0-advokat-ai.vercel.app',
     process.env.FRONTEND_URL,
     process.env.ALLOWED_ORIGIN,
@@ -27,9 +29,10 @@ const isAllowedOrigin = (origin) => {
   ].filter(Boolean);
 
   if (allowedExact.includes(origin)) return true;
-  // Allow all Vercel and Netlify production & preview domains
+  // Allow all Vercel, Netlify, and Render production & preview domains
   if (/^https:\/\/([a-z0-9-]+-)*[a-z0-9]+\.vercel\.app$/i.test(origin)) return true;
   if (/^https:\/\/.*\.netlify\.app$/i.test(origin)) return true;
+  if (/^https:\/\/([a-z0-9-]+)\.onrender\.com$/i.test(origin)) return true;
   // Allow local development ports
   if (/^http:\/\/localhost(:\d+)?$/i.test(origin)) return true;
   if (/^http:\/\/127\.0\.0\.1(:\d+)?$/i.test(origin)) return true;
@@ -41,8 +44,7 @@ const corsOptions = {
     if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
-      // In production, fallback gracefully
-      callback(null, true);
+      callback(null, false);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -151,7 +153,7 @@ app.use((req, res, next) => {
     } else {
       return res.json({
         success: true,
-        message: "AIAdvokat API Server ishlamoqda. Frontendni ko'rish uchun 'npm run build' buyrug'ini ishga tushiring."
+        message: "AI Advokat API Server ishlamoqda. Frontendni ko'rish uchun 'npm run build' buyrug'ini ishga tushiring."
       });
     }
   }

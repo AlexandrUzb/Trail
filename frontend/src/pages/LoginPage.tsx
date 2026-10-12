@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageToggle } from '../components/LanguageToggle';
 import { supabase, getProfile, getActiveSubscription, recordUserLogin } from '../utils/supabase';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -10,6 +12,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoggedIn } = useAuth();
+  const { t } = useLanguage();
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [rememberMe, setRememberMe] = useState(true);
@@ -45,18 +48,18 @@ export default function LoginPage() {
 
     // 1. Validate email
     if (!cleanEmail) {
-      setError("Email manzilingizni kiriting.");
+      setError(t('auth_email_required'));
       return;
     }
 
     if (!EMAIL_REGEX.test(cleanEmail)) {
-      setError("Notoʻgʻri email formati. Iltimos, toʻgʻri email manzilini kiriting.");
+      setError(t('auth_email_invalid'));
       return;
     }
 
     // 2. Validate password
     if (!cleanPassword || cleanPassword.trim() === '') {
-      setError("Parolingizni kiriting.");
+      setError(t('auth_password_required'));
       return;
     }
 
@@ -178,12 +181,16 @@ export default function LoginPage() {
       }, 400);
     } catch (err: any) {
       setLoading(false);
-      setError("Serverga ulanishda xatolik yuz berdi. Iltimos, qaytadan urinib koʻring.");
+      setError(t('auth_server_err'));
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4 py-12 relative">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <LanguageToggle variant="compact" />
+      </div>
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
@@ -194,15 +201,15 @@ export default function LoginPage() {
               <span className="text-3xl font-bold text-teal-600">AIAdvokat</span>
             </div>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Xush kelibsiz</h1>
-          <p className="text-gray-600">Hisobingizga kiring</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('login_title')}</h1>
+          <p className="text-gray-600">{t('login_subtitle')}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8">
           {submitted && (
             <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-center space-x-2">
               <i className="ri-check-line text-teal-600 text-xl"></i>
-              <p className="text-teal-800 text-sm">Tizimga muvaffaqiyatli kirildi! Yoʻnaltirilmoqda...</p>
+              <p className="text-teal-800 text-sm">{t('auth_login_success')}</p>
             </div>
           )}
           {error && (
@@ -213,7 +220,7 @@ export default function LoginPage() {
           )}
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
-              <label htmlFor="login-email" className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+              <label htmlFor="login-email" className="block text-sm font-semibold text-gray-700 mb-2">{t('email_label')}</label>
               <input
                 id="login-email"
                 name="email"
@@ -232,7 +239,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700 mb-2">Parol</label>
+              <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700 mb-2">{t('password_label')}</label>
               <input
                 id="login-password"
                 name="password"
@@ -260,7 +267,7 @@ export default function LoginPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 cursor-pointer" 
                 />
-                <span className="text-sm text-gray-600">Eslab qolish</span>
+                <span className="text-sm text-gray-600">{t('auth_remember_me')}</span>
               </label>
             </div>
             <button
@@ -271,15 +278,15 @@ export default function LoginPage() {
               }`}
             >
               {loading && <i className="ri-loader-4-line animate-spin text-lg"></i>}
-              <span>{loading ? "Tekshirilmoqda..." : "Kirish"}</span>
+              <span>{loading ? t('auth_checking') : t('login_btn')}</span>
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Ro'yxatdan o'tmaganmisiz?{' '}
+              {t('login_no_account')}{' '}
               <Link to="/register" state={location.state} className="text-teal-600 hover:text-teal-700 font-semibold">
-                Ro'yxatdan o'ting
+                {t('login_register_link')}
               </Link>
             </p>
           </div>
@@ -287,7 +294,7 @@ export default function LoginPage() {
 
         <div className="mt-6 text-center">
           <Link to="/" className="text-gray-600 hover:text-gray-900 text-sm flex items-center justify-center gap-1">
-            <i className="ri-arrow-left-line mr-1"></i>Bosh sahifaga qaytish
+            <i className="ri-arrow-left-line mr-1"></i>{t('btn_back_home')}
           </Link>
         </div>
       </div>

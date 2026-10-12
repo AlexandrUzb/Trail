@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { FormattedMarkdown } from '../components/FormattedMarkdown';
 import { safeFetchJson, safeStorage } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   supabase, 
   getUserConversations, 
@@ -48,15 +49,15 @@ interface Conversation {
 }
 
 const LAW_GROUPS = [
-  { id: 'all', label: '🔍 Avtomatik aniqlash (Barcha qonunlar)' },
-  { id: 'mehnat_kodeksi', label: '💼 Mehnat kodeksi' },
-  { id: 'fuqarolik_kodeksi', label: '📜 Fuqarolik kodeksi' },
-  { id: 'jinoyat_kodeksi', label: '⚖️ Jinoyat kodeksi' },
-  { id: 'mamuriy_javobgarlik', label: '🛑 Maʼmuriy javobgarlik kodeksi' },
-  { id: 'konstitutsiya', label: '🇺🇿 Oʻzbekiston Konstitutsiyasi' },
+  { id: 'all', labelUz: '🔍 Avtomatik aniqlash (Barcha qonunlar)', labelEn: '🔍 Auto-detect (All laws)' },
+  { id: 'mehnat_kodeksi', labelUz: '💼 Mehnat kodeksi', labelEn: '💼 Labor Code' },
+  { id: 'fuqarolik_kodeksi', labelUz: '📜 Fuqarolik kodeksi', labelEn: '📜 Civil Code' },
+  { id: 'jinoyat_kodeksi', labelUz: '⚖️ Jinoyat kodeksi', labelEn: '⚖️ Criminal Code' },
+  { id: 'mamuriy_javobgarlik', labelUz: '🛑 Maʼmuriy javobgarlik kodeksi', labelEn: '🛑 Administrative Liability Code' },
+  { id: 'konstitutsiya', labelUz: '🇺🇿 Oʻzbekiston Konstitutsiyasi', labelEn: '🇺🇿 Constitution of Uzbekistan' },
 ];
 
-const quickTopics = [
+const quickTopicsUz = [
   "Mehnat shartnomasi bo'yicha savol",
   "Ijara huquqlari va kvartira nizosi",
   "Ish beruvchi ish haqini to'lamayapti",
@@ -65,29 +66,49 @@ const quickTopics = [
   "Pora va korrupsiya holatlari",
 ];
 
-const DEFAULT_WELCOME_MESSAGE: Message = {
+const quickTopicsEn = [
+  "Employment contract inquiries",
+  "Tenant rights & apartment leasing disputes",
+  "Employer withholding salary or wages",
+  "Formal appeal & petition procedure",
+  "Contesting an administrative penalty",
+  "Anti-corruption & bribery cases",
+];
+
+const DEFAULT_WELCOME_MESSAGE_UZ: Message = {
   id: 'init_welcome',
   sender: 'ai',
   timestamp: Date.now(),
-  text: "Assalomu alaykum! Men **AIAdvokat** — O'zbekiston qonunchiligiga asoslangan AI huquqiy yordamchi.\n\nSavolingizni erkin tilda yozing yoki kerakli kodeksni tanlab murojaat qiling.",
+  text: "Assalomu alaykum! Men **AI Advokat** — O'zbekiston qonunchiligiga asoslangan AI huquqiy yordamchi.\n\nSavolingizni erkin tilda yozing yoki kerakli kodeksni tanlab murojaat qiling.",
+};
+
+const DEFAULT_WELCOME_MESSAGE_EN: Message = {
+  id: 'init_welcome',
+  sender: 'ai',
+  timestamp: Date.now(),
+  text: "Hello! I am **AI Advokat** — an AI legal assistant grounded in Uzbekistan legislation.\n\nAsk your question in natural language or select a specific legal code.",
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function ChatPage() {
   const { user, isLoggedIn } = useAuth();
+  const { language, t } = useLanguage();
   const [searchParams] = useSearchParams();
   const articleParam = searchParams.get('article');
   const convIdParam = searchParams.get('convId');
 
+  const defaultWelcome = language === 'en' ? DEFAULT_WELCOME_MESSAGE_EN : DEFAULT_WELCOME_MESSAGE_UZ;
+  const currentTopics = language === 'en' ? quickTopicsEn : quickTopicsUz;
+
   const [conversations, setConversations] = useState<Conversation[]>([
     {
       id: 'conv_initial',
-      title: 'Yangi suhbat',
+      title: language === 'en' ? 'New chat' : 'Yangi suhbat',
       createdAt: Date.now(),
       updatedAt: Date.now(),
       lawGroup: 'all',
-      messages: [DEFAULT_WELCOME_MESSAGE],
+      messages: [language === 'en' ? DEFAULT_WELCOME_MESSAGE_EN : DEFAULT_WELCOME_MESSAGE_UZ],
     },
   ]);
 
@@ -98,13 +119,13 @@ export default function ChatPage() {
   const isLimitReached = Boolean(isLoggedIn && dailyLimit < 999999 && todayUsage >= dailyLimit);
 
   const activeConversation = conversations.find((c) => c.id === activeConvId) || conversations[0];
-  const messages = activeConversation?.messages || [DEFAULT_WELCOME_MESSAGE];
+  const messages = activeConversation?.messages || [defaultWelcome];
 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'offline'>('checking');
-  const [aiMode, setAiMode] = useState<string>('AIAdvokat');
+  const [aiMode, setAiMode] = useState<string>('AI Advokat');
   const [selectedLawGroup, setSelectedLawGroup] = useState<string>(activeConversation?.lawGroup || 'all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthGateModal, setShowAuthGateModal] = useState<boolean>(false);
@@ -149,7 +170,7 @@ export default function ChatPage() {
 
           const formattedConvs: Conversation[] = dbConvs.map((c: DbConversation) => {
             const isTarget = c.id === targetConvId;
-            let convMsgs: Message[] = [DEFAULT_WELCOME_MESSAGE];
+            let convMsgs: Message[] = [defaultWelcome];
 
             if (isTarget && dbMsgs && dbMsgs.length > 0) {
               convMsgs = dbMsgs.map((m: DbMessage) => ({
@@ -222,7 +243,7 @@ export default function ChatPage() {
         if (res.ok && res.data) {
           if (isMounted) {
             setBackendStatus('connected');
-            setAiMode(res.data.ai?.provider || res.data.mode || 'AIAdvokat');
+            setAiMode(res.data.ai?.provider || res.data.mode || 'AI Advokat');
           }
         } else {
           if (isMounted) setBackendStatus('offline');
@@ -253,11 +274,11 @@ export default function ChatPage() {
     const tempId = 'conv_' + Date.now();
     const newConv: Conversation = {
       id: tempId,
-      title: 'Yangi suhbat',
+      title: language === 'en' ? 'New chat' : 'Yangi suhbat',
       createdAt: Date.now(),
       updatedAt: Date.now(),
       lawGroup: 'all',
-      messages: [DEFAULT_WELCOME_MESSAGE],
+      messages: [defaultWelcome],
     };
 
     setConversations((prev) => [newConv, ...prev]);
@@ -284,11 +305,11 @@ export default function ChatPage() {
     if (remaining.length === 0) {
       const freshConv: Conversation = {
         id: 'conv_' + Date.now(),
-        title: 'Yangi suhbat',
+        title: language === 'en' ? 'New chat' : 'Yangi suhbat',
         createdAt: Date.now(),
         updatedAt: Date.now(),
         lawGroup: 'all',
-        messages: [DEFAULT_WELCOME_MESSAGE],
+        messages: [defaultWelcome],
       };
       setConversations([freshConv]);
       setActiveConvId(freshConv.id);
@@ -388,6 +409,7 @@ export default function ChatPage() {
             message: text.trim(),
             law_group: selectedLawGroup === 'all' ? null : selectedLawGroup,
             history: messages.slice(-6).map((m) => ({ sender: m.sender, text: m.text })),
+            language: language,
           }),
         });
 
@@ -577,7 +599,7 @@ export default function ChatPage() {
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <i className="ri-history-line text-teal-600 text-lg"></i>
-            <span className="font-bold text-gray-900 text-sm">Suhbatlar tarixi</span>
+            <span className="font-bold text-gray-900 text-sm">{t('chat_history_title')}</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -595,7 +617,7 @@ export default function ChatPage() {
             className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
           >
             <i className="ri-add-line text-base"></i>
-            <span>Yangi suhbat</span>
+            <span>{t('chat_new_session')}</span>
           </button>
         </div>
 
@@ -619,13 +641,13 @@ export default function ChatPage() {
                       isActive ? 'text-teal-600' : 'text-gray-400 group-hover:text-gray-600'
                     }`}
                   ></i>
-                  <span className="truncate">{c.title || 'Yangi suhbat'}</span>
+                  <span className="truncate">{c.title || (language === 'en' ? 'New chat' : 'Yangi suhbat')}</span>
                 </div>
                 <button
                   type="button"
                   onClick={(e) => handleDeleteConversation(c.id, e)}
                   className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-600 rounded transition-opacity cursor-pointer flex-shrink-0"
-                  title="Suhbatni oʻchirish"
+                  title={language === 'en' ? 'Delete chat' : 'Suhbatni oʻchirish'}
                 >
                   <i className="ri-delete-bin-line text-sm"></i>
                 </button>
@@ -638,9 +660,9 @@ export default function ChatPage() {
         {isLoggedIn && user && (
           <div className="p-3 border-t border-gray-100 bg-gray-50/80">
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="text-gray-600 font-medium">Kunlik savollar:</span>
+              <span className="text-gray-600 font-medium">{t('chat_daily_questions')}</span>
               <span className="font-bold text-teal-700">
-                {todayUsage} / {dailyLimit >= 999999 ? 'Cheksiz' : dailyLimit}
+                {todayUsage} / {dailyLimit >= 999999 ? t('chat_unlimited') : dailyLimit}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
@@ -657,8 +679,8 @@ export default function ChatPage() {
           <div className="flex items-start gap-2.5 mb-2.5">
             <span className="text-xl shrink-0">☕</span>
             <div className="min-w-0">
-              <p className="text-xs font-bold text-gray-900">Loyihani qoʻllab-quvvatlang</p>
-              <p className="text-[11px] text-gray-600 leading-tight">AIAdvokat bepul xizmat. Dasturchiga kofe ulashib hissa qoʻshing!</p>
+              <p className="text-xs font-bold text-gray-900">{t('chat_support_box_title')}</p>
+              <p className="text-[11px] text-gray-600 leading-tight">{t('chat_support_box_desc')}</p>
             </div>
           </div>
           <a
@@ -668,11 +690,11 @@ export default function ChatPage() {
             className="w-full py-1.5 px-3 bg-[#FFDD00] hover:bg-[#FACC15] text-gray-900 text-xs font-extrabold rounded-xl flex items-center justify-center gap-1.5 transition-transform hover:scale-[1.02] shadow-2xs"
           >
             <i className="ri-cup-line text-xs"></i>
-            <span>Kofe ulashish ☕</span>
+            <span>{t('chat_buy_coffee')}</span>
           </a>
           <div className="mt-2 text-right">
             <Link to="/history" className="text-gray-500 hover:text-gray-700 text-[11px]">
-              Toʻliq tarix →
+              {t('chat_view_full_history')}
             </Link>
           </div>
         </div>
@@ -695,7 +717,8 @@ export default function ChatPage() {
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 md:hidden cursor-pointer"
-              title="Suhbatlar roʻyxati"
+              title={language === 'en' ? 'Conversation list' : 'Suhbatlar roʻyxati'}
+              aria-label={language === 'en' ? 'Conversation list' : 'Suhbatlar roʻyxati'}
             >
               <i className="ri-menu-2-line text-xl"></i>
             </button>
@@ -705,8 +728,8 @@ export default function ChatPage() {
                 <h2 className="font-bold text-gray-900 text-sm sm:text-base truncate max-w-[220px] sm:max-w-md">
                   {activeConversation.title}
                 </h2>
-                <span className="hidden sm:inline-block bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-200">
-                  AIAdvokat
+                <span className="hidden sm:inline-block bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-200 notranslate" translate="no">
+                  AI Advokat
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
@@ -717,8 +740,8 @@ export default function ChatPage() {
                 ></span>
                 <span className="truncate">
                   {backendStatus === 'connected'
-                    ? `${aiMode} · Lex.uz integratsiyasi`
-                    : 'Lokal qidiruv rejimi'}
+                    ? `${aiMode} · ${t('chat_lexuz_integration')}`
+                    : t('chat_local_search_mode')}
                 </span>
               </div>
             </div>
@@ -727,7 +750,7 @@ export default function ChatPage() {
           {/* Law Group Selector & Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="hidden lg:flex items-center gap-1.5 text-xs text-gray-600">
-              <span className="font-medium text-gray-500">Qonun guruhi:</span>
+              <span className="font-medium text-gray-500">{t('chat_law_group_label')}</span>
               <select
                 value={selectedLawGroup}
                 onChange={(e) => {
@@ -740,7 +763,7 @@ export default function ChatPage() {
               >
                 {LAW_GROUPS.map((lg) => (
                   <option key={lg.id} value={lg.id}>
-                    {lg.label}
+                    {language === 'en' ? lg.labelEn : lg.labelUz}
                   </option>
                 ))}
               </select>
@@ -751,10 +774,10 @@ export default function ChatPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg font-bold transition-all shadow-2xs hover:scale-105"
-              title="AIAdvokat loyihasini qoʻllab-quvvatlash"
+              title={language === 'en' ? 'Support AIAdvokat project' : 'AIAdvokat loyihasini qoʻllab-quvvatlash'}
             >
               <i className="ri-cup-line text-amber-600"></i>
-              <span className="hidden sm:inline">Qoʻllab-quvvatlash ☕</span>
+              <span className="hidden sm:inline">{language === 'en' ? 'Support ☕' : 'Qoʻllab-quvvatlash ☕'}</span>
             </a>
 
             <button
@@ -763,7 +786,7 @@ export default function ChatPage() {
               className="hidden sm:flex items-center gap-1 text-xs text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer border border-teal-200"
             >
               <i className="ri-add-line"></i>
-              <span>Yangi</span>
+              <span>{language === 'en' ? 'New' : 'Yangi'}</span>
             </button>
           </div>
         </header>
@@ -806,7 +829,7 @@ export default function ChatPage() {
                     className="flex items-center gap-1.5 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-full transition-colors cursor-pointer w-fit mt-0.5 disabled:opacity-50"
                   >
                     <i className="ri-refresh-line"></i>
-                    <span>Qayta urinish</span>
+                    <span>{t('btn_try_again')}</span>
                   </button>
                 )}
 
@@ -819,7 +842,7 @@ export default function ChatPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1 rounded-full border border-teal-200 transition-colors shadow-2xs"
-                        title="LEX.UZ rasmiy bazasida to'liq matnini o'qish"
+                        title={language === 'en' ? "Read full text on official LEX.UZ database" : "LEX.UZ rasmiy bazasida to'liq matnini o'qish"}
                       >
                         <i className="ri-external-link-line text-teal-600"></i>
                         <span>{msg.sourceArticle}</span>
@@ -840,7 +863,7 @@ export default function ChatPage() {
                             : 'bg-orange-50 text-orange-700 border border-orange-200'
                         }`}
                       >
-                        Ishonchlilik: {msg.confidenceLevel === 'HIGH' ? 'Yuqori' : msg.confidenceLevel === 'MEDIUM' ? 'O‘rta' : 'Past'}
+                        {t('chat_confidence')} {msg.confidenceLevel === 'HIGH' ? t('chat_conf_high') : msg.confidenceLevel === 'MEDIUM' ? t('chat_conf_medium') : t('chat_conf_low')}
                         {msg.confidenceReason ? ` — ${msg.confidenceReason}` : ''}
                       </span>
                     )}
@@ -856,7 +879,8 @@ export default function ChatPage() {
                       className={`p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer text-xs ${
                         msg.userFeedback === 1 ? 'text-teal-600' : 'hover:text-teal-600'
                       }`}
-                      title="Foydali javob"
+                      title={t('chat_helpful')}
+                      aria-label={t('chat_helpful')}
                     >
                       <i className="ri-thumb-up-line"></i>
                     </button>
@@ -866,7 +890,8 @@ export default function ChatPage() {
                       className={`p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer text-xs ${
                         msg.userFeedback === -1 ? 'text-red-500' : 'hover:text-red-500'
                       }`}
-                      title="Javob qoniqarsiz"
+                      title={t('chat_not_helpful')}
+                      aria-label={t('chat_not_helpful')}
                     >
                       <i className="ri-thumb-down-line"></i>
                     </button>
@@ -876,9 +901,9 @@ export default function ChatPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-[11px] text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/90 px-2 py-0.5 rounded-md font-semibold transition-colors border border-amber-200/50"
-                      title="AIAdvokat dasturchisiga kofe ulashish"
+                      title={t('chat_support_dev')}
                     >
-                      <span>☕ Dasturchiga kofe</span>
+                      <span>☕ {t('chat_dev_coffee')}</span>
                     </a>
                   </div>
                 )}
@@ -897,7 +922,7 @@ export default function ChatPage() {
                 <span className="w-2 h-2 bg-teal-600 rounded-full animate-bounce [animation-delay:0.2s]"></span>
                 <span className="w-2 h-2 bg-teal-600 rounded-full animate-bounce [animation-delay:0.4s]"></span>
                 <span className="font-medium text-teal-900 ml-1">
-                  AIAdvokat O‘zbekiston qonunchiligini tahlil qilmoqda...
+                  {t('chat_generating')}
                 </span>
               </div>
             </div>
@@ -915,10 +940,10 @@ export default function ChatPage() {
           {messages.length === 1 && (
             <div className="max-w-4xl mx-auto pt-6">
               <p className="text-xs font-semibold text-gray-500 mb-3 text-center">
-                Tez-tez beriladigan yuridik savollar:
+                {t('chat_quick_topics_title')}
               </p>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                {quickTopics.map((topic) => (
+                {currentTopics.map((topic) => (
                   <button
                     key={topic}
                     type="button"
@@ -946,8 +971,12 @@ export default function ChatPage() {
                     <i className="ri-alarm-warning-fill text-base"></i>
                   </div>
                   <div>
-                    <div className="font-bold text-sm text-gray-900">Kunlik savollar limitingiz ({dailyLimit} ta) to'ldi</div>
-                    <div className="text-gray-600">Cheklov ertaga qayta yangilanadi.</div>
+                    <div className="font-bold text-sm text-gray-900">
+                      {language === 'en' ? `Daily question limit (${dailyLimit}) reached` : `Kunlik savollar limitingiz (${dailyLimit} ta) to'ldi`}
+                    </div>
+                    <div className="text-gray-600">
+                      {language === 'en' ? 'Limits reset tomorrow.' : 'Cheklov ertaga qayta yangilanadi.'}
+                    </div>
                   </div>
                 </div>
                 <a
@@ -957,7 +986,7 @@ export default function ChatPage() {
                   className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                  <span>{t('support_btn')}</span>
                 </a>
               </div>
             )}
@@ -978,9 +1007,10 @@ export default function ChatPage() {
                 rows={1}
                 placeholder={
                   isLimitReached
-                    ? `Kunlik savollar limitingiz (${dailyLimit} ta) to'ldi. Cheklov ertaga yangilanadi.`
-                    : "Huquqiy savolingizni yozing (masalan: Ish beruvchi ish haqini o'z vaqtida to'lamasa nima qilish kerak?)..."
+                    ? (language === 'en' ? `Daily question limit (${dailyLimit}) reached. Limits reset tomorrow.` : `Kunlik savollar limitingiz (${dailyLimit} ta) to'ldi. Cheklov ertaga yangilanadi.`)
+                    : (language === 'en' ? "Type your legal question (e.g. What to do if employer does not pay salary on time?)..." : "Huquqiy savolingizni yozing (masalan: Ish beruvchi ish haqini o'z vaqtida to'lamasa nima qilish kerak?)...")
                 }
+                aria-label={language === 'en' ? "Legal question input" : "Huquqiy savolingizni yozing"}
                 className="w-full resize-none bg-transparent px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none max-h-32 min-h-[40px] leading-relaxed disabled:cursor-not-allowed disabled:text-gray-400"
               />
               <button
@@ -1000,7 +1030,8 @@ export default function ChatPage() {
                     ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-xs'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
-                title={isLimitReached ? "Savollar limiti to'lgan" : "Yuborish (Enter)"}
+                title={isLimitReached ? (language === 'en' ? "Question limit reached" : "Savollar limiti to'lgan") : (language === 'en' ? "Send (Enter)" : "Yuborish (Enter)")}
+                aria-label={isLimitReached ? (language === 'en' ? "Question limit reached" : "Savollar limiti to'lgan") : (language === 'en' ? "Send question" : "Savolni yuborish")}
               >
                 <i className={isLimitReached ? "ri-lock-line text-base" : "ri-send-plane-2-fill text-base"}></i>
               </button>
@@ -1008,7 +1039,7 @@ export default function ChatPage() {
 
             <div className="flex flex-wrap items-center justify-between mt-2 px-1 text-[11px] text-gray-400 gap-2">
               <span className="truncate">
-                AIAdvokat sunʼiy intellekt yordamchisidir. Javoblar Lex.uz qonunchiligiga asoslanadi.
+                {t('chat_disclaimer_bottom')}
               </span>
               <div className="flex items-center gap-3">
                 <a
@@ -1017,10 +1048,10 @@ export default function ChatPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-amber-700 hover:text-amber-900 font-semibold transition-colors"
                 >
-                  <span>Dasturchiga kofe ulashish ☕</span>
+                  <span>{t('chat_support_dev')}</span>
                 </a>
                 <span className="hidden sm:inline-block text-gray-400">
-                  Enter — yuborish
+                  {t('chat_enter_to_send')}
                 </span>
               </div>
             </div>
@@ -1039,9 +1070,9 @@ export default function ChatPage() {
             <div className="w-16 h-16 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-teal-100 shadow-xs">
               <i className="ri-lock-line text-3xl"></i>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Tizimga kirish talab qilinadi</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('auth_gate_title')}</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-              AI huquqiy maslahat olish va suhbatlaringiz tarixini xavfsiz saqlash uchun iltimos, hisobingizga kiring yoki bepul roʻyxatdan oʻting.
+              {t('auth_gate_desc')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
@@ -1049,7 +1080,7 @@ export default function ChatPage() {
                 onClick={() => setShowAuthGateModal(false)}
                 className="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer order-2 sm:order-1"
               >
-                Bekor qilish
+                {t('btn_cancel')}
               </button>
               <Link
                 to="/login"
@@ -1057,7 +1088,7 @@ export default function ChatPage() {
                 className="w-full py-3 px-4 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer order-1 sm:order-2"
               >
                 <i className="ri-login-box-line"></i>
-                <span>Kirish</span>
+                <span>{t('nav_login')}</span>
               </Link>
             </div>
           </div>
@@ -1075,9 +1106,11 @@ export default function ChatPage() {
             <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-100 shadow-xs">
               <i className="ri-alarm-warning-line text-3xl"></i>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Kunlik savollar limitingiz toʻldi</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('chat_limit_title')}</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-              Bugungi belgilangan savollar limitingiz ({dailyLimit} ta) toʻldi. Tizim resurslarini adolatli taqsimlash maqsadida cheklov ertaga yangilanadi.
+              {language === 'en'
+                ? `Your daily question quota (${dailyLimit}) has been reached. To ensure fair server resource distribution, limits reset tomorrow.`
+                : `Bugungi belgilangan savollar limitingiz (${dailyLimit} ta) toʻldi. Tizim resurslarini adolatli taqsimlash maqsadida cheklov ertaga yangilanadi.`}
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
@@ -1085,7 +1118,7 @@ export default function ChatPage() {
                 onClick={() => setShowLimitExceededModal(false)}
                 className="w-full py-3 px-4 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer order-2 sm:order-1"
               >
-                Yopish
+                {t('btn_close')}
               </button>
               <a
                 href="https://buymeacoffee.com/advokatai"
@@ -1095,7 +1128,7 @@ export default function ChatPage() {
                 className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
               >
                 <i className="ri-cup-line"></i>
-                <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                <span>{t('support_btn')}</span>
               </a>
             </div>
           </div>

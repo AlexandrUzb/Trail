@@ -1,14 +1,15 @@
 import { cyrillicToLatin, normalizeSearchText } from '../utils/transliterate.js';
 import { conversationStateService } from './conversationStateService.js';
+import { isEnglishQuery, getEnglishDirectResponse, translateEnglishLegalQueryToUzbek } from '../utils/languageHelper.js';
 
 // Pre-defined direct responses for instant greetings and everyday queries
-const CASUAL_IDENTITY_RESPONSE = "Men AIAdvokat — O‘zbekiston qonunchiligi asosida ishlovchi AI huquqiy yordamchisiman.";
+const CASUAL_IDENTITY_RESPONSE = "Men AI Advokat — O‘zbekiston qonunchiligi asosida ishlovchi AI huquqiy yordamchisiman.";
 
-const GREETING_RESPONSE = "Assalomu alaykum! Men AIAdvokat yuridik maslahatchisiman. Sizga O‘zbekiston qonunchiligi bo‘yicha qanday yordam bera olaman?";
+const GREETING_RESPONSE = "Assalomu alaykum! Men AI Advokat yuridik maslahatchisiman. Sizga O‘zbekiston qonunchiligi bo‘yicha qanday yordam bera olaman?";
 
-const COURTESY_RESPONSE = "Arzimaydi! AIAdvokat doim xizmatingizda. Yana qandaydir huquqiy savolingiz bo'lsa, bemalol yozishingiz mumkin.";
+const COURTESY_RESPONSE = "Arzimaydi! AI Advokat doim xizmatingizda. Yana qandaydir huquqiy savolingiz bo'lsa, bemalol yozishingiz mumkin.";
 
-const CAPABILITIES_RESPONSE = `Men AIAdvokat — O‘zbekiston Respublikasi qonunchiligi (Konstitutsiya, Mehnat kodeksi, Fuqarolik kodeksi, Jinoyat kodeksi, Maʼmuriy javobgarlik to‘g‘risidagi kodeks va b.) bo‘yicha ixtisoslashgan intellektual huquqiy yordamchiman.
+const CAPABILITIES_RESPONSE = `Men AI Advokat — O‘zbekiston Respublikasi qonunchiligi (Konstitutsiya, Mehnat kodeksi, Fuqarolik kodeksi, Jinoyat kodeksi, Maʼmuriy javobgarlik to‘g‘risidagi kodeks va b.) bo‘yicha ixtisoslashgan intellektual huquqiy yordamchiman.
 
 Quyidagi masalalarda yordam bera olaman:
 1. Ish beruvchi va xodim munosabatlari, maosh kechikishi, mehnat shartnomasi va mehnat huquqi.
@@ -27,7 +28,7 @@ const HOW_TO_ASK_EXPLANATION = `Savol berishda vaziyatni iloji boricha aniq bayo
 
 Marhamat, savolingizni yozing!`;
 
-const OUT_OF_SCOPE_EXPLANATION = "Rahmat. Bu savol O‘zbekiston qonunchiligiga bevosita taalluqli emas. AIAdvokat faqat O‘zbekiston qonunchiligi asosida huquqiy axborot beradi, shuning uchun bu savolga qonunchilikka asoslangan javob bera olmayman.";
+const OUT_OF_SCOPE_EXPLANATION = "Rahmat. Bu savol O‘zbekiston qonunchiligiga bevosita taalluqli emas. AI Advokat faqat O‘zbekiston qonunchiligi asosida huquqiy axborot beradi, shuning uchun bu savolga qonunchilikka asoslangan javob bera olmayman.";
 
 // 19+ Legal Taxonomy (Section 17)
 export const LEGAL_TAXONOMY = {
@@ -138,6 +139,21 @@ export const CODE_LIMITS = {
 // Section C: Fine-Grained Topic Registry with Legal Guardrails & Jurisdiction
 export const FINE_GRAINED_TOPICS = {
   // --- LABOR LAW TOPICS ---
+  labor_probation: {
+    id: 'labor_probation',
+    name: 'Dastlabki sinov muddati (Mehnat shartnomasi)',
+    domain: 'labor',
+    allowedDocumentIds: ['labor_code'],
+    disallowedDocumentIds: ['administrative_code', 'criminal_code', 'civil_code'],
+    targetArticleNumbers: ['129', '130', '131', '132'],
+    forbiddenArticleNumbers: ['179'],
+    jurisdictionRule: 'Davlat mehnat inspeksiyasi (1176) yoki Fuqarolik ishlari bo‘yicha tumanlararo sud',
+    proceduralRoute: 'Sinov muddati 3 oydan oshmasligi kerak (MK 130-modda), ayrim toifadagi xodimlarga sinov belgilanmaydi (MK 129-modda)',
+    triggers: [
+      'sinov muddati', 'dastlabki sinov', 'sinov muddati qoidalari', 'sinov muddati necha oy',
+      'probation', 'trial period', 'probation period', 'probationary period', 'probation rules'
+    ]
+  },
   labor_contract_modification: {
     id: 'labor_contract_modification',
     name: 'Mehnat shartnomasi shartlarini o‘zgartirish',
@@ -772,6 +788,7 @@ export class QueryUnderstandingService {
       return { intent: 'EMPTY', text: '', requiresRetrieval: false };
     }
 
+    const isEnglish = isEnglishQuery(rawMessage, options?.language);
     const clean = rawMessage.trim();
     const normalized = normalizeSearchText(clean);
     const latin = cyrillicToLatin(normalized).toLowerCase();
@@ -781,6 +798,9 @@ export class QueryUnderstandingService {
     // --------------------------------------------------------
     const safetyCheck = this.detectAdversarialOrIllegalRequest(rawMessage);
     if (safetyCheck.isIntercepted) {
+      if (isEnglish) {
+        safetyCheck.directResponse = "AI Advokat operates strictly in compliance with the current legislation of the Republic of Uzbekistan and official verified sources (Lex.uz). It is not possible to bypass safety rules or fabricate statutory articles. If you have a specific legal question, feel free to ask.";
+      }
       return safetyCheck;
     }
 
@@ -793,31 +813,33 @@ export class QueryUnderstandingService {
         intent: 'CONTRADICTORY_FACTS',
         requiresRetrieval: false,
         needsClarification: true,
-        directResponse: contradiction.directResponse,
+        directResponse: isEnglish 
+          ? "Contradictory information was identified in your statements (e.g. regarding the existence of an official contract). Legal remedies directly depend on whether a written contract was signed. Please clarify: Do you have a formal written contract?"
+          : contradiction.directResponse,
         confidence: 50
       };
     }
 
     // --------------------------------------------------------
     // PRE-CHECK 3: Advocate Identity & Court Representation FAQ (Prompt Requirement 1 & 8)
-    // Intercepts "AdvokatAI mening advokatim bo‘la oladimi?", "sen advokatmisan?", "sudda meni himoya qilasanmi?"
+    // Intercepts "AdvokatAI mening advokatim bo‘la oladimi?", "sen advokatmisan?", "sudda meni himoya qilasanmi?", "are you a lawyer?", etc.
     // --------------------------------------------------------
-    const isAdvocateInquiry = /(advokat(im)?\s*bo['‘`]?la\s*ola(di)?mi|mening\s*advokatim(san|siz)?|sen\s*advokatmisan|advokat\s*hisoblanasanmi|advokat\s*bo['‘`]?lib\s*ishlaysanmi|sudda\s*(mening\s*nomimdan\s*)?(qatnasha\s*ola(san|di)?mi|himoya\s*qila\s*ola(san|di)?mi|vakillik\s*qila\s*ola(san|di)?mi)|advokatmisiz)/i.test(latin);
+    const isAdvocateInquiry = /(advocate|lawyer|attorney|represent me in court|are you a lawyer|are you an advocate|can you represent|advokat(im)?\s*bo['‘`]?la\s*ola(di)?mi|mening\s*advokatim(san|siz)?|sen\s*advokatmisan|advokat\s*hisoblanasanmi|advokat\s*bo['‘`]?lib\s*ishlaysanmi|sudda\s*(mening\s*nomimdan\s*)?(qatnasha\s*ola(san|di)?mi|himoya\s*qila\s*ola(san|di)?mi|vakillik\s*qila\s*ola(san|di)?mi)|advokatmisiz)/i.test(latin);
     if (isAdvocateInquiry) {
       return {
         intent: 'ADVOCATE_IDENTITY_FAQ',
         requiresRetrieval: false,
         needsClarification: false,
-        directResponse: `Yo‘q. AIAdvokat inson advokat emas va sizning nomingizdan sudda, davlat organlarida yoki boshqa tashkilotlarda vakillik qila olmaydi. AIAdvokat O‘zbekiston qonunchiligi asosida huquqiy ma’lumot, tushuntirish va hujjat loyihalarini tayyorlashda yordam beruvchi sun’iy intellekt yordamchisidir.
+        directResponse: isEnglish ? getEnglishDirectResponse('ADVOCATE_IDENTITY_FAQ', rawMessage) : `Yo‘q. AI Advokat inson advokat emas va sizning nomingizdan sudda, davlat organlarida yoki boshqa tashkilotlarda vakillik qila olmaydi. AI Advokat O‘zbekiston qonunchiligi asosida huquqiy ma’lumot, tushuntirish va hujjat loyihalarini tayyorlashda yordam beruvchi sun’iy intellekt yordamchisidir.
 
-AIAdvokat:
+AI Advokat:
 • huquqiy savollarga javob berishi;
 • qonunchilikdagi tegishli normalarni tushuntirishi;
 • vaziyatni huquqiy nuqtai nazardan tahlil qilishga yordam berishi;
 • ariza, shikoyat, da’vo va boshqa hujjatlarning loyihalarini tayyorlashi;
 • kerakli huquqiy yo‘nalishni aniqlashga yordam berishi mumkin.
 
-Ammo AIAdvokat advokatning o‘rnini bosmaydi, sudda yoki boshqa organlarda sizning vakilingiz sifatida qatnasha olmaydi va advokatlik xizmatini ko‘rsatmaydi.
+Ammo AI Advokat advokatning o‘rnini bosmaydi, sudda yoki boshqa organlarda sizning vakilingiz sifatida qatnasha olmaydi va advokatlik xizmatini ko‘rsatmaydi.
 
 Agar masala murakkab bo‘lsa yoki sudda/himoyada professional vakillik zarur bo‘lsa, malakali advokatga murojaat qilish tavsiya etiladi.`,
         confidence: 100
@@ -1442,26 +1464,26 @@ Tafsilotlarni bildirsangiz, tegishli qonunchilik asosida qayerga va qanday tarti
     }
 
     // ========================================================
-    // 3. CASUAL / IDENTITY ("Isming nima?", "Siz kimsiz?")
+    // 3. CASUAL / IDENTITY ("Isming nima?", "Siz kimsiz?", "Who are you?")
     // ========================================================
-    const identityRegex = /(isming(iz)?\s*nima|ot(ing|ingiz)\s*nima|siz\s*kimsiz|kimsiz|kim\s*siz|isming\s*kim|o['‘`]?zing\s*haqingda|o['‘`]?zingiz\s*haqingizda)/i;
+    const identityRegex = /(who\s*are\s*you|what\s*is\s*your\s*name|tell\s*me\s*about\s*yourself|isming(iz)?\s*nima|ot(ing|ingiz)\s*nima|siz\s*kimsiz|kimsiz|kim\s*siz|isming\s*kim|o['‘`]?zing\s*haqingda|o['‘`]?zingiz\s*haqingizda)/i;
     if (identityRegex.test(latin) && latin.split(/\s+/).length <= 6) {
       return {
         intent: 'ABOUT_PRODUCT',
         requiresRetrieval: false,
-        directResponse: CASUAL_IDENTITY_RESPONSE,
+        directResponse: isEnglish ? getEnglishDirectResponse('ABOUT_PRODUCT', rawMessage) : CASUAL_IDENTITY_RESPONSE,
         confidence: 100,
         needsClarification: false
       };
     }
 
     // 4. CASUAL / GREETING
-    const greetingRegex = /^(salom|assalomu\s*alaykum|assalom|qalaysan|qalaysiz|qalesiz|qandaysiz|ahvollaringiz\s*qalay|hello|hi|xayrli\s*(tong|kun|kech)|privet|hey)\b/i;
+    const greetingRegex = /^(salom|assalomu\s*alaykum|assalom|qalaysan|qalaysiz|qalesiz|qandaysiz|ahvollaringiz\s*qalay|hello|hi|hey|good\s*morning|good\s*afternoon|good\s*evening|xayrli\s*(tong|kun|kech)|privet)\b/i;
     if (greetingRegex.test(latin) && latin.split(/\s+/).length <= 4) {
       return {
         intent: 'GREETING',
         requiresRetrieval: false,
-        directResponse: GREETING_RESPONSE,
+        directResponse: isEnglish ? getEnglishDirectResponse('GREETING', rawMessage) : GREETING_RESPONSE,
         confidence: 100,
         needsClarification: false
       };
@@ -1473,31 +1495,31 @@ Tafsilotlarni bildirsangiz, tegishli qonunchilik asosida qayerga va qanday tarti
       return {
         intent: 'COURTESY',
         requiresRetrieval: false,
-        directResponse: COURTESY_RESPONSE,
+        directResponse: isEnglish ? getEnglishDirectResponse('COURTESY', rawMessage) : COURTESY_RESPONSE,
         confidence: 100,
         needsClarification: false
       };
     }
 
     // 6. CASUAL / CAPABILITIES
-    const capabilitiesRegex = /(aiadvokat|advokatai|nima(lar)?\s*qila\s*(olasan|olasiz|oladi)|nimalarga\s*qodir(san|siz)|nimalarni\s*bila(san|siz)|qanday\s*yordam\s*bera\s*(olasan|olasiz)|qanday\s*imkoniyat(laring|laringiz)\s*bor|vazifang\s*nima|funksiyalaring)/i;
-    if (capabilitiesRegex.test(latin) && (latin.includes('nima') || latin.includes('qila') || latin.includes('yordam') || latin.includes('imkoniyat') || latin.split(/\s+/).length <= 8)) {
+    const capabilitiesRegex = /(what\s*can\s*you\s*do|how\s*can\s*you\s*help|aiadvokat|advokatai|nima(lar)?\s*qila\s*(olasan|olasiz|oladi)|nimalarga\s*qodir(san|siz)|nimalarni\s*bila(san|siz)|qanday\s*yordam\s*bera\s*(olasan|olasiz)|qanday\s*imkoniyat(laring|laringiz)\s*bor|vazifang\s*nima|funksiyalaring)/i;
+    if (capabilitiesRegex.test(latin) && (latin.includes('what') || latin.includes('help') || latin.includes('nima') || latin.includes('qila') || latin.includes('yordam') || latin.includes('imkoniyat') || latin.split(/\s+/).length <= 8)) {
       return {
         intent: 'ABOUT_PRODUCT',
         requiresRetrieval: false,
-        directResponse: CAPABILITIES_RESPONSE,
+        directResponse: isEnglish ? getEnglishDirectResponse('ABOUT_PRODUCT', rawMessage) : CAPABILITIES_RESPONSE,
         confidence: 100,
         needsClarification: false
       };
     }
 
     // 7. HOW TO ASK
-    const howToAskRegex = /(qanday\s*(qilib\s*)?savol\s*ber(aman|ish)|savol\s*berish\s*tartibi|qanaqa\s*savol)/i;
+    const howToAskRegex = /(how\s*to\s*ask|how\s*should\s*i\s*ask|qanday\s*(qilib\s*)?savol\s*ber(aman|ish)|savol\s*berish\s*tartibi|qanaqa\s*savol)/i;
     if (howToAskRegex.test(latin)) {
       return {
         intent: 'HOW_TO_ASK',
         requiresRetrieval: false,
-        directResponse: HOW_TO_ASK_EXPLANATION,
+        directResponse: isEnglish ? getEnglishDirectResponse('HOW_TO_ASK', rawMessage) : HOW_TO_ASK_EXPLANATION,
         confidence: 95,
         needsClarification: false
       };
@@ -1509,9 +1531,11 @@ Tafsilotlarni bildirsangiz, tegishli qonunchilik asosida qayerga va qanday tarti
     const everydayLifestyleRegex = /(soch\s*(?:uzunligi|o['‘`]?stirish|turmagi|qirqish)|soch\s*qanday\s*o['‘`]?stiriladi|kiyim\s*kiyish|kiyim\s*tanlash|taom\s*pishirish|palov\s*qanday|retsept)/i;
 
     if (outOfScopeRegex.test(latin) || fantasyRegex.test(latin) || everydayLifestyleRegex.test(latin) || latin.includes('havo qanday') || latin.includes('ob-havo qanday')) {
-      const responseText = fantasyRegex.test(latin)
-        ? `Oʻzbekiston Respublikasining amaldagi qonunchiligida kosmik parvozlar yoki fazoviy kema vizasi boʻyicha huquqiy normalar mavjud emas.\n\nAIAdvokat faqat amaldagi real qonunchilik asosida ish yuritadi. Agar mehnat, fuqarolik, mulk, jinoyat yoki maʼmuriy munosabatlar boʻyicha amaliy huquqiy savollaringiz boʻlsa, marhamat, murojaat qilishingiz mumkin.`
-        : OUT_OF_SCOPE_EXPLANATION;
+      const responseText = isEnglish 
+        ? getEnglishDirectResponse('GENERAL_NON_LEGAL', rawMessage) 
+        : (fantasyRegex.test(latin)
+            ? `Oʻzbekiston Respublikasining amaldagi qonunchiligida kosmik parvozlar yoki fazoviy kema vizasi boʻyicha huquqiy normalar mavjud emas.\n\nAI Advokat faqat amaldagi real qonunchilik asosida ish yuritadi. Agar mehnat, fuqarolik, mulk, jinoyat yoki maʼmuriy munosabatlar boʻyicha amaliy huquqiy savollaringiz boʻlsa, marhamat, murojaat qilishingiz mumkin.`
+            : OUT_OF_SCOPE_EXPLANATION);
 
       return {
         intent: 'GENERAL_NON_LEGAL',
@@ -1788,11 +1812,16 @@ Aniq yo‘l-yo‘riq berishim uchun:
     // If topic switch occurred, DO NOT inherit old history text!
     const combinedText = convState.isTopicSwitch ? latin : `${historyText} ${latin}`;
 
-    const matchedFineTopic = matchFineGrainedTopic(combinedText);
-    const { knownFacts, missingCriticalFacts } = extractKnownAndMissingFacts(combinedText, matchedFineTopic);
+    const isEn = isEnglishQuery(rawMessage, options?.language);
+    const uzbekTerms = isEn ? translateEnglishLegalQueryToUzbek(clean) : '';
+    const textForMatching = isEn && uzbekTerms ? `${combinedText} ${uzbekTerms.toLowerCase()}` : combinedText;
+
+    const matchedFineTopic = matchFineGrainedTopic(textForMatching);
+    const { knownFacts, missingCriticalFacts } = extractKnownAndMissingFacts(textForMatching, matchedFineTopic);
 
     const scenario = {
-      jurisdiction: matchedFineTopic?.jurisdictionRule || 'O‘zbekiston Respublikasi',
+      cleanQuery: isEn && uzbekTerms && uzbekTerms !== clean ? `${resolvedQuery} (${uzbekTerms})` : resolvedQuery,
+      jurisdiction: matchedFineTopic?.jurisdictionRule || (isEn ? 'Republic of Uzbekistan' : 'O‘zbekiston Respublikasi'),
       domain: matchedFineTopic?.domain || 'general',
       fineGrainedTopic: matchedFineTopic?.id || null,
       disputeType: matchedFineTopic?.id || intentInfo?.disputeType || null,
@@ -1801,14 +1830,14 @@ Aniq yo‘l-yo‘riq berishim uchun:
       allowedDocumentIds: matchedFineTopic?.allowedDocumentIds || null,
       disallowedDocumentIds: matchedFineTopic?.disallowedDocumentIds || [],
       forbiddenArticleNumbers: matchedFineTopic?.forbiddenArticleNumbers || [],
-      jurisdictionRule: matchedFineTopic?.jurisdictionRule || 'Vakolatli sud yoki davlat organi',
+      jurisdictionRule: matchedFineTopic?.jurisdictionRule || (isEn ? 'Competent court or state agency' : 'Vakolatli sud yoki davlat organi'),
       proceduralRoute: matchedFineTopic?.proceduralRoute || null,
       knownFacts: knownFacts,
       missingCriticalFacts: missingCriticalFacts,
       isConditionalReasoningRequired: missingCriticalFacts.length > 0,
       issues: matchedFineTopic ? [matchedFineTopic.name] : [],
       facts: convState.active_case.facts,
-      search_terms: [],
+      search_terms: isEn && uzbekTerms ? uzbekTerms.split(/\s+/).filter(Boolean) : [],
       exactArticleNumber: intentInfo?.articleNumber || null,
       targetArticleNumbers: matchedFineTopic?.targetArticleNumbers ? [...matchedFineTopic.targetArticleNumbers] : []
     };
@@ -2142,6 +2171,24 @@ Aniq yo‘l-yo‘riq berishim uchun:
       else if (docId === 'administrative_code') docName = 'Oʻzbekiston Respublikasining Maʼmuriy javobgarlik toʻgʻrisidagi kodeksi';
 
       return `${docName} ${artNum}-modda`;
+    }
+
+    // 1.5 English Query Legal Bridge
+    if (isEnglishQuery(rawMessage)) {
+      const translated = translateEnglishLegalQueryToUzbek(clean);
+      if (translated && translated !== clean) {
+        const docId = scenario?.targetDocumentId || scenario?.recommended_document_id;
+        if (docId === 'labor_code') {
+          return `Oʻzbekiston Respublikasining Mehnat kodeksi ${translated}`;
+        } else if (docId === 'civil_code') {
+          return `Oʻzbekiston Respublikasining Fuqarolik kodeksi ${translated}`;
+        } else if (docId === 'criminal_code') {
+          return `Oʻzbekiston Respublikasining Jinoyat kodeksi ${translated}`;
+        } else if (docId === 'administrative_code') {
+          return `Oʻzbekiston Respublikasining Maʼmuriy javobgarlik toʻgʻrisidagi kodeksi ${translated}`;
+        }
+        return `${translated} ${clean}`;
+      }
     }
 
     // 2. Bribery / Corruption (CRIMINAL CODE)

@@ -12,6 +12,7 @@ import {
 } from '../utils/documentRenderer';
 import { safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { supabase, getTodayUserUsage, incrementUserUsage } from '../utils/supabase';
 import {
   getTodayGuestUsage,
@@ -28,8 +29,19 @@ const categoryColors: Record<string, string> = {
   'Oila va fuqarolik': 'bg-rose-50 text-rose-700 border-rose-200',
 };
 
+const categoryTranslationsEn: Record<string, string> = {
+  'Barchasi': 'All Categories',
+  'Uy-joy va mulk': 'Housing & Property',
+  'Mehnat va bandlik': 'Labor & Employment',
+  'Arizalar va murojaatlar': 'Applications & Appeals',
+  'Sud va nizolar': 'Court & Disputes',
+  'Shartnomalar va biznes': 'Contracts & Business',
+  'Oila va fuqarolik': 'Family & Civil Status',
+};
+
 export default function TemplatesPage() {
   const { isLoggedIn, user } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -512,25 +524,33 @@ export default function TemplatesPage() {
       <section className="py-14 bg-gradient-to-br from-gray-50 via-white to-teal-50/40 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center">
           <span className="text-teal-600 text-xs sm:text-sm font-semibold uppercase tracking-widest bg-teal-50 px-3 py-1 rounded-full border border-teal-100/60 inline-block mb-2">
-            Rasmiy Huquqiy Hujjatlar
+            {language === 'en' ? 'Official Legal Templates' : 'Rasmiy Huquqiy Hujjatlar'}
           </span>
           <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-900 mt-2 mb-3 tracking-tight">
-            Huquqiy Hujjat Shablonlari
+            {language === 'en' ? 'Legal Document Generator' : 'Huquqiy Hujjat Shablonlari'}
           </h1>
           <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto mb-4 leading-relaxed">
-            Oʻzbekiston qonunchiligi asosida tayyorlangan rasmiy shartnoma, ariza, da’vo va murojaat loyihalari
+            {language === 'en'
+              ? 'Official contracts, applications, lawsuits, and petitions drafted according to Uzbekistan legislation'
+              : 'Oʻzbekiston qonunchiligi asosida tayyorlangan rasmiy shartnoma, ariza, da’vo va murojaat loyihalari'}
           </p>
 
           {/* Quota Indicator */}
           {isGuest ? (
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-xs font-semibold text-amber-800 mb-6 shadow-2xs">
               <i className="ri-file-list-3-line text-amber-600"></i>
-              <span>Mehmon limitingiz: <strong>{docCount}</strong> / <strong>{documentLimit} ta</strong></span>
+              <span>
+                {language === 'en' ? 'Guest document quota: ' : 'Mehmon limitingiz: '}
+                <strong>{docCount}</strong> / <strong>{documentLimit} {language === 'en' ? 'docs' : 'ta'}</strong>
+              </span>
             </div>
           ) : (
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-xs font-semibold text-teal-800 mb-6 shadow-2xs">
               <i className="ri-file-list-3-line text-teal-600"></i>
-              <span>Hujjatlar limitingiz: <strong>{docCount}</strong> / <strong>{documentLimit >= 999999 ? 'Cheksiz' : `${documentLimit} ta`}</strong></span>
+              <span>
+                {language === 'en' ? 'Document quota: ' : 'Hujjatlar limitingiz: '}
+                <strong>{docCount}</strong> / <strong>{documentLimit >= 999999 ? (language === 'en' ? 'Unlimited' : 'Cheksiz') : `${documentLimit} ${language === 'en' ? 'docs' : 'ta'}`}</strong>
+              </span>
             </div>
           )}
 
@@ -542,13 +562,21 @@ export default function TemplatesPage() {
               maxLength={150}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Shablon qidirish (masalan: ijara, ishdan bo'shash, da'vo, aliment, oldi-sotdi)..."
+              placeholder={
+                language === 'en'
+                  ? 'Search templates (e.g. lease, dismissal, lawsuit, alimony, sale)...'
+                  : "Shablon qidirish (masalan: ijara, ishdan bo'shash, da'vo, aliment, oldi-sotdi)..."
+              }
+              aria-label={language === 'en' ? 'Search legal templates' : 'Huquqiy shablonlarni qidirish'}
               className="w-full pl-11 pr-10 py-3.5 bg-white border border-gray-200 rounded-2xl text-xs sm:text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none shadow-sm transition-all"
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                title={language === 'en' ? 'Clear' : 'Tozalash'}
+                aria-label={language === 'en' ? 'Clear search' : 'Qidiruvni tozalash'}
               >
                 <i className="ri-close-line text-lg"></i>
               </button>
@@ -563,6 +591,7 @@ export default function TemplatesPage() {
           <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar border-b border-gray-200/60">
             {activeCategories.map((cat) => (
               <button
+                type="button"
                 key={cat}
                 onClick={() => setFilterCat(cat)}
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${
@@ -571,7 +600,7 @@ export default function TemplatesPage() {
                     : 'bg-white text-gray-600 hover:bg-teal-50 hover:text-teal-700 border border-gray-200/80'
                 }`}
               >
-                {cat}
+                {categoryTranslationsEn[cat] && language === 'en' ? categoryTranslationsEn[cat] : cat}
               </button>
             ))}
           </div>
@@ -581,14 +610,14 @@ export default function TemplatesPage() {
             <div className="lg:col-span-4 space-y-3">
               <div className="flex items-center justify-between px-1 mb-2">
                 <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
-                  Mavjud shablonlar
+                  {language === 'en' ? 'Available Templates' : 'Mavjud shablonlar'}
                 </h2>
                 {filterCat !== 'Barchasi' && (
                   <button
                     onClick={() => setFilterCat('Barchasi')}
                     className="text-xs text-teal-600 hover:underline font-medium cursor-pointer"
                   >
-                    Barchasi
+                    {language === 'en' ? 'All' : 'Barchasi'}
                   </button>
                 )}
               </div>
@@ -597,11 +626,12 @@ export default function TemplatesPage() {
                 {filteredTemplates.length === 0 ? (
                   <div className="p-8 text-center text-gray-400 bg-white rounded-2xl border border-gray-200 text-xs">
                     <i className="ri-search-line text-2xl text-gray-300 block mb-2"></i>
-                    Qidiruv boʻyicha shablon topilmadi.
+                    {language === 'en' ? 'No templates matched your search.' : 'Qidiruv boʻyicha shablon topilmadi.'}
                   </div>
                 ) : (
                   filteredTemplates.map((t) => {
                     const isSelected = selected?.id === t.id;
+                    const catLabel = categoryTranslationsEn[t.category] && language === 'en' ? categoryTranslationsEn[t.category] : t.category;
                     return (
                       <button
                         key={t.id}
@@ -634,7 +664,7 @@ export default function TemplatesPage() {
                                 categoryColors[t.category] || 'bg-gray-50 text-gray-600 border-gray-200'
                               }`}
                             >
-                              {t.category}
+                              {catLabel}
                             </span>
                           </div>
                         </div>
@@ -652,9 +682,13 @@ export default function TemplatesPage() {
                   <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
                     <i className="ri-file-text-line text-teal-600 text-2xl"></i>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">Shablon tanlang</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    {language === 'en' ? 'Select a template' : 'Shablon tanlang'}
+                  </h3>
                   <p className="text-gray-500 text-xs">
-                    Chap tomondagi roʻyxatdan kerakli shablonni tanlang va maydonlarni toʻldiring
+                    {language === 'en'
+                      ? 'Choose a template from the left list and fill in the required fields'
+                      : 'Chap tomondagi roʻyxatdan kerakli shablonni tanlang va maydonlarni toʻldiring'}
                   </p>
                 </div>
               ) : (
@@ -668,7 +702,7 @@ export default function TemplatesPage() {
                             categoryColors[selected.category] || 'bg-gray-50 text-gray-600 border-gray-200'
                           }`}
                         >
-                          {selected.category}
+                          {categoryTranslationsEn[selected.category] && language === 'en' ? categoryTranslationsEn[selected.category] : selected.category}
                         </span>
                         <h3 className="text-xl font-bold text-gray-900">{selected.name}</h3>
                         {selected.desc && (
@@ -677,7 +711,7 @@ export default function TemplatesPage() {
                         {selected.legalBasis && (
                           <p className="text-[11px] text-teal-700 font-medium mt-1 flex items-center gap-1">
                             <i className="ri-scales-3-line"></i>
-                            <span>Huquqiy asos: {selected.legalBasis}</span>
+                            <span>{language === 'en' ? 'Legal basis: ' : 'Huquqiy asos: '}{selected.legalBasis}</span>
                           </p>
                         )}
                       </div>
@@ -694,7 +728,7 @@ export default function TemplatesPage() {
                                 ? 'text-teal-600 bg-teal-50 border-teal-200'
                                 : 'text-gray-400 bg-gray-50 border-gray-200 hover:text-teal-600 hover:bg-teal-50'
                             }`}
-                            title={isSelectedSaved ? "Saqlanganlardan o'chirish" : "Shablonni saqlab qo'yish"}
+                            title={isSelectedSaved ? (language === 'en' ? 'Remove bookmark' : "Saqlanganlardan o'chirish") : (language === 'en' ? 'Save template' : "Shablonni saqlab qo'yish")}
                           >
                             <i className={isSelectedSaved ? "ri-bookmark-fill" : "ri-bookmark-line"}></i>
                           </button>
@@ -726,7 +760,7 @@ export default function TemplatesPage() {
                                   : 'border-gray-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white'
                               }`}
                             >
-                              <option value="">Tanlang...</option>
+                              <option value="">{language === 'en' ? 'Select...' : 'Tanlang...'}</option>
                               {field.options?.map((o) => (
                                 <option key={o} value={o}>
                                   {o}
@@ -766,13 +800,13 @@ export default function TemplatesPage() {
 
                     <div className="mt-5 flex items-center justify-between pt-3 border-t border-gray-100">
                       <span className="text-[11px] text-gray-400">
-                        * Belgilangan maydonlar rasmiy hujjatda aks etadi
+                        {language === 'en' ? '* Highlighted fields will be included in the official document' : '* Belgilangan maydonlar rasmiy hujjatda aks etadi'}
                       </span>
                       <button
                         onClick={() => setFormData({})}
                         className="text-xs text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
                       >
-                        Maydonlarni tozalash
+                        {language === 'en' ? 'Clear fields' : 'Maydonlarni tozalash'}
                       </button>
                     </div>
                   </div>
@@ -785,9 +819,13 @@ export default function TemplatesPage() {
                           <i className="ri-file-lock-line text-base"></i>
                         </div>
                         <div>
-                          <div className="font-bold text-sm text-gray-900">Hujjat yaratish limitingiz ({documentLimit} ta) to'ldi</div>
+                          <div className="font-bold text-sm text-gray-900">
+                            {language === 'en' ? `Document creation limit (${documentLimit}) reached` : `Hujjat yaratish limitingiz (${documentLimit} ta) to'ldi`}
+                          </div>
                           <div className="text-gray-600">
-                            {isGuest ? "Ko'proq hujjat tayyorlash uchun hisobingizga kiring." : "Cheklov ertaga qayta yangilanadi."}
+                            {isGuest
+                              ? (language === 'en' ? 'Log in or sign up to prepare more documents.' : "Ko'proq hujjat tayyorlash uchun hisobingizga kiring.")
+                              : (language === 'en' ? 'Limit resets tomorrow.' : "Cheklov ertaga qayta yangilanadi.")}
                           </div>
                         </div>
                       </div>
@@ -797,13 +835,13 @@ export default function TemplatesPage() {
                             to="/register"
                             className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs shadow-sm transition-all"
                           >
-                            Roʻyxatdan oʻtish
+                            {language === 'en' ? 'Sign up' : 'Roʻyxatdan oʻtish'}
                           </Link>
                           <Link
                             to="/login"
                             className="px-3.5 py-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition-all"
                           >
-                            Kirish
+                            {language === 'en' ? 'Log in' : 'Kirish'}
                           </Link>
                         </div>
                       ) : (
@@ -814,7 +852,7 @@ export default function TemplatesPage() {
                           className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
                         >
                           <i className="ri-cup-line"></i>
-                          <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                          <span>{language === 'en' ? 'Support AIAdvokat ☕' : "AIAdvokat'ni qo'llab-quvvatlash ☕"}</span>
                         </a>
                       )}
                     </div>
@@ -829,11 +867,13 @@ export default function TemplatesPage() {
                           <div className="flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900">
-                              Tayyor Hujjat Loyihasi
+                              {language === 'en' ? 'Generated Legal Draft' : 'Tayyor Hujjat Loyihasi'}
                             </h3>
                           </div>
                           <p className="text-[11px] text-gray-500 mt-0.5">
-                            Kiritilgan maʼlumotlar asosida A4 qog‘oz formatida shakllantirildi
+                            {language === 'en'
+                              ? 'Formatted in standard A4 document layout from your provided inputs'
+                              : 'Kiritilgan maʼlumotlar asosida A4 qog‘oz formatida shakllantirildi'}
                           </p>
                         </div>
 
@@ -849,7 +889,7 @@ export default function TemplatesPage() {
                               }`}
                             >
                               <i className="ri-file-paper-2-line mr-1"></i>
-                              Qog‘oz (A4)
+                              {language === 'en' ? 'Paper (A4)' : 'Qog‘oz (A4)'}
                             </button>
                             <button
                               onClick={() => setViewMode('text')}
@@ -860,7 +900,7 @@ export default function TemplatesPage() {
                               }`}
                             >
                               <i className="ri-file-text-line mr-1"></i>
-                              Matn
+                              {language === 'en' ? 'Text' : 'Matn'}
                             </button>
                           </div>
 
@@ -868,16 +908,16 @@ export default function TemplatesPage() {
                           <button
                             onClick={handlePreviewOpen}
                             className="flex items-center gap-1.5 px-3 py-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                            title="To‘liq ekranda ko‘rish"
+                            title={language === 'en' ? 'View in fullscreen' : 'To‘liq ekranda ko‘rish'}
                           >
                             <i className="ri-fullscreen-line text-sm text-gray-500"></i>
-                            <span>Ko‘rish</span>
+                            <span>{language === 'en' ? 'View' : 'Ko‘rish'}</span>
                           </button>
 
                           <button
                             onClick={handleGuardedPrintPdf}
                             className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-2xs"
-                            title="PDF formatda yuklab olish yoki chop etish"
+                            title={language === 'en' ? 'Download or print PDF' : 'PDF formatda yuklab olish yoki chop etish'}
                           >
                             <i className="ri-file-pdf-line text-sm"></i>
                             <span>PDF</span>
@@ -887,7 +927,7 @@ export default function TemplatesPage() {
                             onClick={handleGuardedExportDocx}
                             disabled={isExportingDocx}
                             className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-                            title="Microsoft Word (.docx) formatida yuklab olish"
+                            title={language === 'en' ? 'Download Microsoft Word (.docx)' : 'Microsoft Word (.docx) formatida yuklab olish'}
                           >
                             <i className={isExportingDocx ? 'ri-loader-4-line animate-spin text-sm' : 'ri-file-word-line text-sm'}></i>
                             <span>Word (.docx)</span>
@@ -915,10 +955,12 @@ export default function TemplatesPage() {
                               <i className="ri-file-lock-line"></i>
                             </div>
                             <h4 className="text-lg font-bold text-gray-900 mb-1">
-                              Hujjat yaratish limitingiz to'ldi
+                              {language === 'en' ? 'Document creation limit reached' : "Hujjat yaratish limitingiz to'ldi"}
                             </h4>
                             <p className="text-xs sm:text-sm text-gray-600 max-w-md mb-4 leading-relaxed">
-                              Bugungi belgilangan {documentLimit} ta hujjat limitingiz tugadi. Yangi hujjatlar tayyorlash uchun {isGuest ? "tizimga kiring yoki bepul roʻyxatdan oʻting" : "cheklov ertaga yangilanadi"}.
+                              {language === 'en'
+                                ? `You have used your ${documentLimit} document allocations for today. To prepare new documents, ${isGuest ? 'log in or sign up for free' : 'quota resets tomorrow'}.`
+                                : `Bugungi belgilangan ${documentLimit} ta hujjat limitingiz tugadi. Yangi hujjatlar tayyorlash uchun ${isGuest ? "tizimga kiring yoki bepul roʻyxatdan oʻting" : "cheklov ertaga yangilanadi"}.`}
                             </p>
                             {isGuest ? (
                               <div className="flex flex-wrap items-center justify-center gap-2.5">
@@ -926,13 +968,13 @@ export default function TemplatesPage() {
                                   to="/register"
                                   className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
                                 >
-                                  Roʻyxatdan oʻtish
+                                  {language === 'en' ? 'Sign up' : 'Roʻyxatdan oʻtish'}
                                 </Link>
                                 <Link
                                   to="/login"
                                   className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition-all"
                                 >
-                                  Kirish
+                                  {language === 'en' ? 'Log in' : 'Kirish'}
                                 </Link>
                               </div>
                             ) : (
@@ -943,7 +985,7 @@ export default function TemplatesPage() {
                                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
                               >
                                 <i className="ri-cup-line"></i>
-                                <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                                <span>{language === 'en' ? 'Support AIAdvokat ☕' : "AIAdvokat'ni qo'llab-quvvatlash ☕"}</span>
                               </a>
                             )}
                           </div>
@@ -1026,7 +1068,7 @@ export default function TemplatesPage() {
                             {currentModel.signatures && currentModel.signatures.length > 0 && (
                               <div className="mt-10 pt-6 border-t border-gray-300">
                                 <h4 className="font-bold text-xs uppercase tracking-wider text-gray-900 mb-4">
-                                  Taraflarning rekvizitlari va imolari:
+                                  {language === 'en' ? 'Party details and signatures:' : 'Taraflarning rekvizitlari va imolari:'}
                                 </h4>
 
                                 {currentModel.signatures.length === 2 ? (
@@ -1035,14 +1077,14 @@ export default function TemplatesPage() {
                                       <div key={idx} className="space-y-1.5">
                                         <div className="font-bold text-gray-900">[{sig.role}]</div>
                                         <div>
-                                          F.I.Sh.:{' '}
+                                          {language === 'en' ? 'Full name: ' : 'F.I.Sh.: '}
                                           <span className="font-medium">{sig.name || '__________________________'}</span>
                                         </div>
                                         {sig.details?.map((d, dIdx) => (
                                           <div key={dIdx} className="text-gray-600">{d}</div>
                                         ))}
                                         <div className="pt-4 text-gray-500">
-                                          Imzo: __________________________
+                                          {language === 'en' ? 'Signature: __________________________' : 'Imzo: __________________________'}
                                         </div>
                                       </div>
                                     ))}
@@ -1053,14 +1095,14 @@ export default function TemplatesPage() {
                                       <div key={idx} className="space-y-1.5 max-w-sm">
                                         <div className="font-bold text-gray-900">[{sig.role}]</div>
                                         <div>
-                                          F.I.Sh.:{' '}
+                                          {language === 'en' ? 'Full name: ' : 'F.I.Sh.: '}
                                           <span className="font-medium">{sig.name || '_______________________________'}</span>
                                         </div>
                                         {sig.details?.map((d, dIdx) => (
                                           <div key={dIdx} className="text-gray-600">{d}</div>
                                         ))}
                                         <div className="pt-3 text-gray-500">
-                                          Imzo: _______________________________
+                                          {language === 'en' ? 'Signature: _______________________________' : 'Imzo: _______________________________'}
                                         </div>
                                       </div>
                                     ))}
@@ -1072,7 +1114,7 @@ export default function TemplatesPage() {
                             {/* Disclaimer note in paper footer */}
                             {currentModel.disclaimer && (
                               <div className="mt-8 pt-4 border-t border-gray-200 text-[11px] text-gray-500 italic">
-                                <strong>Huquqiy eslatma:</strong> {currentModel.disclaimer}
+                                <strong>{language === 'en' ? 'Legal notice: ' : 'Huquqiy eslatma: '}</strong> {currentModel.disclaimer}
                               </div>
                             )}
                           </div>
@@ -1099,7 +1141,9 @@ export default function TemplatesPage() {
                         <div className="flex items-center gap-2">
                           <i className="ri-shield-check-line text-teal-600 text-base"></i>
                           <span>
-                            Ushbu shablon Oʻzbekiston Respublikasi amaldagi qonunchiligi normalariga moslashtirilgan.
+                            {language === 'en'
+                              ? 'This template complies with active legislation of the Republic of Uzbekistan.'
+                              : 'Ushbu shablon Oʻzbekiston Respublikasi amaldagi qonunchiligi normalariga moslashtirilgan.'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1107,7 +1151,7 @@ export default function TemplatesPage() {
                             onClick={handleGuardedDownloadTxt}
                             className="text-xs text-teal-700 hover:underline cursor-pointer font-medium"
                           >
-                            Oddiy matn (.txt)
+                            {language === 'en' ? 'Plain text (.txt)' : 'Oddiy matn (.txt)'}
                           </button>
                         </div>
                       </div>
@@ -1129,7 +1173,7 @@ export default function TemplatesPage() {
               <div className="flex items-center gap-2">
                 <i className="ri-file-text-line text-teal-600 text-xl"></i>
                 <h3 className="font-bold text-gray-900 text-sm sm:text-base">
-                  {currentModel.title} — Ko‘rish
+                  {currentModel.title} {language === 'en' ? '— Preview' : '— Ko‘rish'}
                 </h3>
               </div>
               <div className="flex items-center gap-2">
@@ -1219,15 +1263,15 @@ export default function TemplatesPage() {
                 {currentModel.signatures && currentModel.signatures.length > 0 && (
                   <div className="mt-10 pt-6 border-t border-gray-300">
                     <h4 className="font-bold text-xs uppercase tracking-wider text-gray-900 mb-4">
-                      Taraflarning rekvizitlari va imolari:
+                      {language === 'en' ? 'Party details and signatures:' : 'Taraflarning rekvizitlari va imolari:'}
                     </h4>
                     {currentModel.signatures.length === 2 ? (
                       <div className="grid grid-cols-2 gap-8 text-xs">
                         {currentModel.signatures.map((sig, idx) => (
                           <div key={idx} className="space-y-1.5">
                             <div className="font-bold text-gray-900">[{sig.role}]</div>
-                            <div>F.I.Sh.: {sig.name || '__________________________'}</div>
-                            <div className="pt-4 text-gray-500">Imzo: __________________________</div>
+                            <div>{language === 'en' ? 'Full name: ' : 'F.I.Sh.: '}{sig.name || '__________________________'}</div>
+                            <div className="pt-4 text-gray-500">{language === 'en' ? 'Signature: __________________________' : 'Imzo: __________________________'}</div>
                           </div>
                         ))}
                       </div>
@@ -1236,8 +1280,8 @@ export default function TemplatesPage() {
                         {currentModel.signatures.map((sig, idx) => (
                           <div key={idx} className="space-y-1.5">
                             <div className="font-bold text-gray-900">[{sig.role}]</div>
-                            <div>F.I.Sh.: {sig.name || '_______________________________'}</div>
-                            <div className="pt-3 text-gray-500">Imzo: _______________________________</div>
+                            <div>{language === 'en' ? 'Full name: ' : 'F.I.Sh.: '}{sig.name || '_______________________________'}</div>
+                            <div className="pt-3 text-gray-500">{language === 'en' ? 'Signature: _______________________________' : 'Imzo: _______________________________'}</div>
                           </div>
                         ))}
                       </div>
@@ -1247,7 +1291,7 @@ export default function TemplatesPage() {
 
                 {currentModel.disclaimer && (
                   <div className="mt-8 pt-4 border-t border-gray-200 text-xs text-gray-500 italic">
-                    <strong>Huquqiy eslatma:</strong> {currentModel.disclaimer}
+                    <strong>{language === 'en' ? 'Legal notice: ' : 'Huquqiy eslatma: '}</strong> {currentModel.disclaimer}
                   </div>
                 )}
               </div>
@@ -1272,10 +1316,14 @@ export default function TemplatesPage() {
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-              Tizimga kirish talab qilinadi
+              {language === 'en' ? 'Sign In Required' : 'Tizimga kirish talab qilinadi'}
             </h3>
             <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
-              <strong>{authModalAction}</strong> uchun hisobingizga kiring yoki bepul roʻyxatdan oʻting. Kirganingizdan soʻng hujjatingiz avtomatik tayyorlanadi.
+              {language === 'en' ? (
+                <>Please sign in or register for free to <strong>{authModalAction === 'Hujjatni yuklab olish' ? 'download this document' : authModalAction}</strong>. Your generated document will be ready immediately upon sign in.</>
+              ) : (
+                <><strong>{authModalAction}</strong> uchun hisobingizga kiring yoki bepul roʻyxatdan oʻting. Kirganingizdan soʻng hujjatingiz avtomatik tayyorlanadi.</>
+              )}
             </p>
 
             <div className="space-y-3">
@@ -1293,7 +1341,7 @@ export default function TemplatesPage() {
                 className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
                 <i className="ri-login-box-line text-base"></i>
-                <span>Hisobga kirish</span>
+                <span>{language === 'en' ? 'Log In' : 'Hisobga kirish'}</span>
               </button>
 
               <button
@@ -1310,7 +1358,7 @@ export default function TemplatesPage() {
                 className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <i className="ri-user-add-line text-base"></i>
-                <span>Roʻyxatdan oʻtish</span>
+                <span>{language === 'en' ? 'Sign Up' : 'Roʻyxatdan oʻtish'}</span>
               </button>
             </div>
           </div>
@@ -1337,10 +1385,12 @@ export default function TemplatesPage() {
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-              Hujjat yaratish limitingiz to'ldi
+              {language === 'en' ? 'Document Generation Limit Reached' : "Hujjat yaratish limitingiz to'ldi"}
             </h3>
             <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
-              Bugungi belgilangan hujjatlar soni ({documentLimit} ta) to'ldi. {isGuest ? "Ko'proq imkoniyatlar uchun bepul roʻyxatdan oʻting." : "Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi."}
+              {language === 'en'
+                ? `You have completed all ${documentLimit} documents allocated for today. ${isGuest ? 'Sign up for free to prepare more documents.' : 'Quota will renew tomorrow.'}`
+                : `Bugungi belgilangan hujjatlar soni (${documentLimit} ta) to'ldi. ${isGuest ? "Ko'proq imkoniyatlar uchun bepul roʻyxatdan oʻting." : "Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi."}`}
             </p>
 
             <div className="space-y-3">
@@ -1352,7 +1402,7 @@ export default function TemplatesPage() {
                     className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                   >
                     <i className="ri-user-add-line"></i>
-                    <span>Bepul roʻyxatdan oʻtish</span>
+                    <span>{language === 'en' ? 'Sign up for free' : 'Bepul roʻyxatdan oʻtish'}</span>
                   </Link>
                   <Link
                     to="/login"
@@ -1360,7 +1410,7 @@ export default function TemplatesPage() {
                     className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <i className="ri-login-box-line"></i>
-                    <span>Hisobga kirish</span>
+                    <span>{language === 'en' ? 'Log in' : 'Hisobga kirish'}</span>
                   </Link>
                 </>
               ) : (
@@ -1372,7 +1422,7 @@ export default function TemplatesPage() {
                   className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                  <span>{language === 'en' ? 'Support AIAdvokat ☕' : "AIAdvokat'ni qo'llab-quvvatlash ☕"}</span>
                 </a>
               )}
               <button
@@ -1380,7 +1430,7 @@ export default function TemplatesPage() {
                 onClick={() => setShowDocLimitModal(false)}
                 className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
               >
-                Yopish
+                {language === 'en' ? 'Close' : 'Yopish'}
               </button>
             </div>
           </div>

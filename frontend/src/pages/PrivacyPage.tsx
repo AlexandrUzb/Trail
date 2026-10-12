@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
-const sections = [
+const sectionsUz = [
   {
     title: "1. To'planadigan ma'lumotlar",
     content: `Biz quyidagi ma'lumotlarni to'playmiz:
@@ -72,14 +73,89 @@ Ushbu huquqlardan foydalanish uchun zokirovzafar881@gmail.com ga murojaat qiling
   },
 ];
 
+const sectionsEn = [
+  {
+    title: "1. Information We Collect",
+    content: `We collect the following categories of data:
+
+Account Information:
+• Full name
+• Email address
+• Phone number (optional)
+
+Usage Data:
+• Questions and legal queries submitted to the platform
+• Documents created
+• Search history
+• Login timestamps and device technical metadata`,
+  },
+  {
+    title: "2. Purposes of Data Processing",
+    content: `Your data is processed strictly for:
+• Providing and enhancing AI legal assistance
+• Improving model accuracy (in anonymized form)
+• Delivering technical support
+• Protecting platform and user security
+• Fulfilling applicable legal obligations
+
+We never sell or disclose your personal data to commercial third-party advertisers.`,
+  },
+  {
+    title: "3. Data Storage & Protection",
+    content: `All information:
+• Is transmitted via industry-standard SSL/TLS encryption
+• Stored on secured, hardened cloud servers
+• Accessible solely to authorized personnel
+• Backed up regularly for disaster recovery
+
+Upon account deletion, all personal data is permanently wiped within 30 days.`,
+  },
+  {
+    title: "4. Cookie Files",
+    content: `We utilize cookie files for:
+• Session maintenance (essential)
+• Remembering your preferences (e.g., chosen language)
+• Anonymous usage analytics
+
+You can disable cookies in your browser settings, though certain interactive features may be limited.`,
+  },
+  {
+    title: "5. Third-Party Services",
+    content: `We integrate trusted third-party providers:
+• OpenAI & AI providers (for intelligent answer generation)
+• Google Fonts (for typography delivery)
+• Cloudflare (for CDN caching and cyber protection)
+
+Each provider adheres to international privacy and security benchmarks.`,
+  },
+  {
+    title: "6. User Rights",
+    content: `You possess the legal right to:
+• Access and inspect your personal data
+• Request correction of inaccurate information
+• Request full erasure of your account ("Right to be Forgotten")
+• Restrict data processing
+• Export your data archive
+
+To exercise any of these rights, contact us at zokirovzafar881@gmail.com.`,
+  },
+  {
+    title: "7. Protection of Minors",
+    content: `AIAdvokat is designed for individuals aged 18 and older. We do not knowingly collect personal data from minors. If you believe a minor has registered an account, please reach out to us immediately for prompt deletion.`,
+  },
+];
+
 export default function PrivacyPage() {
+  const { language, t } = useLanguage();
+  const currentSections = language === 'en' ? sectionsEn : sectionsUz;
+
   return (
     <div className="min-h-screen bg-white pt-16">
       <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-teal-50/40">
         <div className="max-w-7xl mx-auto px-8 text-center">
-          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Huquqiy</span>
-          <h1 className="text-5xl font-bold text-gray-900 mt-3 mb-4">Maxfiylik Siyosati</h1>
-          <p className="text-gray-500">Oxirgi yangilanish: 1 Yanvar 2025</p>
+          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">{t('terms_tag')}</span>
+          <h1 className="text-5xl font-bold text-gray-900 mt-3 mb-4">{t('privacy_title')}</h1>
+          <p className="text-gray-500">{t('terms_last_update')}</p>
         </div>
       </section>
 
@@ -89,15 +165,15 @@ export default function PrivacyPage() {
           <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 mb-10 flex gap-4">
             <i className="ri-shield-check-line text-teal-600 text-2xl flex-shrink-0 mt-0.5"></i>
             <div>
-              <h3 className="font-bold text-teal-900 mb-1">Maxfiyligingiz bizning ustuvorligimiz</h3>
+              <h3 className="font-bold text-teal-900 mb-1">{t('privacy_notice_title')}</h3>
               <p className="text-teal-800 text-sm leading-relaxed">
-                AIAdvokat sizning shaxsiy ma'lumotlaringizni himoya qilishni eng muhim vazifasi deb biladi. Ushbu siyosat biz qanday ma'lumot to'plashimiz va undan qanday foydalanishimizni tushuntiradi.
+                {t('privacy_notice_desc')}
               </p>
             </div>
           </div>
 
           <div className="space-y-8">
-            {sections.map((section) => (
+            {currentSections.map((section) => (
               <div key={section.title} className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">{section.title}</h2>
                 <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{section.content}</p>
@@ -106,9 +182,9 @@ export default function PrivacyPage() {
           </div>
 
           <div className="mt-12 bg-gray-50 rounded-2xl p-8 border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Aloqa</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">{t('privacy_contact_title')}</h3>
             <p className="text-gray-700 text-sm mb-4">
-              Maxfiylik siyosatimiz bo‘yicha savollaringiz bo‘lsa, biz bilan bog‘laning:
+              {t('privacy_contact_desc')}
             </p>
             <div className="space-y-2.5">
               <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -119,11 +195,11 @@ export default function PrivacyPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <i className="ri-map-pin-line text-teal-600"></i>
-                <span>Manzil: Termiz shahridagi Prezident maktabi</span>
+                <span>{language === 'en' ? 'Address: Presidential School in Termez, Surkhandarya' : 'Manzil: Termiz shahridagi Prezident maktabi'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <i className="ri-global-line text-teal-600"></i>
-                <span>O‘zbekiston</span>
+                <span>{language === 'en' ? 'Uzbekistan' : 'O‘zbekiston'}</span>
               </div>
             </div>
           </div>
@@ -133,7 +209,7 @@ export default function PrivacyPage() {
               to="/contact"
               className="inline-flex items-center justify-center bg-teal-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-teal-700 transition-colors"
             >
-              <i className="ri-mail-line mr-2"></i>Biz bilan bog'laning
+              <i className="ri-mail-line mr-2"></i>{t('cta_btn_contact')}
             </Link>
           </div>
         </div>

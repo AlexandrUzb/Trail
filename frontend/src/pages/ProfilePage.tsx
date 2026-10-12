@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ProfilePage() {
   const { user, refreshUser, logout } = useAuth();
+  const { language, t } = useLanguage();
   const [loading, setLoading] = useState(false);
 
   const handleRefresh = useCallback(async () => {
@@ -32,7 +34,7 @@ export default function ProfilePage() {
                 {(user?.name || user?.email || 'U')[0].toUpperCase()}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{user?.name || 'Foydalanuvchi'}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{user?.name || t('profile_user')}</h1>
                 <p className="text-sm text-gray-500 mt-1">{user?.email}</p>
                 <div className="flex items-center gap-3 text-xs text-gray-400 mt-2">
                   <span>ID: <code className="font-mono text-gray-600">{user?.id?.slice(0, 12)}...</code></span>
@@ -48,7 +50,7 @@ export default function ProfilePage() {
                 className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 hover:border-teal-500 bg-white hover:bg-teal-50/40 text-xs font-semibold text-gray-700 transition-colors cursor-pointer"
               >
                 <i className={`ri-refresh-line ${loading ? 'animate-spin' : ''}`}></i>
-                <span>Yangilash</span>
+                <span>{t('profile_refresh')}</span>
               </button>
               <button
                 type="button"
@@ -56,7 +58,7 @@ export default function ProfilePage() {
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-100 hover:bg-red-50 text-xs font-semibold text-red-600 transition-colors cursor-pointer"
               >
                 <i className="ri-logout-box-r-line"></i>
-                <span>Chiqish</span>
+                <span>{t('profile_logout')}</span>
               </button>
             </div>
           </div>
@@ -65,35 +67,35 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-gray-100">
             <div className="bg-slate-50/80 rounded-2xl p-4 border border-gray-100">
               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                <span>AI Savollar meʼyori</span>
+                <span>{t('profile_quota_ai')}</span>
                 <i className="ri-chat-voice-line text-teal-600 text-sm"></i>
               </div>
               <div className="text-xl font-bold text-gray-900">
-                {user?.dailyLimit ? (user.dailyLimit > 1000 ? 'Cheksiz' : `${user.dailyLimit} ta / kun`) : 'Mavjud'}
+                {user?.dailyLimit ? (user.dailyLimit > 1000 ? t('chat_unlimited') : `${user.dailyLimit} ${language === 'en' ? '/ day' : 'ta / kun'}`) : t('profile_available')}
               </div>
-              <p className="text-[11px] text-gray-400 mt-1">Har kuni yarim tunda yangilanadi</p>
+              <p className="text-[11px] text-gray-400 mt-1">{t('profile_quota_ai_sub')}</p>
             </div>
 
             <div className="bg-slate-50/80 rounded-2xl p-4 border border-gray-100">
               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                <span>Hujjatlar tayyorlash</span>
+                <span>{t('profile_quota_docs')}</span>
                 <i className="ri-file-text-line text-teal-600 text-sm"></i>
               </div>
               <div className="text-xl font-bold text-gray-900">
-                {user?.documentLimit ? `${user.documentLimit} ta` : 'Mavjud'}
+                {user?.documentLimit ? `${user.documentLimit} ${language === 'en' ? 'docs' : 'ta'}` : t('profile_available')}
               </div>
-              <p className="text-[11px] text-gray-400 mt-1">DOCX va PDF formatida</p>
+              <p className="text-[11px] text-gray-400 mt-1">{t('profile_quota_docs_sub')}</p>
             </div>
 
             <div className="bg-slate-50/80 rounded-2xl p-4 border border-gray-100">
               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                <span>Qonun qidiruvi</span>
+                <span>{t('profile_quota_search')}</span>
                 <i className="ri-search-2-line text-teal-600 text-sm"></i>
               </div>
               <div className="text-xl font-bold text-gray-900">
-                {user?.searchLimit ? (user.searchLimit > 1000 ? 'Cheksiz' : `${user.searchLimit} ta / kun`) : 'Mavjud'}
+                {user?.searchLimit ? (user.searchLimit > 1000 ? t('chat_unlimited') : `${user.searchLimit} ${language === 'en' ? '/ day' : 'ta / kun'}`) : t('profile_available')}
               </div>
-              <p className="text-[11px] text-gray-400 mt-1">Lex.uz milliy qonunchilik bazasi</p>
+              <p className="text-[11px] text-gray-400 mt-1">{t('profile_quota_search_sub')}</p>
             </div>
           </div>
         </div>
@@ -108,8 +110,8 @@ export default function ProfilePage() {
               <i className="ri-chat-voice-line"></i>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 group-hover:text-teal-600 transition-colors">AI Maslahat</h3>
-              <p className="text-xs text-gray-500">Huquqiy savol berish</p>
+              <h3 className="text-sm font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{t('nav_chat')}</h3>
+              <p className="text-xs text-gray-500">{language === 'en' ? 'Ask legal questions' : 'Huquqiy savol berish'}</p>
             </div>
           </Link>
 
@@ -121,8 +123,8 @@ export default function ProfilePage() {
               <i className="ri-search-2-line"></i>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 group-hover:text-teal-600 transition-colors">Qonun Qidiruvi</h3>
-              <p className="text-xs text-gray-500">Moddalar va kodekslar</p>
+              <h3 className="text-sm font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{t('nav_search')}</h3>
+              <p className="text-xs text-gray-500">{language === 'en' ? 'Articles and codes' : 'Moddalar va kodekslar'}</p>
             </div>
           </Link>
 
@@ -134,8 +136,8 @@ export default function ProfilePage() {
               <i className="ri-file-text-line"></i>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 group-hover:text-teal-600 transition-colors">Hujjatlar</h3>
-              <p className="text-xs text-gray-500">Shablonlar va arizalar</p>
+              <h3 className="text-sm font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{t('nav_templates')}</h3>
+              <p className="text-xs text-gray-500">{language === 'en' ? 'Templates and claims' : 'Shablonlar va arizalar'}</p>
             </div>
           </Link>
         </div>
@@ -146,10 +148,10 @@ export default function ProfilePage() {
             ☕
           </div>
           <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
-            AIAdvokat loyihasini rivojlantirishga hissa qoʻshing
+            {t('profile_support_title')}
           </h3>
           <p className="text-xs text-gray-600 max-w-lg mx-auto mb-5 leading-relaxed">
-            AIAdvokat mutlaqo ochiq va barcha foydalanuvchilar uchun qulay loyiha. Agar ushbu xizmat sizga yordam berayotgan boʻlsa, muallifni qahva bilan siylab ixtiyoriy qoʻllab-quvvatlashingiz mumkin.
+            {t('profile_support_desc')}
           </p>
 
           <div>
@@ -159,13 +161,13 @@ export default function ProfilePage() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-[#FFDD00] hover:bg-[#FACC15] text-gray-900 font-extrabold px-6 py-3 rounded-2xl text-xs sm:text-sm transition-transform hover:scale-105 shadow-md"
             >
-              <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+              <span>{t('profile_support_btn')}</span>
               <i className="ri-external-link-line text-xs"></i>
             </a>
           </div>
 
           <p className="text-[11px] text-gray-400 mt-3 italic">
-            * Bu ixtiyoriy xayriya / qoʻllab-quvvatlash havolasi boʻlib, xizmatdan foydalanish erkinligini oʻzgartirmaydi.
+            {t('profile_support_note')}
           </p>
         </div>
       </div>

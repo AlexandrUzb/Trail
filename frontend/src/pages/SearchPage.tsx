@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { lawArticlesDatabase, LawArticle } from '../data/lawArticles';
 import { safeStorage, safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { supabase, getTodayUserUsage, incrementUserUsage } from '../utils/supabase';
 import { getTodayGuestUsage, incrementGuestUsage, GUEST_DAILY_SEARCH_LIMIT } from '../utils/guestUsage';
 
@@ -16,6 +17,17 @@ export const legalCategories = [
   'Jinoyat va javobgarlik',
   'Ma’muriy masalalar va sud',
 ];
+
+export const legalCategoriesEn: Record<string, string> = {
+  'Barchasi': 'All Categories',
+  'Konstitutsiya va davlat': 'Constitution & State',
+  'Mehnat va bandlik': 'Labor & Employment',
+  'Fuqarolik, mulk va uy-joy': 'Civil, Property & Housing',
+  'Oila va nikoh': 'Family & Marriage',
+  'Soliq va tadbirkorlik': 'Tax & Business',
+  'Jinoyat va javobgarlik': 'Criminal Law & Liability',
+  'Ma’muriy masalalar va sud': 'Administrative & Judiciary',
+};
 
 export const CATEGORY_TO_DOMAIN_MAP: Record<string, string> = {
   'Konstitutsiyaviy huquq': 'Konstitutsiya va davlat',
@@ -119,6 +131,7 @@ const INTENT_CATEGORY_BOOST: { [key: string]: string[] } = {
 
 export default function SearchPage() {
   const { user, isLoggedIn } = useAuth();
+  const { language } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Barchasi');
@@ -504,22 +517,33 @@ export default function SearchPage() {
       <section className="py-14 bg-gradient-to-br from-gray-50 via-white to-teal-50/40 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center">
           <span className="text-teal-600 text-xs sm:text-sm font-semibold uppercase tracking-widest">
-            Rasmiy Qonun Qidiruvi
+            {language === 'en' ? 'Official Law Search' : 'Rasmiy Qonun Qidiruvi'}
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-2 mb-3">
-            Oʻzbekiston Qonunlarini Qidiring
+            {language === 'en' ? 'Search Uzbekistan Legislation' : 'Oʻzbekiston Qonunlarini Qidiring'}
           </h1>
           <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto mb-4">
-            20 ta huquqiy soha boʻyicha rasmiy moddalar, qonun matnlari va Lex.uz havolalari
+            {language === 'en'
+              ? 'Official articles, statutory texts, and direct Lex.uz citations across key judicial domains'
+              : '20 ta huquqiy soha boʻyicha rasmiy moddalar, qonun matnlari va Lex.uz havolalari'}
           </p>
 
           {/* Quota Indicator */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-xs font-semibold text-teal-800 mb-6 shadow-2xs">
             <i className="ri-search-line text-teal-600"></i>
             {isLoggedIn ? (
-              <span>Qidiruv limitingiz: <strong>{searchCount}</strong> / <strong>{searchLimit >= 999999 ? 'Cheksiz' : `${searchLimit} ta`}</strong></span>
+              <span>
+                {language === 'en' ? 'Search quota: ' : 'Qidiruv limitingiz: '}
+                <strong>{searchCount}</strong> / <strong>{searchLimit >= 999999 ? (language === 'en' ? 'Unlimited' : 'Cheksiz') : `${searchLimit} ${language === 'en' ? 'queries' : 'ta'}`}</strong>
+              </span>
             ) : (
-              <span>Mehmon limitingiz: <strong>{searchCount}</strong> / <strong>{searchLimit} ta</strong> <span className="text-teal-600 font-normal">({Math.max(0, searchLimit - searchCount)} ta qoldi)</span></span>
+              <span>
+                {language === 'en' ? 'Guest quota: ' : 'Mehmon limitingiz: '}
+                <strong>{searchCount}</strong> / <strong>{searchLimit} {language === 'en' ? 'queries' : 'ta'}</strong>{' '}
+                <span className="text-teal-600 font-normal">
+                  ({Math.max(0, searchLimit - searchCount)} {language === 'en' ? 'remaining' : 'ta qoldi'})
+                </span>
+              </span>
             )}
           </div>
 
@@ -532,10 +556,14 @@ export default function SearchPage() {
                 </div>
                 <div>
                   <div className="font-bold text-sm text-gray-900">
-                    {isGuest ? `Mehmon qidiruv limitingiz (${searchLimit} ta) to'ldi` : `Kunlik qidiruv limitingiz (${searchLimit} ta) to'ldi`}
+                    {isGuest
+                      ? (language === 'en' ? `Guest search limit (${searchLimit}) reached` : `Mehmon qidiruv limitingiz (${searchLimit} ta) to'ldi`)
+                      : (language === 'en' ? `Daily search limit (${searchLimit}) reached` : `Kunlik qidiruv limitingiz (${searchLimit} ta) to'ldi`)}
                   </div>
                   <div className="text-gray-600">
-                    {isGuest ? "Ko'proq qidirish uchun bepul ro'yxatdan o'ting yoki tizimga kiring." : "Qidiruvlar ertaga qayta tiklanadi."}
+                    {isGuest
+                      ? (language === 'en' ? 'Sign up for free or log in to search without limits.' : "Ko'proq qidirish uchun bepul ro'yxatdan o'ting yoki tizimga kiring.")
+                      : (language === 'en' ? 'Searches will reset tomorrow.' : 'Qidiruvlar ertaga qayta tiklanadi.')}
                   </div>
                 </div>
               </div>
@@ -546,13 +574,13 @@ export default function SearchPage() {
                     className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 shadow-sm transition-all whitespace-nowrap cursor-pointer"
                   >
                     <i className="ri-user-add-line"></i>
-                    <span>Ro'yxatdan o'tish</span>
+                    <span>{language === 'en' ? 'Sign up' : "Ro'yxatdan o'tish"}</span>
                   </Link>
                   <Link
                     to="/login"
                     className="px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-semibold rounded-xl text-xs flex items-center justify-center gap-1 transition-all whitespace-nowrap cursor-pointer"
                   >
-                    <span>Kirish</span>
+                    <span>{language === 'en' ? 'Log in' : 'Kirish'}</span>
                   </Link>
                 </div>
               ) : (
@@ -563,7 +591,7 @@ export default function SearchPage() {
                   className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                  <span>{language === 'en' ? 'Support AIAdvokat ☕' : "AIAdvokat'ni qo'llab-quvvatlash ☕"}</span>
                 </a>
               )}
             </div>
@@ -586,16 +614,19 @@ export default function SearchPage() {
                   onChange={(e) => handleQueryChange(e.target.value)}
                   placeholder={
                     isSearchLimitReached
-                      ? `Kunlik qidiruv limitingiz (${searchLimit} ta) to'ldi. Tarifingizni yangilang...`
-                      : "Modda raqami (masalan: 15-modda) yoki kalit so‘z (aliment, ijara, ishdan bo‘shatish, soliq)..."
+                      ? (language === 'en' ? `Daily search quota (${searchLimit}) reached. Upgrade plan...` : `Kunlik qidiruv limitingiz (${searchLimit} ta) to'ldi. Tarifingizni yangilang...`)
+                      : (language === 'en' ? 'Article number (e.g. Article 15) or keyword (alimony, lease, dismissal, tax)...' : "Modda raqami (masalan: 15-modda) yoki kalit so‘z (aliment, ijara, ishdan bo‘shatish, soliq)...")
                   }
+                  aria-label={language === 'en' ? 'Search legislation by keyword or article number' : 'Qonunlarni kalit so‘z yoki modda raqami bo‘yicha qidirish'}
                   className="w-full pl-12 pr-10 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none shadow-2xs disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                 />
                 {query && (
                   <button
+                    type="button"
                     onClick={() => setQuery('')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
-                    title="Tozalash"
+                    title={language === 'en' ? 'Clear' : 'Tozalash'}
+                    aria-label={language === 'en' ? 'Clear search query' : 'Qidiruvni tozalash'}
                   >
                     <i className="ri-close-line text-lg"></i>
                   </button>
@@ -605,34 +636,37 @@ export default function SearchPage() {
 
             {/* Quick Suggestions */}
             <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3 text-xs text-gray-400">
-              <span className="font-medium text-gray-500">Mashhur qidiruvlar:</span>
-              {['aliment', 'ishdan bo‘shatish', 'ijara shartnomasi', 'qarzdorlik', 'meros', 'yo‘l harakati', 'soliq'].map(
-                (term) => (
-                  <button
-                    key={term}
-                    onClick={() => {
-                      if (isSearchLimitReached) {
-                        setShowSearchLimitModal(true);
-                        return;
-                      }
-                      setQuery(term);
-                    }}
-                    className="bg-white/80 hover:bg-teal-50 hover:text-teal-700 text-gray-600 px-2.5 py-1 rounded-full border border-gray-200 transition-colors cursor-pointer text-[11px]"
-                  >
-                    {term}
-                  </button>
-                )
-              )}
+              <span className="font-medium text-gray-500">
+                {language === 'en' ? 'Popular searches:' : 'Mashhur qidiruvlar:'}
+              </span>
+              {(language === 'en'
+                ? ['alimony', 'dismissal', 'lease agreement', 'debt', 'inheritance', 'traffic rules', 'tax']
+                : ['aliment', 'ishdan bo‘shatish', 'ijara shartnomasi', 'qarzdorlik', 'meros', 'yo‘l harakati', 'soliq']
+              ).map((term) => (
+                <button
+                  key={term}
+                  onClick={() => {
+                    if (isSearchLimitReached) {
+                      setShowSearchLimitModal(true);
+                      return;
+                    }
+                    setQuery(term);
+                  }}
+                  className="bg-white/80 hover:bg-teal-50 hover:text-teal-700 text-gray-600 px-2.5 py-1 rounded-full border border-gray-200 transition-colors cursor-pointer text-[11px]"
+                >
+                  {term}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* 20 Categories Filter Bar */}
+      {/* Categories Filter Bar */}
       <section className="py-4 bg-white border-b border-gray-100 sticky top-16 z-30 shadow-2xs">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="flex flex-col gap-3">
-            {/* Categories horizontal scroll / flex wrap */}
+            {/* Categories horizontal scroll */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
               {activeLegalCategories.map((cat) => (
                 <button
@@ -644,26 +678,26 @@ export default function SearchPage() {
                       : 'bg-gray-100 text-gray-700 hover:bg-teal-50 hover:text-teal-800'
                   }`}
                 >
-                  {cat}
+                  {legalCategoriesEn[cat] && language === 'en' ? legalCategoriesEn[cat] : cat}
                 </button>
               ))}
             </div>
 
             {/* Subcategory & Sort Controls */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100/80">
-              {/* Subcategories (if selected category has subcategories) */}
+              {/* Subcategories */}
               <div className="flex items-center gap-2 flex-wrap">
                 {availableSubcategories.length > 0 && (
                   <>
                     <span className="text-xs text-gray-500 font-semibold flex items-center gap-1">
-                      <i className="ri-folder-line text-teal-600"></i> Yoʻnalish:
+                      <i className="ri-folder-line text-teal-600"></i> {language === 'en' ? 'Domain:' : 'Yoʻnalish:'}
                     </span>
                     <select
                       value={subcategory}
                       onChange={(e) => setSubcategory(e.target.value)}
                       className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none cursor-pointer max-w-[240px] truncate"
                     >
-                      <option value="Barchasi">Barcha yoʻnalishlar</option>
+                      <option value="Barchasi">{language === 'en' ? 'All domains' : 'Barcha yoʻnalishlar'}</option>
                       {availableSubcategories.map((sub) => (
                         <option key={sub} value={sub}>
                           {sub}
@@ -677,18 +711,18 @@ export default function SearchPage() {
               {/* Sorting */}
               <div className="flex items-center gap-2 text-xs ml-auto">
                 <span className="text-gray-400 flex items-center gap-1 font-medium">
-                  <i className="ri-sort-asc text-teal-600"></i> Saralash:
+                  <i className="ri-sort-asc text-teal-600"></i> {language === 'en' ? 'Sort by:' : 'Saralash:'}
                 </span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
                   className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none cursor-pointer"
                 >
-                  <option value="relevance">Mosligi boʻyicha</option>
-                  <option value="num_asc">Modda raqami (Oʻsish)</option>
-                  <option value="num_desc">Modda raqami (Kamayish)</option>
-                  <option value="title_asc">Nomi (A - Z)</option>
-                  <option value="title_desc">Nomi (Z - A)</option>
+                  <option value="relevance">{language === 'en' ? 'Relevance' : 'Mosligi boʻyicha'}</option>
+                  <option value="num_asc">{language === 'en' ? 'Article number (Ascending)' : 'Modda raqami (Oʻsish)'}</option>
+                  <option value="num_desc">{language === 'en' ? 'Article number (Descending)' : 'Modda raqami (Kamayish)'}</option>
+                  <option value="title_asc">{language === 'en' ? 'Title (A - Z)' : 'Nomi (A - Z)'}</option>
+                  <option value="title_desc">{language === 'en' ? 'Title (Z - A)' : 'Nomi (Z - A)'}</option>
                 </select>
               </div>
             </div>
@@ -703,23 +737,23 @@ export default function SearchPage() {
             <div>
               <h2 className="text-xl font-bold text-gray-900">
                 {query.trim()
-                  ? `“${query}” boʻyicha qidiruv natijalari`
+                  ? (language === 'en' ? `Search results for “${query}”` : `“${query}” boʻyicha qidiruv natijalari`)
                   : category === 'Barchasi'
-                  ? 'Rasmiy qonun moddalari to‘plami'
-                  : `${category} moddalari`}
+                  ? (language === 'en' ? 'Official Legal Articles Collection' : 'Rasmiy qonun moddalari to‘plami')
+                  : `${legalCategoriesEn[category] && language === 'en' ? legalCategoriesEn[category] : category} ${language === 'en' ? 'Articles' : 'moddalari'}`}
               </h2>
               <p className="text-xs text-gray-500 mt-0.5">
                 {query.trim()
-                  ? `Tanlangan yoʻnalish: ${category}`
+                  ? (language === 'en' ? `Selected domain: ${legalCategoriesEn[category] && language === 'en' ? legalCategoriesEn[category] : category}` : `Tanlangan yoʻnalish: ${category}`)
                   : category === 'Barchasi'
-                  ? 'Oʻzbekiston Respublikasining amaldagi rasmiy qonunchilik hujjatlari'
-                  : `${category} sohasiga oid amaldagi qonunchilik normalari`}
+                  ? (language === 'en' ? 'Active legal and statutory norms of the Republic of Uzbekistan' : 'Oʻzbekiston Respublikasining amaldagi rasmiy qonunchilik hujjatlari')
+                  : (language === 'en' ? `Active legal provisions in ${legalCategoriesEn[category] && language === 'en' ? legalCategoriesEn[category] : category}` : `${category} sohasiga oid amaldagi qonunchilik normalari`)}
               </p>
             </div>
             {primaryArticles.length > 0 && (
               <span className="text-xs bg-teal-50 text-teal-700 font-semibold px-3 py-1 rounded-full border border-teal-200 flex items-center gap-1.5">
                 <i className="ri-scales-3-line"></i>
-                <span>Rasmiy qonunlar</span>
+                <span>{language === 'en' ? 'Official Statutes' : 'Rasmiy qonunlar'}</span>
               </span>
             )}
           </div>
@@ -730,9 +764,13 @@ export default function SearchPage() {
               <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200 shadow-xs">
                 <i className="ri-file-search-line text-3xl"></i>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Qonun qidiruv limitingiz to'ldi</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {language === 'en' ? 'Law search limit reached' : "Qonun qidiruv limitingiz to'ldi"}
+              </h3>
               <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
-                Siz bugungi belgilangan qidiruvlar sonidan ({searchLimit} ta) to'liq foydalandingiz. Qidiruv cheklovi ertaga qayta tiklanadi.
+                {language === 'en'
+                  ? `You have reached your daily search limit (${searchLimit} queries). Your quota resets tomorrow.`
+                  : `Siz bugungi belgilangan qidiruvlar sonidan (${searchLimit} ta) to'liq foydalandingiz. Qidiruv cheklovi ertaga qayta tiklanadi.`}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <a
@@ -742,7 +780,7 @@ export default function SearchPage() {
                   className="w-full sm:w-auto px-6 py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                  <span>{language === 'en' ? 'Support AIAdvokat ☕' : "AIAdvokat'ni qo'llab-quvvatlash ☕"}</span>
                 </a>
               </div>
             </div>
@@ -751,9 +789,13 @@ export default function SearchPage() {
               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-xs">
                 <i className="ri-search-line text-gray-400 text-2xl"></i>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Ushbu toifada modda topilmadi</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                {language === 'en' ? 'No articles found in this category' : 'Ushbu toifada modda topilmadi'}
+              </h3>
               <p className="text-xs text-gray-500 mb-4 max-w-md mx-auto">
-                “{query}” soʻrovi boʻyicha {category !== 'Barchasi' ? `"${category}" sohasida` : ''} moddalar topilmadi.
+                {language === 'en'
+                  ? `No articles matched query “${query}” ${category !== 'Barchasi' ? `in "${legalCategoriesEn[category] || category}"` : ''}.`
+                  : `“${query}” soʻrovi boʻyicha ${category !== 'Barchasi' ? `"${category}" sohasida` : ''} moddalar topilmadi.`}
               </p>
               <button
                 onClick={() => {
@@ -763,7 +805,7 @@ export default function SearchPage() {
                 }}
                 className="bg-teal-600 text-white px-5 py-2.5 rounded-xl text-xs font-semibold hover:bg-teal-700 transition-colors cursor-pointer"
               >
-                Barcha qonunlarni koʻrish
+                {language === 'en' ? 'View all laws' : 'Barcha qonunlarni koʻrish'}
               </button>
             </div>
           ) : (
@@ -780,20 +822,24 @@ export default function SearchPage() {
             </div>
           )}
 
-          {/* Cross-Category Section: "Boshqa tegishli huquqiy yo‘nalishlar" */}
+          {/* Cross-Category Section */}
           {crossCategoryArticles.length > 0 && (
             <div className="mt-14 pt-8 border-t-2 border-dashed border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mb-1">
                     <i className="ri-compass-3-line"></i>
-                    <span>Boshqa tegishli huquqiy yo‘nalishlar</span>
+                    <span>{language === 'en' ? 'Other related legal domains' : 'Boshqa tegishli huquqiy yo‘nalishlar'}</span>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">
-                    “{query}” soʻrovi boʻyicha boshqa sohalardagi qonun moddalari
+                    {language === 'en'
+                      ? `Statutes in other disciplines related to “${query}”`
+                      : `“${query}” soʻrovi boʻyicha boshqa sohalardagi qonun moddalari`}
                   </h3>
                   <p className="text-xs text-gray-500">
-                    Ushbu norma siz qidirayotgan masalaga aloqador boʻlishi mumkin boʻlgan boshqa qonunchilik sohalaridan topildi
+                    {language === 'en'
+                      ? 'These provisions were found in related disciplines that may bear on your case'
+                      : 'Ushbu norma siz qidirayotgan masalaga aloqador boʻlishi mumkin boʻlgan boshqa qonunchilik sohalaridan topildi'}
                   </p>
                 </div>
               </div>
@@ -819,16 +865,20 @@ export default function SearchPage() {
               <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
                 <i className="ri-scales-3-line text-white text-2xl"></i>
               </div>
-              <h3 className="text-2xl font-bold mb-2">Qonun moddasini tushunishda yordam kerakmi?</h3>
+              <h3 className="text-2xl font-bold mb-2">
+                {language === 'en' ? 'Need help understanding this statutory article?' : 'Qonun moddasini tushunishda yordam kerakmi?'}
+              </h3>
               <p className="text-teal-100 text-sm mb-6 leading-relaxed">
-                AIAdvokat siz qidirayotgan har qanday moddaning mohiyatini oddiy tilda tushuntirib beradi va arizangizga mos hujjat loyihasini tayyorlaydi.
+                {language === 'en'
+                  ? 'AIAdvokat breaks down complex statutory language into everyday terms and drafts customized documents suited to your situation.'
+                  : 'AIAdvokat siz qidirayotgan har qanday moddaning mohiyatini oddiy tilda tushuntirib beradi va arizangizga mos hujjat loyihasini tayyorlaydi.'}
               </p>
               <Link
                 to="/chat"
                 className="inline-flex items-center justify-center bg-white text-teal-700 font-bold px-8 py-3.5 rounded-full text-sm hover:bg-teal-50 transition-all shadow-sm cursor-pointer gap-2"
               >
                 <i className="ri-chat-3-line"></i>
-                <span>AI bilan maslahatni boshlash</span>
+                <span>{language === 'en' ? 'Consult with AI' : 'AI bilan maslahatni boshlash'}</span>
               </Link>
             </div>
           </div>
@@ -860,13 +910,23 @@ export default function SearchPage() {
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-              {isGuest ? "Mehmon qidiruv limitingiz to'ldi" : "Kunlik qidiruv limitingiz to'ldi"}
+              {isGuest
+                ? (language === 'en' ? 'Guest search limit reached' : "Mehmon qidiruv limitingiz to'ldi")
+                : (language === 'en' ? 'Daily search limit reached' : "Kunlik qidiruv limitingiz to'ldi")}
             </h3>
             <p className="text-sm text-gray-600 text-center mb-6 leading-relaxed">
               {isGuest ? (
-                <>Siz bugungi belgilangan <strong>{searchLimit} ta</strong> mehmon qidiruvidan foydalandingiz. Davom ettirish va koʻproq imkoniyatlarga ega boʻlish uchun bepul roʻyxatdan oʻting!</>
+                language === 'en' ? (
+                  <>You have reached your daily allowance of <strong>{searchLimit} guest searches</strong>. Sign up for free to continue and unlock full legal access!</>
+                ) : (
+                  <>Siz bugungi belgilangan <strong>{searchLimit} ta</strong> mehmon qidiruvidan foydalandingiz. Davom ettirish va koʻproq imkoniyatlarga ega boʻlish uchun bepul roʻyxatdan oʻting!</>
+                )
               ) : (
-                <>Bugungi belgilangan qidiruvlar soni ({searchLimit} ta) to'ldi. Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi.</>
+                language === 'en' ? (
+                  <>You have completed all {searchLimit} searches allocated for today. System quotas will renew tomorrow.</>
+                ) : (
+                  <>Bugungi belgilangan qidiruvlar soni ({searchLimit} ta) to'ldi. Tizim resurslarini saqlash uchun cheklov ertaga yangilanadi.</>
+                )
               )}
             </p>
 
@@ -879,14 +939,14 @@ export default function SearchPage() {
                     className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                   >
                     <i className="ri-user-add-line"></i>
-                    <span>Bepul roʻyxatdan oʻtish</span>
+                    <span>{language === 'en' ? 'Sign up for free' : 'Bepul roʻyxatdan oʻtish'}</span>
                   </Link>
                   <Link
                     to="/login"
                     onClick={() => setShowSearchLimitModal(false)}
                     className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    <span>Mavjud hisobga kirish</span>
+                    <span>{language === 'en' ? 'Log in to existing account' : 'Mavjud hisobga kirish'}</span>
                   </Link>
                 </>
               ) : (
@@ -898,7 +958,7 @@ export default function SearchPage() {
                   className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-gray-900 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <i className="ri-cup-line"></i>
-                  <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                  <span>{language === 'en' ? 'Support AIAdvokat ☕' : "AIAdvokat'ni qo'llab-quvvatlash ☕"}</span>
                 </a>
               )}
               <button
@@ -906,7 +966,7 @@ export default function SearchPage() {
                 onClick={() => setShowSearchLimitModal(false)}
                 className="w-full py-2.5 px-4 text-gray-500 hover:text-gray-700 text-xs font-medium transition-colors cursor-pointer"
               >
-                Yopish
+                {language === 'en' ? 'Close' : 'Yopish'}
               </button>
             </div>
           </div>
@@ -929,12 +989,15 @@ function ArticleCard({
   onOpen: () => void;
   isCrossCategory?: boolean;
 }) {
+  const { language } = useLanguage();
   const chatPrompt = `${article.source || article.law}, ${article.article_number || article.article}: "${article.title}"`;
-  const lawName = article.source || article.law || 'Oʻzbekiston qonunchiligi';
+  const lawName = article.source || article.law || (language === 'en' ? 'Uzbekistan Legislation' : 'Oʻzbekiston qonunchiligi');
   const artNumber = article.article_number || article.article || '';
   const description = article.short_description || article.summary || '';
   const tagsList = article.keywords || article.tags || [];
   const sourceLink = article.source_url || article.sourceUrl || '';
+  const domain = getArticleDomain(article.category);
+  const displayDomain = legalCategoriesEn[domain] && language === 'en' ? legalCategoriesEn[domain] : domain;
 
   return (
     <div
@@ -953,7 +1016,7 @@ function ArticleCard({
                   : 'text-teal-700 bg-teal-50 border-teal-100'
               }`}
             >
-              {getArticleDomain(article.category)}
+              {displayDomain}
             </span>
             {article.subcategory && (
               <span className="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md truncate max-w-[140px]">
@@ -969,7 +1032,7 @@ function ArticleCard({
             className={`text-base transition-colors p-1 cursor-pointer ${
               saved ? 'text-teal-600' : 'text-gray-300 hover:text-teal-500'
             }`}
-            title={saved ? 'Saqlanganlardan oʻchirish' : 'Saqlash'}
+            title={saved ? (language === 'en' ? 'Remove bookmark' : 'Saqlanganlardan oʻchirish') : (language === 'en' ? 'Save' : 'Saqlash')}
           >
             <i className={saved ? 'ri-bookmark-fill' : 'ri-bookmark-line'}></i>
           </button>
@@ -1009,17 +1072,17 @@ function ArticleCard({
           className="text-xs text-teal-700 font-bold hover:text-teal-900 flex items-center gap-1 transition-colors cursor-pointer"
         >
           <i className="ri-book-open-line"></i>
-          <span>Toʻliq matn →</span>
+          <span>{language === 'en' ? 'Full text →' : 'Toʻliq matn →'}</span>
         </button>
 
         <div className="flex items-center gap-3">
           <Link
             to={`/chat?article=${encodeURIComponent(chatPrompt)}&articleUrl=${encodeURIComponent(sourceLink)}`}
             className="text-xs text-gray-500 hover:text-teal-700 flex items-center gap-1 font-medium transition-colors"
-            title="AI yordamida tushuntirish olish"
+            title={language === 'en' ? 'Get AI legal advice' : 'AI yordamida tushuntirish olish'}
           >
             <i className="ri-scales-3-line"></i>
-            <span>AI maslahat</span>
+            <span>{language === 'en' ? 'AI advice' : 'AI maslahat'}</span>
           </Link>
 
           {sourceLink && (
@@ -1028,7 +1091,7 @@ function ArticleCard({
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] text-gray-400 hover:text-teal-600 flex items-center gap-1 transition-colors font-medium"
-              title="Lex.uz rasmiy bazasida ochish"
+              title={language === 'en' ? 'Open in official Lex.uz database' : 'Lex.uz rasmiy bazasida ochish'}
             >
               <span>Lex.uz</span>
               <i className="ri-external-link-line text-[10px]"></i>
@@ -1041,11 +1104,14 @@ function ArticleCard({
 }
 
 function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () => void }) {
+  const { language } = useLanguage();
   const chatPrompt = `${article.source || article.law}, ${article.article_number || article.article}: "${article.title}"`;
-  const lawName = article.source || article.law || 'Oʻzbekiston Respublikasi qonunchiligi';
+  const lawName = article.source || article.law || (language === 'en' ? 'Legislation of the Republic of Uzbekistan' : 'Oʻzbekiston Respublikasi qonunchiligi');
   const artNumber = article.article_number || article.article || '';
   const sourceLink = article.source_url || article.sourceUrl || '';
   const content = article.content || article.short_description || article.summary || '';
+  const domain = getArticleDomain(article.category);
+  const displayDomain = legalCategoriesEn[domain] && language === 'en' ? legalCategoriesEn[domain] : domain;
 
   // Close on Escape key
   useEffect(() => {
@@ -1070,7 +1136,7 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200 px-3 py-0.5 rounded-full">
-                {getArticleDomain(article.category)}
+                {displayDomain}
               </span>
               {article.subcategory && (
                 <span className="text-xs text-gray-600 bg-gray-200/70 px-2.5 py-0.5 rounded-full">
@@ -1078,7 +1144,7 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
                 </span>
               )}
               <span className="text-xs text-gray-400 font-medium">
-                Tahrir sanasi: {article.updated_at || '2026'}
+                {language === 'en' ? 'Revision: ' : 'Tahrir sanasi: '}{article.updated_at || '2026'}
               </span>
             </div>
             <div className="text-xs font-medium text-gray-500 mb-1">{lawName}</div>
@@ -1090,7 +1156,7 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-gray-200/60 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
-            title="Yopish (Esc)"
+            title={language === 'en' ? 'Close (Esc)' : 'Yopish (Esc)'}
           >
             <i className="ri-close-line text-lg"></i>
           </button>
@@ -1101,7 +1167,9 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
           <div className="bg-teal-50/40 p-4 rounded-xl border border-teal-100 text-xs text-teal-800 flex items-center gap-2">
             <i className="ri-shield-check-line text-base text-teal-600"></i>
             <span>
-              Oʻzbekiston Respublikasining rasmiy Lex.uz qonunchilik bazasidan tasdiqlangan rasmiy matn.
+              {language === 'en'
+                ? 'Official verified text from the Lex.uz national legislative database.'
+                : 'Oʻzbekiston Respublikasining rasmiy Lex.uz qonunchilik bazasidan tasdiqlangan rasmiy matn.'}
             </span>
           </div>
 
@@ -1111,7 +1179,9 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
 
           {article.keywords && article.keywords.length > 0 && (
             <div className="pt-4 border-t border-gray-100">
-              <div className="text-xs font-semibold text-gray-500 mb-2">Tegishli kalit soʻzlar:</div>
+              <div className="text-xs font-semibold text-gray-500 mb-2">
+                {language === 'en' ? 'Relevant keywords:' : 'Tegishli kalit soʻzlar:'}
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {article.keywords.map((k) => (
                   <span key={k} className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg">
@@ -1127,7 +1197,11 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
         <div className="p-5 border-t border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-3">
           <div className="text-xs text-gray-500 flex items-center gap-1">
             <i className="ri-information-line text-teal-600"></i>
-            <span>AIAdvokat inson advokat emas · Faqat axborot va tushuntirish maqsadida</span>
+            <span>
+              {language === 'en'
+                ? 'AIAdvokat is not a licensed attorney · For informational purposes only'
+                : 'AIAdvokat inson advokat emas · Faqat axborot va tushuntirish maqsadida'}
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -1138,7 +1212,7 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-white transition-colors cursor-pointer"
               >
-                <span>Lex.uz da ochish</span>
+                <span>{language === 'en' ? 'Open on Lex.uz' : 'Lex.uz da ochish'}</span>
                 <i className="ri-external-link-line"></i>
               </a>
             )}
@@ -1148,7 +1222,7 @@ function ArticleModal({ article, onClose }: { article: LawArticle; onClose: () =
               className="inline-flex items-center gap-1.5 px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             >
               <i className="ri-scales-3-line"></i>
-              <span>AI dan tushuntirish soʻrash</span>
+              <span>{language === 'en' ? 'Ask AI for explanation' : 'AI dan tushuntirish soʻrash'}</span>
             </Link>
           </div>
         </div>

@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserNotifications, markNotificationAsRead, Notification } from '../utils/supabase';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageToggle from './LanguageToggle';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -59,14 +61,15 @@ export default function Navbar() {
     await logout();
   };
 
+  const { t } = useLanguage();
   const isActive = (path: string) => location.pathname === path;
 
   const navLinks = [
-    { path: '/', label: 'Bosh sahifa' },
-    { path: '/chat', label: 'AI Maslahat' },
-    { path: '/search', label: 'Qonun Qidiruvi' },
-    { path: '/templates', label: 'Hujjatlar' },
-    { path: '/about', label: 'Biz haqimizda' },
+    { path: '/', label: t('nav_home') },
+    { path: '/chat', label: t('nav_chat') },
+    { path: '/search', label: t('nav_search') },
+    { path: '/templates', label: t('nav_templates') },
+    { path: '/about', label: t('nav_about') },
   ];
 
   const firstLetter = (userName || 'F')[0].toUpperCase();
@@ -79,7 +82,7 @@ export default function Navbar() {
             <div className="w-9 h-9 bg-teal-600 rounded-lg flex items-center justify-center">
               <i className="ri-scales-3-line text-white text-lg"></i>
             </div>
-            <span className="text-xl font-bold text-gray-900">AIAdvokat</span>
+            <span className="text-xl font-bold text-gray-900 notranslate" translate="no">AI Advokat</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
@@ -99,15 +102,17 @@ export default function Navbar() {
 
           {/* User Profile / Auth Area */}
           <div className="hidden md:flex items-center space-x-3">
+            <LanguageToggle />
+
             <a
               href="https://buymeacoffee.com/advokatai"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 hover:border-amber-300 transition-all shadow-2xs hover:scale-105"
-              title="AIAdvokat dasturchisini qoʻllab-quvvatlash va kofe ulashish"
+              title="AI Advokat dasturchisini qoʻllab-quvvatlash va kofe ulashish"
             >
               <span className="text-sm">☕</span>
-              <span>Qoʻllab-quvvatlash</span>
+              <span>{t('nav_support')}</span>
             </a>
 
             {!loading && isLoggedIn && user ? (
@@ -130,17 +135,17 @@ export default function Navbar() {
                   {notificationsOpen && (
                     <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                       <div className="px-4 pb-2 border-b border-gray-100 flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">Bildirishnomalar</span>
+                        <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">{t('nav_notifications')}</span>
                         {notifications.filter(n => !n.is_read).length > 0 && (
                           <span className="text-[10px] font-semibold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-100">
-                            {notifications.filter(n => !n.is_read).length} ta yangi
+                            {notifications.filter(n => !n.is_read).length} {t('nav_new_notifications')}
                           </span>
                         )}
                       </div>
                       <div className="max-h-64 overflow-y-auto py-1 divide-y divide-gray-50">
                         {notifications.length === 0 ? (
                           <div className="py-6 text-center text-xs text-gray-400">
-                            Hozircha bildirishnomalar mavjud emas
+                            {t('nav_no_notifications')}
                           </div>
                         ) : (
                           notifications.map((n) => (
@@ -188,7 +193,7 @@ export default function Navbar() {
                   {dropdownOpen && (
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                       <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-xs text-gray-400 font-medium">Hisob egasi</p>
+                        <p className="text-xs text-gray-400 font-medium">{t('nav_account_owner')}</p>
                         <p className="text-sm font-bold text-gray-900 truncate">{userName}</p>
                         {userEmail && <p className="text-xs text-gray-500 truncate mt-0.5">{userEmail}</p>}
                       </div>
@@ -200,7 +205,7 @@ export default function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-gray-800 hover:bg-teal-50 hover:text-teal-700 transition-colors"
                         >
                           <i className="ri-user-settings-line text-teal-600 text-base"></i>
-                          <span>Hisobim</span>
+                          <span>{t('nav_profile')}</span>
                         </Link>
                         <Link
                           to="/chat"
@@ -208,7 +213,7 @@ export default function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
                         >
                           <i className="ri-chat-voice-line text-teal-600 text-base"></i>
-                          <span>AI Maslahatxonaga oʻtish</span>
+                          <span>{t('nav_go_chat')}</span>
                         </Link>
                         <Link
                           to="/history"
@@ -216,7 +221,7 @@ export default function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
                         >
                           <i className="ri-history-line text-teal-600 text-base"></i>
-                          <span>Suhbatlar tarixi</span>
+                          <span>{t('nav_chat_history')}</span>
                         </Link>
                         <a
                           href="https://buymeacoffee.com/advokatai"
@@ -226,7 +231,7 @@ export default function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-amber-800 hover:bg-amber-50 transition-colors"
                         >
                           <i className="ri-cup-line text-amber-600 text-base"></i>
-                          <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+                          <span>{t('nav_support_project')}</span>
                         </a>
                       </div>
 
@@ -237,7 +242,7 @@ export default function Navbar() {
                           className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                         >
                           <i className="ri-logout-box-r-line text-base"></i>
-                          <span>Chiqish</span>
+                          <span>{t('nav_logout')}</span>
                         </button>
                       </div>
                     </div>
@@ -247,17 +252,23 @@ export default function Navbar() {
             ) : (
               <>
                 <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-teal-600 transition-colors px-3 py-2">
-                  Kirish
+                  {t('nav_login')}
                 </Link>
                 <Link to="/register" className="bg-teal-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-teal-700 transition-colors whitespace-nowrap shadow-sm">
-                  Ro'yxatdan o'tish
+                  {t('nav_register')}
                 </Link>
               </>
             )}
           </div>
 
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden cursor-pointer p-1">
-            <i className={`text-2xl text-gray-700 ${mobileOpen ? 'ri-close-line' : 'ri-menu-line'}`}></i>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden cursor-pointer p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            aria-label="Menyu"
+            aria-expanded={mobileOpen}
+          >
+            <i className={`text-2xl ${mobileOpen ? 'ri-close-line' : 'ri-menu-line'}`}></i>
           </button>
         </div>
 
@@ -265,6 +276,10 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-100 pt-4">
             <div className="flex flex-col space-y-1">
+              <div className="mb-2">
+                <LanguageToggle variant="mobile" />
+              </div>
+
               {navLinks.map(link => (
                 <Link
                   key={link.path}
@@ -293,14 +308,14 @@ export default function Navbar() {
                         onClick={() => setMobileOpen(false)}
                         className="bg-white border border-gray-200 text-gray-800 text-center py-2 rounded-lg text-xs font-semibold"
                       >
-                        Hisobim
+                        {t('nav_profile')}
                       </Link>
                       <Link
                         to="/chat"
                         onClick={() => setMobileOpen(false)}
                         className="bg-teal-600 text-white text-center py-2 rounded-lg text-xs font-semibold"
                       >
-                        AI Maslahat
+                        {t('nav_chat')}
                       </Link>
                     </div>
                     <a
@@ -309,23 +324,23 @@ export default function Navbar() {
                       rel="noopener noreferrer"
                       className="block text-center py-2 px-3 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-bold"
                     >
-                      AIAdvokat'ni qo'llab-quvvatlash ☕
+                      {t('nav_support_project')}
                     </a>
                     <button
                       type="button"
                       onClick={handleLogout}
                       className="w-full py-2 bg-red-50 text-red-600 rounded-lg text-xs font-semibold cursor-pointer"
                     >
-                      Chiqish
+                      {t('nav_logout')}
                     </button>
                   </div>
                 ) : (
                   <>
                     <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-center text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-sm">
-                      Kirish
+                      {t('nav_login')}
                     </Link>
                     <Link to="/register" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-center bg-teal-600 text-white rounded-full font-semibold text-sm hover:bg-teal-700 transition-colors">
-                      Ro'yxatdan o'tish
+                      {t('nav_register')}
                     </Link>
                   </>
                 )}

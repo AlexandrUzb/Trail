@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { safeFetchJson } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageToggle } from '../components/LanguageToggle';
 import { supabase, ensureProfile, recordUserLogin } from '../utils/supabase';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -10,6 +12,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoggedIn } = useAuth();
+  const { language, t } = useLanguage();
 
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [submitted, setSubmitted] = useState(false);
@@ -59,35 +62,35 @@ export default function RegisterPage() {
 
     // 1. Name validation
     if (!cleanName) {
-      setError("Ismingizni kiriting.");
+      setError(t('auth_name_required'));
       return;
     }
 
     // 2. Email validation
     if (!cleanEmail) {
-      setError("Email manzilingizni kiriting.");
+      setError(t('auth_email_required'));
       return;
     }
 
     if (!EMAIL_REGEX.test(cleanEmail)) {
-      setError("Notoʻgʻri email formati. Iltimos, toʻgʻri email manzilini kiriting.");
+      setError(t('auth_email_invalid'));
       return;
     }
 
     // 3. Password length & presence validation
     if (!cleanPassword || cleanPassword.trim() === '') {
-      setError("Parolni kiriting.");
+      setError(t('auth_password_required'));
       return;
     }
 
     if (cleanPassword.length < 6) {
-      setError("Parol kamida 6 ta belgidan iborat boʻlishi kerak.");
+      setError(t('auth_password_min'));
       return;
     }
 
     // 4. Client-side password confirmation match BEFORE making any network call
     if (!cleanConfirmPassword || cleanPassword !== cleanConfirmPassword) {
-      setError("Kiritilgan parollar bir-biriga mos kelmadi. Iltimos, qayta tekshiring.");
+      setError(t('auth_password_mismatch'));
       return;
     }
 
@@ -213,12 +216,16 @@ export default function RegisterPage() {
       }, 500);
     } catch (err: any) {
       setLoading(false);
-      setError("Serverga ulanishda xatolik yuz berdi. Iltimos, qaytadan urinib koʻring.");
+      setError(t('auth_server_err'));
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4 py-12 relative">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <LanguageToggle variant="compact" />
+      </div>
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
@@ -229,15 +236,15 @@ export default function RegisterPage() {
               <span className="text-3xl font-bold text-teal-600">AIAdvokat</span>
             </div>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Ro'yxatdan o'tish</h1>
-          <p className="text-gray-600">Yangi hisob yarating</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('register_title')}</h1>
+          <p className="text-gray-600">{t('register_subtitle')}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8">
           {submitted && (
             <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-center space-x-2">
               <i className="ri-check-line text-teal-600 text-xl"></i>
-              <p className="text-teal-800 text-sm">Hisob muvaffaqiyatli yaratildi! Yoʻnaltirilmoqda...</p>
+              <p className="text-teal-800 text-sm">{t('auth_register_success')}</p>
             </div>
           )}
           {error && (
@@ -249,7 +256,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
-              <label htmlFor="register-name" className="block text-sm font-semibold text-gray-700 mb-2">Ism</label>
+              <label htmlFor="register-name" className="block text-sm font-semibold text-gray-700 mb-2">{t('name_label')}</label>
               <input
                 id="register-name"
                 name="name"
@@ -262,13 +269,13 @@ export default function RegisterPage() {
                   if (error) setError('');
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
-                placeholder="Ismingiz"
+                placeholder={language === 'en' ? 'Your full name' : 'Ismingiz'}
                 autoComplete="name"
                 required
               />
             </div>
             <div>
-              <label htmlFor="register-email" className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+              <label htmlFor="register-email" className="block text-sm font-semibold text-gray-700 mb-2">{t('email_label')}</label>
               <input
                 id="register-email"
                 name="email"
@@ -287,7 +294,7 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="register-password" className="block text-sm font-semibold text-gray-700 mb-2">Parol</label>
+              <label htmlFor="register-password" className="block text-sm font-semibold text-gray-700 mb-2">{t('password_label')}</label>
               <input
                 id="register-password"
                 name="password"
@@ -308,12 +315,12 @@ export default function RegisterPage() {
               />
               {passwordTooShort && (
                 <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1 font-medium">
-                  <i className="ri-information-line"></i> Parol kamida 6 ta belgidan iborat boʻlishi kerak
+                  <i className="ri-information-line"></i> {t('auth_password_min')}
                 </p>
               )}
             </div>
             <div>
-              <label htmlFor="register-confirm-password" className="block text-sm font-semibold text-gray-700 mb-2">Parolni tasdiqlang</label>
+              <label htmlFor="register-confirm-password" className="block text-sm font-semibold text-gray-700 mb-2">{t('confirm_password_label')}</label>
               <div className="relative">
                 <input
                   id="register-confirm-password"
@@ -346,20 +353,20 @@ export default function RegisterPage() {
               </div>
               {passwordsMismatch && (
                 <p className="text-xs text-red-600 mt-1.5 flex items-center gap-1 font-medium">
-                  <i className="ri-error-warning-line"></i> Kiritilgan parollar bir-biriga mos kelmadi
+                  <i className="ri-error-warning-line"></i> {t('auth_password_mismatch')}
                 </p>
               )}
               {passwordsMatch && (
                 <p className="text-xs text-teal-600 mt-1.5 flex items-center gap-1 font-medium">
-                  <i className="ri-check-line"></i> Parollar mos keldi
+                  <i className="ri-check-line"></i> {t('auth_passwords_match')}
                 </p>
               )}
             </div>
             <div className="flex items-start gap-2">
               <input type="checkbox" required className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 mt-0.5 cursor-pointer" />
               <p className="text-sm text-gray-600">
-                <Link to="/terms" className="text-teal-600 hover:underline">Foydalanish shartlari</Link> va{' '}
-                <Link to="/privacy" className="text-teal-600 hover:underline">Maxfiylik siyosati</Link>ni qabul qilaman
+                <Link to="/terms" className="text-teal-600 hover:underline">{t('footer_terms')}</Link> {language === 'en' ? 'and' : 'va'}{' '}
+                <Link to="/privacy" className="text-teal-600 hover:underline">{t('footer_privacy')}</Link>{language === 'en' ? ' accepted' : 'ni qabul qilaman'}
               </p>
             </div>
             <button
@@ -374,15 +381,15 @@ export default function RegisterPage() {
               {loading && (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               )}
-              <span>{loading ? "Tekshirilmoqda..." : "Ro'yxatdan o'tish"}</span>
+              <span>{loading ? t('auth_checking') : t('register_btn')}</span>
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Allaqachon hisobingiz bormi?{' '}
+              {t('register_has_account')}{' '}
               <Link to="/login" state={location.state} className="text-teal-600 hover:text-teal-700 font-semibold">
-                Kirish
+                {t('register_login_link')}
               </Link>
             </p>
           </div>
@@ -390,7 +397,7 @@ export default function RegisterPage() {
 
         <div className="mt-6 text-center">
           <Link to="/" className="text-gray-600 hover:text-gray-900 text-sm flex items-center justify-center gap-1">
-            <i className="ri-arrow-left-line mr-1"></i>Bosh sahifaga qaytish
+            <i className="ri-arrow-left-line mr-1"></i>{t('btn_back_home')}
           </Link>
         </div>
       </div>

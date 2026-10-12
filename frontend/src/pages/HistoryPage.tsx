@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getUserConversations, supabase } from '../utils/supabase';
 import type { Conversation } from '../utils/supabase';
 
@@ -14,6 +15,7 @@ interface HistoryItem {
 
 export default function HistoryPage() {
   const { user, isLoggedIn } = useAuth();
+  const { language, t } = useLanguage();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +39,7 @@ export default function HistoryPage() {
 
               return {
                 id: c.id,
-                preview: c.title || 'Yangi suhbat',
+                preview: c.title || (language === 'en' ? 'New chat' : 'Yangi suhbat'),
                 messageCount: count || 0,
                 date: c.created_at,
               };
@@ -59,7 +61,7 @@ export default function HistoryPage() {
     } else {
       setLoading(false);
     }
-  }, [user?.id, isLoggedIn]);
+  }, [user?.id, isLoggedIn, language]);
 
   const handleDelete = async (id: string) => {
     if (!user?.id) return;
@@ -75,7 +77,7 @@ export default function HistoryPage() {
 
   const handleClearAll = async () => {
     if (!user?.id) return;
-    const confirm = window.confirm("Barcha suhbatlar tarixini o'chirmoqchimisiz?");
+    const confirm = window.confirm(t('history_confirm_clear'));
     if (!confirm) return;
 
     try {
@@ -91,10 +93,10 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-white pt-16">
       <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-teal-50/40">
         <div className="max-w-7xl mx-auto px-8 text-center">
-          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Tarix</span>
-          <h1 className="text-5xl font-bold text-gray-900 mt-3 mb-4">Eski Qidiruvlar</h1>
+          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">{t('history_tag')}</span>
+          <h1 className="text-5xl font-bold text-gray-900 mt-3 mb-4">{t('history_title')}</h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Oldingi huquqiy suhbatlaringiz va qidiruvlaringiz
+            {t('history_desc')}
           </p>
         </div>
       </section>
@@ -110,25 +112,26 @@ export default function HistoryPage() {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i className="ri-history-line text-gray-400 text-3xl"></i>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Tarix bo'sh</h3>
-              <p className="text-gray-500 mb-6">Hali hech qanday suhbat amalga oshirilmagan</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('history_empty_title')}</h3>
+              <p className="text-gray-500 mb-6">{t('history_empty_desc')}</p>
               <Link
                 to="/chat"
                 className="inline-flex items-center justify-center bg-teal-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-teal-700 transition-colors"
               >
-                <i className="ri-chat-3-line mr-2"></i>Yangi suhbat boshlash
+                <i className="ri-chat-3-line mr-2"></i>{t('history_new_chat')}
               </Link>
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-bold text-gray-900">{history.length} ta suhbat</h2>
+                <h2 className="text-xl font-bold text-gray-900">{history.length} {t('history_conversations_count')}</h2>
                 <button
+                  type="button"
                   onClick={handleClearAll}
                   className="text-sm text-red-500 hover:text-red-600 flex items-center gap-1.5 px-4 py-2 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
                 >
                   <i className="ri-delete-bin-line"></i>
-                  Barchasini o'chirish
+                  {t('history_clear_all')}
                 </button>
               </div>
 
@@ -148,11 +151,11 @@ export default function HistoryPage() {
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-xs text-gray-400">
                               <i className="ri-message-3-line mr-1"></i>
-                              {item.messageCount} ta xabar
+                              {item.messageCount} {t('history_messages_count')}
                             </span>
                             <span className="text-xs text-gray-400">
                               <i className="ri-calendar-line mr-1"></i>
-                              {new Date(item.date).toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' })}
+                              {new Date(item.date).toLocaleDateString(language === 'en' ? 'en-US' : 'uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' })}
                             </span>
                           </div>
                         </div>
@@ -163,12 +166,14 @@ export default function HistoryPage() {
                           className="text-xs text-teal-600 font-medium hover:text-teal-700 flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-teal-50 transition-colors"
                         >
                           <i className="ri-arrow-right-line"></i>
-                          Davom ettirish
+                          {t('history_continue')}
                         </Link>
                         <button
+                          type="button"
                           onClick={() => handleDelete(item.id)}
                           className="text-gray-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
-                          title="O'chirish"
+                          title={t('history_delete')}
+                          aria-label={t('history_delete')}
                         >
                           <i className="ri-delete-bin-line text-base"></i>
                         </button>
@@ -183,7 +188,7 @@ export default function HistoryPage() {
                   to="/chat"
                   className="inline-flex items-center justify-center bg-teal-600 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm"
                 >
-                  <i className="ri-chat-3-line mr-2"></i>Yangi suhbat boshlash
+                  <i className="ri-chat-3-line mr-2"></i>{t('history_new_chat')}
                 </Link>
               </div>
             </>

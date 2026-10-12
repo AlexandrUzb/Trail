@@ -19,6 +19,7 @@ import AdminPage from './pages/AdminPage';
 import ScrollToTop from './components/ScrollToTop';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 // Pages that should NOT have Navbar/Footer
 const NO_LAYOUT_PAGES = ['/login', '/register', '/admin'];
@@ -66,7 +67,7 @@ function Layout() {
     <>
       <ScrollToTop />
       {!noLayout && <Navbar />}
-      <main>
+      <div className="flex-1">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/chat" element={<ChatPage />} />
@@ -117,7 +118,7 @@ function Layout() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </main>
+      </div>
       {!noLayout && <Footer />}
     </>
   );
@@ -132,11 +133,13 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <Router basename={routerBasename}>
-          <Layout />
-        </Router>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <Router basename={routerBasename}>
+            <Layout />
+          </Router>
+        </AuthProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   );
 }

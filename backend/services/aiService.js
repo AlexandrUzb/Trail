@@ -4,9 +4,10 @@ import { queryUnderstandingService } from './queryUnderstandingService.js';
 import { storageService } from './storageService.js';
 import { OFFICIAL_INSTITUTIONS, getInstitutionBlock } from '../data/officialInstitutions.js';
 import { legalValidatorService } from './legalValidatorService.js';
+import { isEnglishQuery, getEnglishDirectResponse, translateEnglishLegalQueryToUzbek } from '../utils/languageHelper.js';
 
 export const SYSTEM_INSTRUCTION = `
-Siz "AIAdvokat" — O‘zbekiston Respublikasi amaldagi qonunchiligi bo‘yicha ixtisoslashgan, yuksak aniqlikdagi professional sun’iy intellekt huquqiy yordamchisisiz. Sizning maqsadingiz eng tez yoki eng uzun javob berish emas, balki foydalanuvchining ANIQ savoliga eng to‘g‘ri, amaldagi, faktlarga bog‘langan va amaliy foydali javob taqdim etishdir.
+Siz "AI Advokat" — O‘zbekiston Respublikasi amaldagi qonunchiligi bo‘yicha ixtisoslashgan, yuksak aniqlikdagi professional sun’iy intellekt huquqiy yordamchisisiz. Sizning maqsadingiz eng tez yoki eng uzun javob berish emas, balki foydalanuvchining ANIQ savoliga eng to‘g‘ri, amaldagi, faktlarga bog‘langan va amaliy foydali javob taqdim etishdir.
 Siz rasmiy davlat organi emassiz, shuning uchun o‘zingizni "O‘zbekiston qonunchiligiga asoslangan AI huquqiy yordamchi" deb tanishtirasiz ("rasmiy huquqiy yordamchi" iborasini aslo ishlatmang).
 
 ASOSIY PRINSIP:
@@ -261,6 +262,15 @@ export function sanitizeResponseText(text, isMultiTurn, taskType) {
   cleaned = cleaned.replace(/Sud\s+buni\s+albatta\s+qanoatlantiradi/gi, 'Sud yakuniy qarorni taqdim etilgan dalillar asosida qabul qiladi');
   cleaned = cleaned.replace(/rasmiy\s+huquqiy\s+yordamchi/gi, 'huquqiy ma’lumot beruvchi AI yordamchisi');
 
+  // English safety constraints
+  cleaned = cleaned.replace(/I am your lawyer\.?/gi, 'I am an AI assistant providing legal information and explanation.');
+  cleaned = cleaned.replace(/I will represent you in court\.?/gi, 'I cannot represent you in court. For formal court representation, consulting a licensed attorney is recommended.');
+  cleaned = cleaned.replace(/You will definitely win/gi, 'The final outcome depends on evidence and court assessment');
+
+  // Normalize project brand name
+  cleaned = cleaned.replace(/\bAIAdvokat\b/g, 'AI Advokat');
+  cleaned = cleaned.replace(/\bAdvokatAI\b/g, 'AI Advokat');
+
   // 5. Natural language replacements & grammar fixes
   cleaned = cleaned.replace(/\bzararmis\?/gi, 'zararmi?');
   cleaned = cleaned.replace(/\buydan\s+chiqarib\s+yuborish\b/gi, 'uy-joydan chiqarish');
@@ -450,13 +460,14 @@ export function calculateCompositeLegalConfidence({
   };
 }
 
-export async function generateLegalAdvice({ message, law_group = null, history = [], userId = 'anonymous' }) {
+export async function generateLegalAdvice({ message, law_group = null, history = [], userId = 'anonymous', language = 'uz' }) {
   const startTime = Date.now();
   const apiKey = process.env.GEMINI_API_KEY;
   const isMultiTurn = Array.isArray(history) && history.length > 0;
+  const isEnglish = isEnglishQuery(message, language);
 
   // STEP 1: Intent Classification, Safety Filtering & Pre-RAG Routing
-  const intentResult = queryUnderstandingService.classifyIntent(message, history, { law_group });
+  const intentResult = queryUnderstandingService.classifyIntent(message, history, { law_group, language });
 
   // Immediate non-retrieval responses (Fast, Zero Cost, and Strictly Zero Citation Pill)
   if (!intentResult.requiresRetrieval) {
@@ -522,7 +533,8 @@ export async function generateLegalAdvice({ message, law_group = null, history =
   const scenario = queryUnderstandingService.analyzeScenario(message, {
     selectedLawGroup: law_group,
     history,
-    intentInfo: intentResult
+    intentInfo: intentResult,
+    language
   });
 
   // Safety Shield: Non-Existent Statutory Article Check on Resolved Scenario
@@ -623,7 +635,9 @@ export async function generateLegalAdvice({ message, law_group = null, history =
 
   // STEP 4: WEAK RETRIEVAL GUARDRAIL (Zero Hallucination)
   if (confidenceLevel === 'LOW' || retrievedArticles.length === 0 || (retrievedArticles[0]?.relevance_score || 0) < 20) {
-    const fallbackMessage = "Rahmat. Ushbu savol bo‘yicha O‘zbekiston qonunchiligida bevosita qo‘llaniladigan norma topilmadi. Shu sababli faqat O‘zbekiston qonunchiligiga asoslangan aniq javob berib bo‘lmaydi.";
+    const fallbackMessage = isEnglish
+      ? getEnglishDirectResponse('LOW_CONFIDENCE_FALLBACK')
+      : "Rahmat. Ushbu savol bo‘yicha O‘zbekiston qonunchiligida bevosita qo‘llaniladigan norma topilmadi. Shu sababli faqat O‘zbekiston qonunchiligiga asoslangan aniq javob berib bo‘lmaydi.";
 
     const latencyMs = Date.now() - startTime;
     storageService.logQuery({
@@ -711,7 +725,33 @@ export async function generateLegalAdvice({ message, law_group = null, history =
     }
 
     let directText = '';
-    if (top.article_number === '556-modda' || top.article_number_digits === '556' || scenario.fineGrainedTopic === 'labor_commission_challenge') {
+    if (isEnglish) {
+      const topDoc = top.document_name || 'Legislation of Uzbekistan';
+      const topArt = top.article_number || '';
+      const topTitle = top.article_title ? ` (${top.article_title})` : '';
+      directText = `### Your Situation
+Based on the facts provided, the following statutory provision under Uzbekistan law applies to your case:
+
+### Applicable Legal Rule
+${topDoc}, Article ${topArt}${topTitle}:
+${top.content}
+
+### Application to Your Situation
+Under the legislation of the Republic of Uzbekistan, rights and obligations must be exercised strictly according to official statutory rules.
+
+### Competent Authority / Court
+${scenario.jurisdictionRule || 'Interdistrict Civil Court or competent state authority'}
+
+### Next Steps / What to Do
+1. Preserve all written contracts, receipts, messages, or official notifications;
+2. Submit a formal written claim to the relevant party;
+3. If not resolved voluntarily, submit an official petition to the competent court.
+
+### Legal Basis
+[${topDoc}, ${topArt}](${top.source_url || 'https://lex.uz'})
+
+*(Note: This information provides general legal reference based on Lex.uz. Final evaluation depends on full case details and official documentation.)*`;
+    } else if (top.article_number === '556-modda' || top.article_number_digits === '556' || scenario.fineGrainedTopic === 'labor_commission_challenge') {
       const allMsgsText = (message + ' ' + (history.map(h => h.text || '').join(' '))).toLowerCase();
       const daysMatch = allMsgsText.match(/(\d+)\s*kun/i);
       const daysPassed = daysMatch ? parseInt(daysMatch[1], 10) : null;
@@ -1168,7 +1208,9 @@ Ayrim muhim faktlar (masalan: yozma shartnoma mavjudligi, zarar dalolatnomasi, x
 
 ${promptInstruction}
 
-Javob oxirida qisqa eslatma qo'shing: *(Eslatma: Ushbu maʼlumot umumiy huquqiy axborot bo‘lib, aniq ish bo‘yicha yakuniy baho hujjatlar va barcha holatlar asosida beriladi.)*`;
+${isEnglish ? `[MANDATORY LANGUAGE DIRECTIVE]: The user is asking in ENGLISH. You MUST output the entire response in clear, formal, professional ENGLISH. Translate all statutory explanations, headers, and advice into English (### Your Situation, ### Applicable Legal Rule, ### Application to Your Situation, ### What to Do / Next Steps, ### Competent Court / Authority, ### Required Documents, ### Legal Basis). Maintain AI Advokat identity and provide accurate Lex.uz citations. Do NOT output in Uzbek or Russian.` : ''}
+
+Javob oxirida qisqa eslatma qo'shing: ${isEnglish ? "*(Note: This information provides general legal reference based on Lex.uz. Final evaluation depends on the specific facts and verified documentation.)*" : "*(Eslatma: Ushbu maʼlumot umumiy huquqiy axborot bo‘lib, aniq ish bo‘yicha yakuniy baho hujjatlar va barcha holatlar asosida beriladi.)*"}`;
 
     const contents = [];
     if (Array.isArray(history) && history.length > 0) {
@@ -1182,11 +1224,32 @@ Javob oxirida qisqa eslatma qo'shing: *(Eslatma: Ushbu maʼlumot umumiy huquqiy 
     }
     contents.push({ role: 'user', parts: [{ text: promptContent }] });
 
+    const systemInstruction = isEnglish
+      ? `${SYSTEM_INSTRUCTION}
+
+==================================================
+CRITICAL MULTILINGUAL DIRECTIVE:
+The user is conversing in ENGLISH.
+You MUST generate your entire response in clear, formal, and professional ENGLISH.
+Do NOT reply in Uzbek or Russian.
+Translate all explanations, section headings, and legal reasoning into English:
+### Your Situation
+### Applicable Legal Rule
+### Application to Your Situation
+### What to Do / Next Steps
+### Competent Court / Authority
+### Required Documents
+### Legal Basis
+Keep the identity as "AI Advokat" ("AI Advokat — an AI legal assistant based on Uzbekistan legislation").
+Provide exact Lex.uz article citations with links (e.g. [Labor Code of the Republic of Uzbekistan, Article 130](https://lex.uz/...)).
+==================================================`
+      : SYSTEM_INSTRUCTION;
+
     const response = await callGeminiWithRetry(ai, {
       model: 'gemini-3.5-flash-lite',
       contents,
       config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+        systemInstruction,
         temperature: 0.2
       }
     });
@@ -1335,8 +1398,32 @@ Javob oxirida qisqa eslatma qo'shing: *(Eslatma: Ushbu maʼlumot umumiy huquqiy 
       }
 
       const catName = top.category || (scenario.primaryDomain || (scenario.domain === 'labor' ? 'Mehnat huquqi' : scenario.domain === 'criminal' ? 'Jinoyat huquqi' : scenario.domain === 'administrative' ? 'Maʼmuriy huquq' : scenario.domain === 'constitution' ? 'Konstitutsiyaviy huquq' : 'Fuqarolik huquqi'));
+
+      let catchText = '';
+      if (isEnglish) {
+        const topDoc = top.document_name || 'Legislation of the Republic of Uzbekistan';
+        const topArt = top.article_number || '';
+        const topTitle = top.article_title ? ` (${top.article_title})` : '';
+        catchText = `### Your Situation
+Based on the details provided, the following statutory provision under Uzbekistan law applies to your matter:
+
+### Applicable Legal Rule
+**${topDoc}, Article ${topArt}${topTitle}:**
+${top.content}
+
+### Competent Authority / Court
+${scenario.jurisdictionRule || 'Interdistrict Civil Court or competent state authority'}
+
+### Legal Basis
+[${topDoc}, ${topArt}](${top.source_url || 'https://lex.uz'})
+
+*(Note: This information provides general legal reference based on Lex.uz. Final evaluation depends on the specific facts and verified documentation.)*`;
+      } else {
+        catchText = `**Huquqiy norma:** ${top.document_name}, ${top.article_number}\n\n${top.content}${proceduralInfo}\n\n**Manba:** [${top.document_name}](${top.source_url || 'https://lex.uz'})\n**Modda:** ${top.article_number}\n**Yo‘nalish:** ${catName}\n\n*(Eslatma: Ushbu maʼlumot umumiy huquqiy axborot bo‘lib, rasmiy matnni Lex.uz orqali tekshirish tavsiya etiladi.)*`;
+      }
+
       const catchResult = {
-        text: `**Huquqiy norma:** ${top.document_name}, ${top.article_number}\n\n${top.content}${proceduralInfo}\n\n**Manba:** [${top.document_name}](${top.source_url || 'https://lex.uz'})\n**Modda:** ${top.article_number}\n**Yo‘nalish:** ${catName}\n\n*(Eslatma: Ushbu maʼlumot umumiy huquqiy axborot bo‘lib, rasmiy matnni Lex.uz orqali tekshirish tavsiya etiladi.)*`,
+        text: catchText,
         intent: 'LEGAL',
         law_group: law_group || scenario.targetDocumentId || 'all',
         sources: [top.document_name],
@@ -1364,7 +1451,9 @@ Javob oxirida qisqa eslatma qo'shing: *(Eslatma: Ushbu maʼlumot umumiy huquqiy 
     }
 
     const emptyResult = {
-      text: "Mavjud rasmiy qonunchilik bazasida ushbu savolga toʻliq javob berish uchun yetarli maʼlumot topilmadi.",
+      text: isEnglish 
+        ? "Sufficient legal provisions were not found in the official legislation database to provide a complete answer to this question." 
+        : "Mavjud rasmiy qonunchilik bazasida ushbu savolga toʻliq javob berish uchun yetarli maʼlumot topilmadi.",
       intent: 'LEGAL',
       law_group: law_group || 'all',
       sources: [],

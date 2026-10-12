@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { cyrillicToLatin, latinToCyrillic, normalizeSearchText } from '../utils/transliterate.js';
 import { LAW_GROUP_MAP } from './queryUnderstandingService.js';
 import { OFFICIAL_INSTITUTIONS } from '../data/officialInstitutions.js';
+import { ENGLISH_STOPWORDS, translateEnglishLegalQueryToUzbek, isEnglishQuery } from '../utils/languageHelper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -527,6 +528,7 @@ class RAGService {
 
     // Stopwords filter - expanded with everyday non-legal question markers and auxiliaries
     const stopwords = new Set([
+      ...ENGLISH_STOPWORDS,
       'va', 'yoki', 'haqida', 'to‘g‘risida', 'togrisida', 'to\'g\'risida', 'uchun', 'bilan', 'nima', 'qanday', 'mumkin', 
       'kerak', 'qilish', 'buyicha', 'bo‘yicha', 'boyicha', 'bo\'yicha', 'deb', 'bir', 'esa', 'ҳам', 'ва', 'ёки', 
       'ҳақида', 'тўғрисида', 'учун', 'билан', 'нима', 'қандай', 'мумкин', 'керак',
@@ -538,6 +540,16 @@ class RAGService {
     ]);
     const cleanWord = w => w.replace(/[ʻ‘'`]/g, "'").trim();
     const rawTerms = queryLatin.split(/\s+/).map(cleanWord).filter(t => t.length > 2 && !stopwords.has(t) && !stopwords.has(t.replace(/'/g, '')));
+
+    // If English query, supplement with translated Uzbek statutory terms
+    if (isEnglishQuery(cleanQuery)) {
+      const translatedUz = translateEnglishLegalQueryToUzbek(cleanQuery);
+      if (translatedUz && translatedUz !== cleanQuery) {
+        const transNorm = cyrillicToLatin(normalizeSearchText(translatedUz)).toLowerCase();
+        const transSpl = transNorm.split(/\s+/).map(cleanWord).filter(t => t.length > 2 && !stopwords.has(t));
+        rawTerms.push(...transSpl);
+      }
+    }
 
     if (Array.isArray(additionalTerms)) {
       for (const term of additionalTerms) {
@@ -558,14 +570,24 @@ class RAGService {
     // Legal concepts & article association
     const synonyms = [
       {
-        triggers: ['maosh', 'oylik', 'oylig', 'patron', 'ish haqi', 'ish haqqi', "ish haqi to'lash"],
+        triggers: ['maosh', 'oylik', 'oylig', 'patron', 'ish haqi', 'ish haqqi', "ish haqi to'lash", 'salary', 'wage', 'wages', 'unpaid', 'pay', 'withholding'],
         expansions: ["mehnatga haq to'lash", "ish haqi to'lash muddatlari", 'mehnat shartnomasi', 'moddiy javobgarlik'],
         numbers: [{ doc: 'labor_code', num: '244' }, { doc: 'labor_code', num: '253' }, { doc: 'labor_code', num: '333' }, { doc: 'labor_code', num: '160' }]
       },
       {
-        triggers: ["ishdan bo'shash", 'ishdan ketish', "ishdan bo'shatish", 'ishdan haydash', 'ariza muddati', 'ishdan bushash'],
-        expansions: ['mehnat shartnomasini bekor qilish', 'ogohlantirish muddati', 'xodimning tashabbusi', 'ishga tiklash'],
-        numbers: [{ doc: 'labor_code', num: '160' }, { doc: 'labor_code', num: '161' }, { doc: 'labor_code', num: '163' }, { doc: 'labor_code', num: '168' }]
+        triggers: ["ishdan bo'shash", 'ishdan ketish', "ishdan bo'shatish", 'ishdan haydash', 'ariza muddati', 'ishdan bushash', 'dismissal', 'dismiss', 'fire', 'fired', 'terminate', 'termination', 'pregnant', 'pregnancy'],
+        expansions: ['mehnat shartnomasini bekor qilish', 'ogohlantirish muddati', 'xodimning tashabbusi', 'ishga tiklash', 'homilador ayol'],
+        numbers: [{ doc: 'labor_code', num: '160' }, { doc: 'labor_code', num: '161' }, { doc: 'labor_code', num: '163' }, { doc: 'labor_code', num: '168' }, { doc: 'labor_code', num: '408' }]
+      },
+      {
+        triggers: ['probation', 'probation period', 'trial period', 'probationary', 'sinov muddati', 'dastlabki sinov'],
+        expansions: ['dastlabki sinov', 'sinov muddati', 'mehnat shartnomasi', 'ishga qabul qilish'],
+        numbers: [{ doc: 'labor_code', num: '129' }, { doc: 'labor_code', num: '130' }, { doc: 'labor_code', num: '131' }, { doc: 'labor_code', num: '132' }]
+      },
+      {
+        triggers: ['employment contract', 'labor contract', 'work contract', 'job contract', 'mehnat shartnomasi', 'mehnat shartnoma'],
+        expansions: ['mehnat shartnomasi tuzish', 'ishga qabul qilish', 'mehnat shartnomasi shartlari'],
+        numbers: [{ doc: 'labor_code', num: '104' }, { doc: 'labor_code', num: '107' }, { doc: 'labor_code', num: '108' }, { doc: 'labor_code', num: '129' }, { doc: 'labor_code', num: '138' }]
       },
       {
         triggers: ['mehnat inspektori', 'mehnat inspeksiyasi', 'inspektor qarori'],
@@ -573,7 +595,7 @@ class RAGService {
         numbers: [{ doc: 'labor_code', num: '535' }, { doc: 'labor_code', num: '537' }]
       },
       {
-        triggers: ['mehnat nizolari komissiyasi', 'komissiya qarori', 'mnk qarori', 'komissiya qaroridan norozi', 'komissiya qaror ustidan', 'komissiya qaror chiqargan'],
+        triggers: ['mehnat nizolari komissiyasi', 'komissiya qarori', 'mnk qarori', 'komissiya qaroridan norozi', 'komissiya qaror ustidan', 'komissiya qaror chiqargan', 'labor dispute', 'employment dispute', 'labor commission', 'work dispute'],
         expansions: ['mehnat nizolari komissiyasi qarori ustidan sudga murojaat', 'yakka tartibdagi mehnat nizosini sudga o‘tkazish', 'o‘n kunlik muddat'],
         numbers: [{ doc: 'labor_code', num: '556' }, { doc: 'labor_code', num: '557' }, { doc: 'labor_code', num: '558' }, { doc: 'labor_code', num: '559' }]
       },
@@ -583,59 +605,64 @@ class RAGService {
         numbers: [{ doc: 'labor_code', num: '571' }, { doc: 'labor_code', num: '575' }]
       },
       {
-        triggers: ['chiqarib yubormoqchi', 'uydan chiqarish', 'kvartiradan chiqarish'],
+        triggers: ['chiqarib yubormoqchi', 'uydan chiqarish', 'kvartiradan chiqarish', 'eviction', 'evict', 'lease cancellation', 'terminate lease'],
         expansions: ['turar joy', 'ijara shartnomasini bekor qilish', 'sud orqali'],
         numbers: [{ doc: 'civil_code', num: '615' }, { doc: 'civil_code', num: '551' }]
       },
       {
-        triggers: ['depozit', 'zalog', 'garov'],
+        triggers: ['depozit', 'zalog', 'garov', 'security deposit', 'rental deposit', 'refund deposit'],
         expansions: ['mulk ijarasi majburiyatlari', 'garovni qaytarish', 'majburiyatlarni bajarish'],
         numbers: [{ doc: 'civil_code', num: '544' }, { doc: 'civil_code', num: '382' }, { doc: 'civil_code', num: '333' }]
       },
       {
-        triggers: ['ijara', 'uy ijarasi', 'kvartira ijarasi', 'arendator', 'ijarachi', 'ijaraga beruvchi'],
+        triggers: ['ijara', 'uy ijarasi', 'kvartira ijarasi', 'arendator', 'ijarachi', 'ijaraga beruvchi', 'rent', 'rental', 'lease', 'leasing', 'tenant', 'landlord', 'tenant rights', 'apartment rent'],
         expansions: ['mulk ijarasi', 'ijara shartnomasi', 'turar joy'],
         numbers: [{ doc: 'civil_code', num: '535' }, { doc: 'civil_code', num: '536' }, { doc: 'civil_code', num: '544' }, { doc: 'civil_code', num: '615' }]
       },
       {
-        triggers: ['pora', 'pora olish', 'pora berish', 'korrupsiya', 'tovlamachilik'],
+        triggers: ['pora', 'pora olish', 'pora berish', 'korrupsiya', 'tovlamachilik', 'bribe', 'bribery', 'corruption', 'extortion'],
         expansions: ['pora olish', 'pora berish', 'mansabdor shaxs', 'vositachilik'],
         numbers: [{ doc: 'criminal_code', num: '210' }, { doc: 'criminal_code', num: '211' }, { doc: 'criminal_code', num: '212' }]
       },
       {
-        triggers: ['jarima', "ma'muriy jazo", "yo'l harakati", 'radar', 'prava', 'jarimadan shikoyat', 'jarima ustidan'],
+        triggers: ['jarima', "ma'muriy jazo", "yo'l harakati", 'radar', 'prava', 'jarimadan shikoyat', 'jarima ustidan', 'fine', 'penalty', 'traffic fine', 'speeding ticket', 'appeal fine'],
         expansions: ["ma'muriy huquqbuzarlik", "jarima solish to'g'risida qaror", 'transport vositasi', 'qaror ustidan shikoyat berish', '10 kunlik muddat'],
         numbers: [{ doc: 'administrative_code', num: '314' }, { doc: 'administrative_code', num: '315' }, { doc: 'administrative_code', num: '316' }, { doc: 'administrative_code', num: '317' }, { doc: 'administrative_code', num: '128' }, { doc: 'administrative_code', num: '131' }]
       },
       {
-        triggers: ['aliment', 'aliment to\'lash', 'aliment undirish', 'bolalar puli', 'aliment tolamayapti', 'aliment to\'lamayapti', 'aliment miqdori'],
+        triggers: ['aliment', 'aliment to\'lash', 'aliment undirish', 'bolalar puli', 'aliment tolamayapti', 'aliment to\'lamayapti', 'aliment miqdori', 'alimony', 'child support'],
         expansions: ['aliment undirish', 'aliment to\'lash majburiyati', 'voyaga yetmagan bolalarga aliment', 'daromaddan ushlab qolish'],
         numbers: [{ doc: 'family_code', num: '96' }, { doc: 'family_code', num: '97' }, { doc: 'family_code', num: '99' }, { doc: 'family_code', num: '117' }, { doc: 'family_code', num: '111' }]
       },
       {
-        triggers: ['nikoh', 'ajrashish', 'ajrim', 'nikoh shartnomasi', 'er-xotin mulki', 'mulkni bo\'lish'],
+        triggers: ['nikoh', 'ajrashish', 'ajrim', 'nikoh shartnomasi', 'er-xotin mulki', 'mulkni bo\'lish', 'divorce', 'marriage', 'marital property'],
         expansions: ['nikohdan ajratish', 'er va xotinning birgalikdagi umumiy mulki', 'nikoh shartnomasi', 'yarashish muholati'],
         numbers: [{ doc: 'family_code', num: '18' }, { doc: 'family_code', num: '20' }, { doc: 'family_code', num: '37' }, { doc: 'family_code', num: '44' }, { doc: 'family_code', num: '51' }]
       },
       {
-        triggers: ['meros', 'vasiyatnoma', 'merosxor', 'merosxo\'r', 'vorislik', 'majburiy ulush', 'meros muddati'],
+        triggers: ['meros', 'vasiyatnoma', 'merosxor', 'merosxo\'r', 'vorislik', 'majburiy ulush', 'meros muddati', 'inheritance', 'will', 'inherit', 'heir'],
         expansions: ['vorislik asoslari', 'vasiyatnoma bo\'yicha vorislik', 'qonun bo\'yicha vorislik', 'merosdan majburiy ulush', 'merosni qabul qilish muddati'],
         numbers: [{ doc: 'civil_code', num: '1112' }, { doc: 'civil_code', num: '1118' }, { doc: 'civil_code', num: '1134' }, { doc: 'civil_code', num: '1142' }, { doc: 'civil_code', num: '1146' }]
       },
       {
-        triggers: ['soliq', 'daromad solig\'i', 'daromad soligi', 'qqs', 'aylanmadan soliq', 'soliq tekshiruvi', 'kameral tekshiruv', 'soliq auditi', 'inkasso'],
+        triggers: ['soliq', 'daromad solig\'i', 'daromad soligi', 'qqs', 'aylanmadan soliq', 'soliq tekshiruvi', 'kameral tekshiruv', 'soliq auditi', 'inkasso', 'tax', 'taxes', 'income tax'],
         expansions: ['soliq to\'lovchilarning huquqlari', 'kameral soliq tekshiruvi', 'soliq auditi', 'soliq qarzini undirish'],
         numbers: [{ doc: 'tax_code', num: '24' }, { doc: 'tax_code', num: '67' }, { doc: 'tax_code', num: '73' }, { doc: 'tax_code', num: '53' }, { doc: 'tax_code', num: '86' }]
       },
       {
-        triggers: ['qarzdorlik', 'qarz', 'tilxat', 'raspiyaska', 'kredit', 'foiz', 'qarz shartnomasi'],
+        triggers: ['qarzdorlik', 'qarz', 'tilxat', 'raspiyaska', 'kredit', 'foiz', 'qarz shartnomasi', 'debt', 'loan', 'borrow'],
         expansions: ['qarz shartnomasi', 'kredit shartnomasi', 'qarzni qaytarish', 'foizlar'],
         numbers: [{ doc: 'civil_code', num: '732' }, { doc: 'civil_code', num: '734' }, { doc: 'civil_code', num: '735' }, { doc: 'civil_code', num: '736' }]
       },
       {
-        triggers: ['tadbirkorlik', 'biznes', 'firma', 'mchj', 'franchayzing', 'litsenziya'],
+        triggers: ['tadbirkorlik', 'biznes', 'firma', 'mchj', 'franchayzing', 'litsenziya', 'business', 'start business', 'register company', 'llc'],
         expansions: ['yuridik shaxslar', 'mas\'uliyati cheklangan jamiyat', 'franchayzing', 'tadbirkorlik faoliyati'],
         numbers: [{ doc: 'civil_code', num: '39' }, { doc: 'civil_code', num: '58' }, { doc: 'civil_code', num: '862' }]
+      },
+      {
+        triggers: ['court', 'lawsuit', 'sue', 'judge', 'file lawsuit'],
+        expansions: ['fuqarolik ishlari bo‘yicha sud', 'da\'vo arizasi', 'sudga murojaat'],
+        numbers: [{ doc: 'civil_code', num: '9' }, { doc: 'labor_code', num: '558' }]
       }
     ];
 

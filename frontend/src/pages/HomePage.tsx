@@ -2,11 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FormattedMarkdown } from '../components/FormattedMarkdown';
 import { faqsData } from '../data/faqs';
-
-const initialMessage = {
-  role: 'assistant',
-  text: "Salom! Men AIAdvokat — O'zbekiston qonunlari bo'yicha sun'iy intellekt yordamchingizman. Har qanday huquqiy savolingizni bering, sizga yordam beraman.",
-};
+import { useLanguage } from '../context/LanguageContext';
 
 const suggestions = [
   "O'zbekistonda biznes ochish uchun qanday talablar bor?",
@@ -14,18 +10,29 @@ const suggestions = [
   'Ijarachilarning huquqlari qanday?',
 ];
 
-function getAIResponse(question: string): string {
+function getAIResponse(question: string, language: string = 'uz'): string {
   const q = question.toLowerCase();
+  const isEn = language === 'en';
+  if (isEn) {
+    if (q.includes('business') || q.includes('company') || q.includes('start'))
+      return "To start a business in Uzbekistan: 1) Online registration through the single portal (my.gov.uz), 2) Opening a commercial bank account, 3) Obtaining any required licenses or permits. Under the Law on Guarantees of Freedom of Entrepreneurial Activity, both domestic and foreign founders enjoy statutory protections.";
+    if (q.includes('labor') || q.includes('dispute') || q.includes('work') || q.includes('employ') || q.includes('salary'))
+      return "Regarding labor disputes: Under the Labor Code of Uzbekistan, disputes are examined by the labor dispute commission or directly by the Interdistrict Civil Court. Workers are fully exempt from state filing fees for labor claims (Article 559). You can also report violations to the State Labor Inspectorate (hotline: 1176).";
+    if (q.includes('tenant') || q.includes('rent') || q.includes('lease') || q.includes('apartment'))
+      return "Key tenant rights under the Civil Code of Uzbekistan (Articles 535–564 & 600–615): 1) Undisturbed lawful occupancy during the contract period, 2) Capital maintenance is the landlord's obligation, 3) Protection against arbitrary eviction without a valid judicial court ruling.";
+    return "Thank you for your question. Under Uzbekistan law, for detailed legal advice with Lex.uz citations, please visit the AI Advokat chat consultation page.";
+  }
   if (q.includes('biznes') || q.includes('tadbirkor'))
     return "O‘zbekistonda biznes ochish uchun: 1) Soliq organida ro‘yxatdan o‘tish, 2) Bank hisobvaraqasi ochish, 3) Litsenziya yoki xabardor qilish (faoliyat turiga ko‘ra) talab etiladi. Tadbirkorlik faoliyati erkinligining kafolatlari to‘g‘risidagi qonunchilikka ko‘ra, jismoniy shaxslar yakka tartibdagi tadbirkor sifatida ham ro‘yxatdan o‘tishi mumkin.";
   if (q.includes('mehnat') || q.includes('ish'))
     return "Mehnat nizolari bo‘yicha: O‘zbekiston Respublikasi Mehnat kodeksiga asosan yakka tartibdagi mehnat nizolari mehnat nizolari komissiyasi (agar korxonada tuzilgan bo‘lsa) yoki to‘g‘ridan-to‘g‘ri fuqarolik ishlari bo‘yicha sud tomonidan ko‘rib chiqiladi. Shuningdek, xodimlar mehnat huquqlari buzilishi yuzasidan Davlat mehnat inspeksiyasiga (1176) murojaat qilishlari mumkin.";
   if (q.includes('ijara') || q.includes('ijarachi'))
     return "Ijarachilarning asosiy huquqlari: 1) Shartnomada belgilangan muddat davomida mulkdan to‘sqinliksiz foydalanish, 2) Asosiy (kapital) ta’mirlash ishlarini mulk egasidan talab qilish, 3) Qonunda belgilangan asoslarsiz va sud qarorisiz uy-joydan chiqarilmaslik. O‘zbekiston Respublikasi Fuqarolik kodeksining 535–564 va 600–615-moddalari ijara munosabatlarini tartibga soladi.";
-  return "Savolingiz uchun rahmat. O‘zbekiston qonunchiligiga ko‘ra bu masala bo‘yicha aniq huquqiy tushuntirish olish uchun AIAdvokat chat sahifasiga o‘ting.";
+  return "Savolingiz uchun rahmat. O‘zbekiston qonunchiligiga ko‘ra bu masala bo‘yicha aniq huquqiy tushuntirish olish uchun AI Advokat chat sahifasiga o‘ting.";
 }
 
 function HeroSection() {
+  const { t } = useLanguage();
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-gray-50 via-white to-teal-50/40 pt-20">
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-teal-50 rounded-full opacity-60 translate-x-1/3 -translate-y-1/4 pointer-events-none"></div>
@@ -35,37 +42,37 @@ function HeroSection() {
           <div className="space-y-8">
             <div className="inline-flex items-center space-x-2 bg-teal-50 border border-teal-100 text-teal-700 px-4 py-2 rounded-full text-sm font-medium">
               <i className="ri-sparkling-line text-teal-500"></i>
-              <span>O'zbekiston uchun birinchi AIAdvokat</span>
+              <span>{t('hero_badge')}</span>
             </div>
             <div className="space-y-4">
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Huquqiy Maslahat<br />
-                <span className="text-teal-600">Sun'iy Intellekt bilan</span>
+                {t('hero_title_1')}<br />
+                <span className="text-teal-600">{t('hero_title_2')}</span>
               </h1>
               <p className="text-lg text-gray-500 leading-relaxed max-w-lg">
-                O'zbek qonunlariga asoslangan tezkor va arzon huquqiy maslahat oling. Savollar bering, hujjatlar yarating va javoblar toping — barchasi bir platformada.
+                {t('hero_desc')}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link to="/chat" className="inline-flex items-center justify-center bg-gray-900 text-white px-7 py-3.5 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap cursor-pointer shadow-sm">
-                <i className="ri-chat-3-line mr-2"></i>AIAdvokat dan So'rang →
+                <i className="ri-chat-3-line mr-2"></i>{t('btn_ask_ai')}
               </Link>
               <Link to="/about" className="inline-flex items-center justify-center border border-gray-300 text-gray-700 px-7 py-3.5 rounded-full text-sm font-semibold hover:border-teal-500 hover:text-teal-600 transition-colors whitespace-nowrap cursor-pointer">
-                Ko'proq bilish
+                {t('btn_learn_more')}
               </Link>
             </div>
             <div className="flex items-center space-x-6 text-sm text-gray-400">
               <div className="flex items-center space-x-1.5">
                 <i className="ri-time-line text-teal-500"></i>
-                <span>24/7 Mavjud</span>
+                <span>{t('hero_trust_247')}</span>
               </div>
               <div className="flex items-center space-x-1.5">
                 <i className="ri-shield-check-line text-teal-500"></i>
-                <span>Xavfsiz va Maxfiy</span>
+                <span>{t('hero_trust_secure')}</span>
               </div>
               <div className="flex items-center space-x-1.5">
                 <i className="ri-global-line text-teal-500"></i>
-                <span>Lex.uz Qonunlari</span>
+                <span>{t('hero_trust_laws')}</span>
               </div>
             </div>
           </div>
@@ -73,25 +80,25 @@ function HeroSection() {
           <div className="space-y-4">
             {[
               {
-                icon: 'ri-user-star-line',
+                icon: 'ri-time-line',
                 color: 'text-teal-600 bg-teal-50',
-                value: '800+',
-                label: 'Foydalanuvchilar',
-                desc: "O'zbekiston bo'ylab ishonchli fuqarolar va tadbirkorlar",
+                value: t('stat_users_val'),
+                label: t('stat_users_label'),
+                desc: t('stat_users_desc'),
               },
               {
                 icon: 'ri-scales-3-line',
                 color: 'text-cyan-600 bg-cyan-50',
-                value: '4500+',
-                label: 'Moddalar soni',
-                desc: "Lex.uz milliy qonunchilik bazasiga asoslangan rasmiy qonun va kodeks moddalari",
+                value: t('stat_articles_val'),
+                label: t('stat_articles_label'),
+                desc: t('stat_articles_desc'),
               },
               {
                 icon: 'ri-file-text-line',
                 color: 'text-emerald-600 bg-emerald-50',
-                value: '250+',
-                label: 'Hujjatlar soni',
-                desc: "Amaliyotda sinovdan o'tgan tayyor rasmiy ariza, shartnoma va da'vo shablonlari",
+                value: t('stat_templates_val'),
+                label: t('stat_templates_label'),
+                desc: t('stat_templates_desc'),
               },
             ].map((stat) => (
               <div
@@ -118,48 +125,49 @@ function HeroSection() {
 }
 
 function ServicesSection() {
+  const { t, language } = useLanguage();
   const services = [
     {
       icon: 'ri-chat-3-line',
       color: 'bg-teal-600',
-      title: 'AI Huquqiy Chatbot',
-      desc: "Huquqiy savollarni tabiiy tilda bering va O'zbek qonunlariga asoslangan tezkor javob oling. O'zbek, Rus va Ingliz tillarida 24/7 ishlaydi.",
+      title: t('srv_chat_title'),
+      desc: t('srv_chat_desc'),
       features: [
-        { icon: 'ri-flashlight-line', text: 'Tezkor javoblar' },
-        { icon: 'ri-scales-3-line', text: 'Qonunga asoslangan' },
-        { icon: 'ri-global-line', text: "Ko'p tilli qo'llab-quvvatlash" },
-        { icon: 'ri-brain-line', text: 'Kontekstni tushunadi' },
+        { icon: 'ri-flashlight-line', text: language === 'en' ? 'Instant responses' : 'Tezkor javoblar' },
+        { icon: 'ri-scales-3-line', text: language === 'en' ? 'Grounded in law' : 'Qonunga asoslangan' },
+        { icon: 'ri-global-line', text: language === 'en' ? 'Multilingual support' : "Ko'p tilli qo'llab-quvvatlash" },
+        { icon: 'ri-brain-line', text: language === 'en' ? 'Understands legal context' : 'Kontekstni tushunadi' },
       ],
       link: '/chat',
-      linkText: 'Maslahatni boshlash →',
+      linkText: t('srv_chat_btn'),
     },
     {
       icon: 'ri-file-text-line',
       color: 'bg-cyan-500',
-      title: 'Hujjat Generatori',
-      desc: "AI yordami bilan professional huquqiy hujjatlar, shartnomalar, shikoyatlar va rasmiy shablonlar yarating. O'zbek huquqiy standartlariga mos.",
+      title: t('srv_templates_title'),
+      desc: t('srv_templates_desc'),
       features: [
-        { icon: 'ri-file-list-line', text: "250+ tayyor shablonlar" },
-        { icon: 'ri-article-line', text: 'Huquqiy shikoyatlar va da\'volar' },
-        { icon: 'ri-file-shield-line', text: 'Rasmiy hujjat standartlari' },
-        { icon: 'ri-magic-line', text: 'Maxsus yaratish' },
+        { icon: 'ri-file-list-line', text: language === 'en' ? '250+ verified templates' : '250+ tayyor shablonlar' },
+        { icon: 'ri-article-line', text: language === 'en' ? 'Legal appeals & claims' : "Huquqiy shikoyatlar va da'volar" },
+        { icon: 'ri-file-shield-line', text: language === 'en' ? 'Official document standards' : 'Rasmiy hujjat standartlari' },
+        { icon: 'ri-magic-line', text: language === 'en' ? 'Custom generation' : 'Maxsus yaratish' },
       ],
       link: '/templates',
-      linkText: 'Hujjat yaratish →',
+      linkText: t('srv_templates_btn'),
     },
     {
       icon: 'ri-search-line',
       color: 'bg-teal-400',
-      title: 'Qonun Qidiruv Tizimi',
-      desc: "Kalit so'zlar va tabiiy til so'rovlari yordamida tegishli maqolalar, bandlar va qonuniy normalarni toping. Keng qamrovli ma'lumotlar bazasi.",
+      title: t('srv_search_title'),
+      desc: t('srv_search_desc'),
       features: [
-        { icon: 'ri-scales-3-line', text: "4500+ qonun moddalari" },
-        { icon: 'ri-search-2-line', text: "Kalit so'z va semantik qidiruv" },
-        { icon: 'ri-links-line', text: 'Iqtibos va moddalar tahlili' },
-        { icon: 'ri-file-list-3-line', text: 'Huquqiy pretsedentlar' },
+        { icon: 'ri-scales-3-line', text: language === 'en' ? '4500+ statutory articles' : '4500+ qonun moddalari' },
+        { icon: 'ri-search-2-line', text: language === 'en' ? 'Keyword & semantic search' : "Kalit so'z va semantik qidiruv" },
+        { icon: 'ri-links-line', text: language === 'en' ? 'Citation & article analysis' : 'Iqtibos va moddalar tahlili' },
+        { icon: 'ri-file-list-3-line', text: language === 'en' ? 'Legal precedents' : 'Huquqiy pretsedentlar' },
       ],
       link: '/search',
-      linkText: 'Tadqiqotni boshlash →',
+      linkText: t('srv_search_btn'),
     },
   ];
 
@@ -167,10 +175,10 @@ function ServicesSection() {
     <section className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-16">
-          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Xizmatlarimiz</span>
-          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">O'zbekiston uchun keng qamrovli AI-huquqiy yordam</h2>
+          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">{t('services_tag')}</span>
+          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">{t('services_title')}</h2>
           <p className="text-gray-500 max-w-2xl mx-auto">
-            Bizning AI platformasi O'zbekiston qonun tizimiga moslashtirilgan keng qamrovli huquqiy yordamni taqdim etadi
+            {t('services_desc')}
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
@@ -203,10 +211,29 @@ function ServicesSection() {
 }
 
 function ChatDemoSection() {
-  const [messages, setMessages] = useState([initialMessage]);
+  const { t, language } = useLanguage();
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      text: language === 'en'
+        ? "Hello! I am AI Advokat — your AI assistant on the laws of Uzbekistan. Ask any legal question, and I will help you."
+        : "Salom! Men AI Advokat — O'zbekiston qonunlari bo'yicha sun'iy intellekt advokatingizman. Har qanday huquqiy savolingizni bering, sizga yordam beraman.",
+    }
+  ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMessages([
+      {
+        role: 'assistant',
+        text: language === 'en'
+          ? "Hello! I am AI Advokat — your AI assistant on the laws of Uzbekistan. Ask any legal question, and I will help you."
+          : "Salom! Men AI Advokat — O'zbekiston qonunlari bo'yicha sun'iy intellekt advokatingizman. Har qanday huquqiy savolingizni bering, sizga yordam beraman.",
+      }
+    ]);
+  }, [language]);
 
   useEffect(() => {
     // Only scroll internally inside the chat box container when user or assistant sends a new message
@@ -221,10 +248,18 @@ function ChatDemoSection() {
     setInput('');
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
-    const reply = getAIResponse(text);
+    const reply = getAIResponse(text, language);
     setMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
     setLoading(false);
   };
+
+  const currentSuggestions = language === 'en'
+    ? [
+        'What are the requirements for starting a business in Uzbekistan?',
+        'How can a labor dispute be resolved?',
+        'What are the legal rights of tenants in Uzbekistan?',
+      ]
+    : suggestions;
 
   return (
     <section className="py-24 bg-gray-50/60">
@@ -232,17 +267,17 @@ function ChatDemoSection() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
             <div>
-              <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Hozir Sinab Ko'ring</span>
-              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">AIAdvokat dan So'rang — Jonli</h2>
+              <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">{t('demo_tag')}</span>
+              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">{t('demo_title')}</h2>
               <p className="text-gray-500 leading-relaxed">
-                Huquqiy savolingizni yozing va O'zbekiston qonunchiligiga asoslangan tezkor, aniq javob oling. Ro'yxatdan o'tish shart emas.
+                {t('demo_desc')}
               </p>
             </div>
             <div className="space-y-4">
               {[
-                { icon: 'ri-flashlight-line', title: 'Tezkor Javoblar', desc: "Eng zamonaviy AI va Lex.uz milliy qonunchilik bazasi asosida soniyalar ichida keladi." },
-                { icon: 'ri-scales-3-line', title: "O'zbek Qonuniga Yo'naltirilgan", desc: "O'zbekiston qonunlari, qoidalari va huquqiy pretsedentlari bo'yicha o'rgatilgan." },
-                { icon: 'ri-shield-check-line', title: 'Maxfiy', desc: "Savollaringiz hech qachon saqlanmaydi yoki uchinchi shaxslarga uzatilmaydi." },
+                { icon: 'ri-flashlight-line', title: t('demo_feat_1_title'), desc: t('demo_feat_1_desc') },
+                { icon: 'ri-scales-3-line', title: t('demo_feat_2_title'), desc: t('demo_feat_2_desc') },
+                { icon: 'ri-shield-check-line', title: t('demo_feat_3_title'), desc: t('demo_feat_3_desc') },
               ].map((item) => (
                 <div key={item.title} className="flex items-start space-x-4">
                   <div className="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -264,10 +299,12 @@ function ChatDemoSection() {
                   <i className="ri-scales-3-line text-white text-lg"></i>
                 </div>
                 <div>
-                  <div className="text-white font-semibold text-sm">AIAdvokat</div>
+                  <div className="text-white font-semibold text-sm notranslate" translate="no">AI Advokat</div>
                   <div className="flex items-center space-x-1.5">
                     <span className="w-2 h-2 bg-green-300 rounded-full inline-block animate-pulse"></span>
-                    <span className="text-teal-100 text-xs">Online · O'zbek Huquq Mutaxassisi</span>
+                    <span className="text-teal-100 text-xs">
+                      {language === 'en' ? "Online · Uzbekistan Legal AI Specialist" : "Online · O'zbek Huquq Mutaxassisi"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -301,8 +338,8 @@ function ChatDemoSection() {
                 )}
                 {messages.length === 1 && (
                   <div className="space-y-2 pt-1">
-                    <p className="text-xs text-gray-400 font-medium">Savollar:</p>
-                    {suggestions.map((s) => (
+                    <p className="text-xs text-gray-400 font-medium">{t('demo_questions_label')}</p>
+                    {currentSuggestions.map((s) => (
                       <button key={s} onClick={() => sendMessage(s)} className="block w-full text-left text-xs text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-100 px-3 py-2 rounded-lg transition-colors cursor-pointer">
                         {s}
                       </button>
@@ -317,7 +354,7 @@ function ChatDemoSection() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-                    placeholder="Huquqiy savolingizni yozing… (Enter yuborish)"
+                    placeholder={t('demo_placeholder')}
                     rows={1}
                     maxLength={500}
                     className="flex-1 resize-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none leading-relaxed max-h-28 overflow-y-auto"
@@ -330,7 +367,7 @@ function ChatDemoSection() {
                     <i className="ri-send-plane-fill text-sm"></i>
                   </button>
                 </form>
-                <p className="text-xs text-gray-400 mt-1.5 text-center">Faqat ma'lumot maqsadida · Professional huquqiy maslahat o'rnini bosmaydi</p>
+                <p className="text-xs text-gray-400 mt-1.5 text-center">{t('demo_disclaimer')}</p>
               </div>
             </div>
           </div>
@@ -341,30 +378,46 @@ function ChatDemoSection() {
 }
 
 function AboutSnippetSection() {
+  const { language } = useLanguage();
   return (
     <section className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative">
             <img
-              alt="AIAdvokat Jamoasi"
+              alt="AI Advokat Jamoasi"
               className="w-full h-80 rounded-2xl shadow-lg object-cover object-top"
               src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=400&fit=crop"
             />
           </div>
           <div className="space-y-8">
             <div>
-              <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Bizning Tariximiz</span>
-              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">AIAdvokat Haqida</h2>
+              <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">
+                {language === 'en' ? 'Our Story' : 'Bizning Tariximiz'}
+              </span>
+              <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">
+                {language === 'en' ? 'About AI Advokat' : 'AI Advokat Haqida'}
+              </h2>
               <p className="text-gray-500 leading-relaxed">
-                Biz an'anaviy huquqiy tajribani ilg'or sun'iy intellekt bilan birlashtirish orqali O'zbekistondagi huquqiy xizmatlarni inqilob qilmoqdamiz. Bizning maqsadimiz — professional huquqiy yordamni hamma uchun qulay, arzon va mavjud qilish.
+                {language === 'en'
+                  ? 'We are transforming legal services in Uzbekistan by pairing traditional jurisprudence with state-of-the-art artificial intelligence. Our mission is to make professional legal assistance accessible, affordable, and readily available to everyone.'
+                  : "Biz an'anaviy huquqiy tajribani ilg'or sun'iy intellekt bilan birlashtirish orqali O'zbekistondagi huquqiy xizmatlarni inqilob qilmoqdamiz. Bizning maqsadimiz — professional huquqiy yordamni hamma uchun qulay, arzon va mavjud qilish."}
               </p>
             </div>
             <div className="space-y-5">
               {[
-                { title: 'Huquqiy Mutaxassislar Ishonadi', desc: "O'zbekistonlik tajribali yurist va huquq ekspertlari bilan hamkorlikda ishlab chiqilgan." },
-                { title: 'AI-quvvatlangan Aniqlik', desc: "Bizning AI keng qamrovli huquqiy ma'lumotlar bazasida o'rgatilgan va eng so'nggi qoidalar bilan doimiy yangilanib turadi." },
-                { title: 'Mahalliy Tajriba', desc: "O'zbekistonning huquqiy tizimi va madaniy konteksti uchun maxsus ishlab chiqilgan." },
+                {
+                  title: language === 'en' ? 'Trusted by Legal Experts' : 'Huquqiy Mutaxassislar Ishonadi',
+                  desc: language === 'en' ? 'Developed in close consultation with seasoned Uzbek attorneys and jurisprudence experts.' : "O'zbekistonlik tajribali yurist va huquq ekspertlari bilan hamkorlikda ishlab chiqilgan.",
+                },
+                {
+                  title: language === 'en' ? 'AI-Powered Precision' : 'AI-quvvatlangan Aniqlik',
+                  desc: language === 'en' ? 'Our AI is trained on exhaustive statutory corpora and updated continuously with the latest national regulations.' : "Bizning AI keng qamrovli huquqiy ma'lumotlar bazasida o'rgatilgan va eng so'nggi qoidalar bilan doimiy yangilanib turadi.",
+                },
+                {
+                  title: language === 'en' ? 'Localized for Uzbekistan' : 'Mahalliy Tajriba',
+                  desc: language === 'en' ? 'Tailored specifically for Uzbekistan’s legal system and cultural context.' : "O'zbekistonning huquqiy tizimi va madaniy konteksti uchun maxsus ishlab chiqilgan.",
+                },
               ].map((item) => (
                 <div key={item.title} className="flex items-start space-x-4">
                   <div className="w-8 h-8 bg-teal-50 border border-teal-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -385,26 +438,68 @@ function AboutSnippetSection() {
 }
 
 function TechSection() {
+  const { language } = useLanguage();
   const stack = [
-    { icon: 'ri-brain-line', color: 'bg-teal-600', title: 'GPT + RAG', desc: "O'zbek huquqiy hujjatlarida o'rgatilgan ilg'or til modellari aniq va kontekstga mos javoblar beradi." },
-    { icon: 'ri-database-2-line', color: 'bg-cyan-500', title: "PostgreSQL Ma'lumotlar Bazasi", desc: "O'zbek qonunlari, qoidalari va huquqiy pretsedentlarni tez topish uchun saqlaydi." },
-    { icon: 'ri-shield-check-line', color: 'bg-teal-400', title: "Ma'lumotlar Maxfiyligi", desc: "Barcha foydalanuvchi so'rovlari va yaratilgan hujjatlar maxfiy qolishini ta'minlovchi korporativ darajadagi xavfsizlik." },
-    { icon: 'ri-rocket-line', color: 'bg-teal-700', title: 'FastAPI Backend', desc: "Tezkor javoblar va muammosiz foydalanuvchi tajribasini ta'minlovchi yuqori unumdorlikdagi API infratuzilmasi." },
+    {
+      icon: 'ri-brain-line',
+      color: 'bg-teal-600',
+      title: 'GPT + RAG',
+      desc: language === 'en' ? 'Advanced language models fine-tuned on Uzbek statutory documents provide context-accurate legal analysis.' : "O'zbek huquqiy hujjatlarida o'rgatilgan ilg'or til modellari aniq va kontekstga mos javoblar beradi."
+    },
+    {
+      icon: 'ri-database-2-line',
+      color: 'bg-cyan-500',
+      title: language === 'en' ? 'PostgreSQL Legal Database' : "PostgreSQL Ma'lumotlar Bazasi",
+      desc: language === 'en' ? 'Stores national laws, codexes, and precedents for millisecond retrieval.' : "O'zbek qonunlari, qoidalari va huquqiy pretsedentlarni tez topish uchun saqlaydi."
+    },
+    {
+      icon: 'ri-shield-check-line',
+      color: 'bg-teal-400',
+      title: language === 'en' ? 'Data Privacy & Encryption' : "Ma'lumotlar Maxfiyligi",
+      desc: language === 'en' ? 'Enterprise-grade encryption ensuring all user conversations and generated drafts stay private.' : "Barcha foydalanuvchi so'rovlari va yaratilgan hujjatlar maxfiy qolishini ta'minlovchi korporativ darajadagi xavfsizlik."
+    },
+    {
+      icon: 'ri-rocket-line',
+      color: 'bg-teal-700',
+      title: language === 'en' ? 'High-Performance API' : 'FastAPI Backend',
+      desc: language === 'en' ? 'High-throughput backend infrastructure delivering sub-second response times.' : "Tezkor javoblar va muammosiz foydalanuvchi tajribasini ta'minlovchi yuqori unumdorlikdagi API infratuzilmasi."
+    },
   ];
 
   const steps = [
-    { icon: 'ri-question-line', color: 'bg-teal-600', title: "Foydalanuvchi So'rovi", desc: "Siz o'zingiz yoqtirgan tilda huquqiy savol berasiz" },
-    { icon: 'ri-cpu-line', color: 'bg-cyan-500', title: 'AI Qayta Ishlash', desc: "Bizning AI tegishli qonunlarni topadi va so'rovingizni tahlil qiladi" },
-    { icon: 'ri-check-double-line', color: 'bg-teal-400', title: 'Tezkor Javob', desc: "O'zbek qonunlariga asoslangan aniq javoblar olasiz" },
+    {
+      icon: 'ri-question-line',
+      color: 'bg-teal-600',
+      title: language === 'en' ? 'User Question' : "Foydalanuvchi So'rovi",
+      desc: language === 'en' ? 'You formulate your legal question in natural language.' : "Siz o'zingiz yoqtirgan tilda huquqiy savol berasiz"
+    },
+    {
+      icon: 'ri-cpu-line',
+      color: 'bg-cyan-500',
+      title: language === 'en' ? 'AI Legal Processing' : 'AI Qayta Ishlash',
+      desc: language === 'en' ? 'Our AI retrieves relevant statutory articles and analyzes the circumstances.' : "Bizning AI tegishli qonunlarni topadi va so'rovingizni tahlil qiladi"
+    },
+    {
+      icon: 'ri-check-double-line',
+      color: 'bg-teal-400',
+      title: language === 'en' ? 'Actionable Answer' : 'Tezkor Javob',
+      desc: language === 'en' ? 'You receive a legally referenced, clear response and document options.' : "O'zbek qonunlariga asoslangan aniq javoblar olasiz"
+    },
   ];
 
   return (
     <section className="py-24 bg-gray-50/60">
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-16">
-          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Texnologiya Asoslari</span>
-          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">Ilg'or AI Texnologiyasi</h2>
-          <p className="text-gray-500 max-w-2xl mx-auto">Aniqlik, xavfsizlik va miqyos uchun mo'ljallangan mustahkam texnologik stekda qurilgan</p>
+          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">
+            {language === 'en' ? 'Technology Foundation' : 'Texnologiya Asoslari'}
+          </span>
+          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">
+            {language === 'en' ? 'Advanced AI Architecture' : "Ilg'or AI Texnologiyasi"}
+          </h2>
+          <p className="text-gray-500 max-w-2xl mx-auto">
+            {language === 'en' ? 'Engineered on a resilient technology stack designed for precision, enterprise security, and speed' : 'Aniqlik, xavfsizlik va miqyos uchun mo\'ljallangan mustahkam texnologik stekda qurilgan'}
+          </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {stack.map((item) => (
@@ -419,8 +514,12 @@ function TechSection() {
         </div>
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-3">Qanday Ishlaydi</h3>
-            <p className="text-gray-500 text-sm">Bizning AI-quvvatlangan huquqiy yordam jarayoni uch oddiy qadamda</p>
+            <h3 className="text-3xl font-bold text-gray-900 mb-3">
+              {language === 'en' ? 'How It Works' : 'Qanday Ishlaydi'}
+            </h3>
+            <p className="text-gray-500 text-sm">
+              {language === 'en' ? 'Our AI-assisted legal aid workflow in three straightforward steps' : 'Bizning AI-quvvatlangan huquqiy yordam jarayoni uch oddiy qadamda'}
+            </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step, i) => (
@@ -446,6 +545,7 @@ function TechSection() {
 }
 
 function SupportSection() {
+  const { t } = useLanguage();
   return (
     <section className="py-20 bg-slate-50 border-y border-gray-100">
       <div className="max-w-4xl mx-auto px-6 text-center">
@@ -453,10 +553,10 @@ function SupportSection() {
           ☕
         </div>
         <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-3">
-          AIAdvokat loyihasini qoʻllab-quvvatlang
+          {t('support_title')}
         </h2>
         <p className="text-sm text-gray-600 max-w-xl mx-auto mb-8 leading-relaxed">
-          AIAdvokat har bir Oʻzbekiston fuqarosi uchun professional huquqiy yordamni qulay va ochiq qilish maqsadida yaratilgan. Loyihani rivojlantirishga hissa qoʻshish uchun muallifni qahva bilan siylab qoʻllab-quvvatlashingiz mumkin.
+          {t('support_desc')}
         </p>
 
         <div>
@@ -466,7 +566,7 @@ function SupportSection() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2.5 bg-[#FFDD00] hover:bg-[#FACC15] text-gray-900 font-extrabold px-7 py-3.5 rounded-2xl text-sm transition-transform hover:scale-105 shadow-md"
           >
-            <span>AIAdvokat'ni qo'llab-quvvatlash ☕</span>
+            <span>{t('support_btn')}</span>
             <i className="ri-external-link-line text-sm"></i>
           </a>
         </div>
@@ -476,33 +576,90 @@ function SupportSection() {
 }
 
 function InvestorSection() {
+  const { language } = useLanguage();
   const metrics = [
-    { icon: 'ri-line-chart-line', color: 'bg-cyan-500', value: '50K+', label: '1-yil Maqsadli Foydalanuvchilar', sub: "O'zbek fuqaro va korxonalar" },
-    { icon: 'ri-heart-3-line', color: 'bg-teal-400', value: 'Ochiq & Qulay', label: 'Loyiha Modeli', sub: "Ixtiyoriy qo'llab-quvvatlash" },
-    { icon: 'ri-line-chart-line', color: 'bg-teal-700', value: '85%+', label: 'Yalpi Margin Maqsadi', sub: "AI-quvvatlangan, past marginal xarajat" },
+    {
+      icon: 'ri-line-chart-line',
+      color: 'bg-cyan-500',
+      value: '50K+',
+      label: language === 'en' ? 'Year 1 Target Users' : '1-yil Maqsadli Foydalanuvchilar',
+      sub: language === 'en' ? 'Uzbek citizens and businesses' : "O'zbek fuqaro va korxonalar"
+    },
+    {
+      icon: 'ri-heart-3-line',
+      color: 'bg-teal-400',
+      value: language === 'en' ? 'Open & Accessible' : 'Ochiq & Qulay',
+      label: language === 'en' ? 'Project Model' : 'Loyiha Modeli',
+      sub: language === 'en' ? 'Voluntary support' : "Ixtiyoriy qo'llab-quvvatlash"
+    },
+    {
+      icon: 'ri-line-chart-line',
+      color: 'bg-teal-700',
+      value: '85%+',
+      label: language === 'en' ? 'Target Gross Margin' : 'Yalpi Margin Maqsadi',
+      sub: language === 'en' ? 'AI-powered, low marginal cost' : "AI-quvvatlangan, past marginal xarajat"
+    },
   ];
 
   const advantages = [
-    { icon: 'ri-rocket-line', title: "O'zbek huquqiy AI'da birinchi", desc: "O'zbekiston bozorida AI-quvvatlangan huquqiy yordamda bevosita raqobatchi yo'q" },
-    { icon: 'ri-brain-line', title: "Mahalliy qonunlarda RAG-o'rgatilgan", desc: "O'zbek huquqiy hujjatlarida maxsus o'rgatilgan Retrieval-Augmented Generation" },
-    { icon: 'ri-translate-2', title: "Milliy O'zbek tili qo'llab-quvvatlash", desc: "Madaniy kontekst bilan O'zbek, Rus va Ingliz tillarini to'liq qo'llab-quvvatlash" },
-    { icon: 'ri-government-line', title: "Hukumat hamkorlik truboprovodi", desc: "Rasmiy integratsiya uchun Adliya vazirligi bilan faol muloqotlar" },
+    {
+      icon: 'ri-rocket-line',
+      title: language === 'en' ? 'First-Mover in Uzbek Legal AI' : "O'zbek huquqiy AI'da birinchi",
+      desc: language === 'en' ? 'No direct competitor offering specialized legal AI solutions in Uzbekistan.' : "O'zbekiston bozorida AI-quvvatlangan huquqiy yordamda bevosita raqobatchi yo'q"
+    },
+    {
+      icon: 'ri-brain-line',
+      title: language === 'en' ? 'RAG-Trained on National Law' : "Mahalliy qonunlarda RAG-o'rgatilgan",
+      desc: language === 'en' ? 'Retrieval-Augmented Generation fine-tuned specifically on statutory documents.' : "O'zbek huquqiy hujjatlarida maxsus o'rgatilgan Retrieval-Augmented Generation"
+    },
+    {
+      icon: 'ri-translate-2',
+      title: language === 'en' ? 'National Uzbek Language Support' : "Milliy O'zbek tili qo'llab-quvvatlash",
+      desc: language === 'en' ? 'Comprehensive support for Uzbek, Russian, and English with deep cultural context.' : "Madaniy kontekst bilan O'zbek, Rus va Ingliz tillarini to'liq qo'llab-quvvatlash"
+    },
+    {
+      icon: 'ri-government-line',
+      title: language === 'en' ? 'Institutional Partnership Pipeline' : "Hukumat hamkorlik truboprovodi",
+      desc: language === 'en' ? 'Active dialogue with institutions for official regulatory data synchronization.' : "Rasmiy integratsiya uchun Adliya vazirligi bilan faol muloqotlar"
+    },
   ];
 
   const strategies = [
-    { icon: 'ri-global-line', title: "Qozog'iston va Qirg'izistonga kengayish", desc: "18 oy ichida Markaziy Osiyo bozorini egallash uchun mintaqaviy kengayish" },
-    { icon: 'ri-briefcase-line', title: "B2B huquq firmalari hamkorliklari", desc: "Mavjud yuridik amaliyot va konsultatsiyalar uchun white-label yechimlar" },
-    { icon: 'ri-building-2-line', title: "Hukumat shartnoma imkoniyatlari", desc: "Huquqiy axborot tizimlari va fuqarolarga xizmat ko'rsatish bo'yicha davlat sektor shartnomalari" },
-    { icon: 'ri-graduation-cap-line', title: "Huquqiy ta'lim platformasi qo'shimchasi", desc: "Huquq talabalari va uzluksiz huquqiy ta'lim uchun ta'lim modullari" },
+    {
+      icon: 'ri-global-line',
+      title: language === 'en' ? 'Central Asian Regional Expansion' : "Qozog'iston va Qirg'izistonga kengayish",
+      desc: language === 'en' ? 'Targeting the regional Central Asian market within 18 months.' : "18 oy ichida Markaziy Osiyo bozorini egallash uchun mintaqaviy kengayish"
+    },
+    {
+      icon: 'ri-briefcase-line',
+      title: language === 'en' ? 'B2B Law Firm Partnerships' : "B2B huquq firmalari hamkorliklari",
+      desc: language === 'en' ? 'White-label solutions for legal practices and enterprise compliance teams.' : "Mavjud yuridik amaliyot va konsultatsiyalar uchun white-label yechimlar"
+    },
+    {
+      icon: 'ri-building-2-line',
+      title: language === 'en' ? 'Public Sector Integration' : "Hukumat shartnoma imkoniyatlari",
+      desc: language === 'en' ? 'Citizen digital services contracts and legal information portals.' : "Huquqiy axborot tizimlari va fuqarolarga xizmat ko'rsatish bo'yicha davlat sektor shartnomalari"
+    },
+    {
+      icon: 'ri-graduation-cap-line',
+      title: language === 'en' ? 'Legal Education Add-On' : "Huquqiy ta'lim platformasi qo'shimchasi",
+      desc: language === 'en' ? 'Educational modules for law students and continuing jurisprudence training.' : "Huquq talabalari va uzluksiz huquqiy ta'lim uchun ta'lim modullari"
+    },
   ];
 
   return (
     <section className="py-24 bg-gray-50/60">
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-16">
-          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Investorlar Uchun</span>
-          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">Biznes Modeli va Bozor Imkoniyati</h2>
-          <p className="text-gray-500 max-w-2xl mx-auto">AIAdvokat tez o'sayotgan Markaziy Osiyo huquqiy-tech bozorini egallash uchun yaxshi joylashgan</p>
+          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">
+            {language === 'en' ? 'For Investors' : 'Investorlar Uchun'}
+          </span>
+          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">
+            {language === 'en' ? 'Business Model & Market Opportunity' : 'Biznes Modeli va Bozor Imkoniyati'}
+          </h2>
+          <p className="text-gray-500 max-w-2xl mx-auto">
+            {language === 'en' ? 'AI Advokat is strategically positioned to capture the burgeoning Central Asian LegalTech market.' : 'AI Advokat tez o\'sayotgan Markaziy Osiyo huquqiy-tech bozorini egallash uchun yaxshi joylashgan'}
+          </p>
         </div>
         <div className="grid md:grid-cols-3 gap-6 mb-16">
           {metrics.map((m) => (
@@ -518,7 +675,9 @@ function InvestorSection() {
         </div>
         <div className="grid lg:grid-cols-2 gap-8">
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Raqobatbardosh Afzalliklar</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">
+              {language === 'en' ? 'Competitive Advantages' : 'Raqobatbardosh Afzalliklar'}
+            </h3>
             <div className="space-y-5">
               {advantages.map((a) => (
                 <div key={a.title} className="flex items-start space-x-4">
@@ -534,7 +693,9 @@ function InvestorSection() {
             </div>
           </div>
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">O'sish Strategiyasi</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">
+              {language === 'en' ? 'Growth Strategy' : "O'sish Strategiyasi"}
+            </h3>
             <div className="space-y-5">
               {strategies.map((s) => (
                 <div key={s.title} className="flex items-start space-x-4">
@@ -551,10 +712,15 @@ function InvestorSection() {
           </div>
         </div>
         <div className="mt-12 bg-gradient-to-br from-teal-600 to-cyan-500 rounded-2xl p-8 text-center shadow-lg">
-          <h3 className="text-2xl font-bold text-white mb-3">Investitsiya qilishga qiziqasizmi?</h3>
-          <p className="text-teal-50 mb-6 max-w-2xl mx-auto text-sm">Markaziy Osiyoda huquqiy xizmatlarni inqilob qilishda bizga qo'shiling. Investitsiya imkoniyatlari haqida ko'proq bilish uchun biz bilan bog'laning.</p>
+          <h3 className="text-2xl font-bold text-white mb-3">
+            {language === 'en' ? 'Interested in Partnering or Investing?' : 'Investitsiya qilishga qiziqasizmi?'}
+          </h3>
+          <p className="text-teal-50 mb-6 max-w-2xl mx-auto text-sm">
+            {language === 'en' ? 'Join us in transforming legal technology across Central Asia. Connect with us to explore strategic partnership and investment opportunities.' : "Markaziy Osiyoda huquqiy xizmatlarni inqilob qilishda bizga qo'shiling. Investitsiya imkoniyatlari haqida ko'proq bilish uchun biz bilan bog'laning."}
+          </p>
           <Link to="/contact" className="inline-flex items-center justify-center bg-white text-teal-600 px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-50 transition-colors whitespace-nowrap cursor-pointer shadow-sm">
-            <i className="ri-mail-line mr-2"></i>Investitsiya Jamoasi bilan Bog'lanish
+            <i className="ri-mail-line mr-2"></i>
+            {language === 'en' ? 'Contact Investment Team' : 'Investitsiya Jamoasi bilan Bog\'lanish'}
           </Link>
         </div>
       </div>
@@ -563,17 +729,18 @@ function InvestorSection() {
 }
 
 function CTASection() {
+  const { t } = useLanguage();
   return (
     <section className="py-24 bg-teal-600">
       <div className="max-w-7xl mx-auto px-8 text-center">
-        <h2 className="text-4xl font-bold text-white mb-4">Huquqiy Yordam Olishga Tayyormisiz?</h2>
-        <p className="text-teal-100 mb-10 max-w-2xl mx-auto">AIAdvokat ga ishonuvchi minglab foydalanuvchilarga qo'shiling. Bugun boshlang va huquqiy yordamning kelajagini his qiling.</p>
+        <h2 className="text-4xl font-bold text-white mb-4">{t('cta_title')}</h2>
+        <p className="text-teal-100 mb-10 max-w-2xl mx-auto">{t('cta_desc')}</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/chat" className="inline-flex items-center justify-center bg-white text-teal-600 px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-50 transition-colors whitespace-nowrap cursor-pointer shadow-sm">
-            <i className="ri-chat-3-line mr-2"></i>AI Maslahat Boshlash
+            <i className="ri-chat-3-line mr-2"></i>{t('cta_btn_chat')}
           </Link>
           <Link to="/contact" className="inline-flex items-center justify-center border-2 border-white/60 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-white/10 transition-colors whitespace-nowrap cursor-pointer">
-            <i className="ri-phone-line mr-2"></i>Biz bilan Bog'lanish
+            <i className="ri-phone-line mr-2"></i>{t('cta_btn_contact')}
           </Link>
         </div>
       </div>
@@ -582,18 +749,21 @@ function CTASection() {
 }
 
 function HomeFounderSection() {
+  const { language } = useLanguage();
   return (
     <section className="py-24 bg-gradient-to-b from-gray-50/50 via-white to-teal-50/30 border-t border-gray-100">
       <div className="max-w-5xl mx-auto px-6 sm:px-8">
         <div className="text-center mb-12">
           <span className="text-teal-600 text-xs sm:text-sm font-semibold uppercase tracking-widest bg-teal-50 px-3.5 py-1 rounded-full border border-teal-100">
-            Loyiha Asoschisi
+            {language === 'en' ? 'Project Founder' : 'Loyiha Asoschisi'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-3 mb-4">
-            Loyiha Asoschisi va Bosh Dasturchisi
+            {language === 'en' ? 'Project Founder & Lead Developer' : 'Loyiha Asoschisi va Bosh Dasturchisi'}
           </h2>
           <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base">
-            O'zbekistonda yuridik sohada sun'iy intellektni joriy etish va fuqarolarning huquqiy savodxonligini oshirish tashabbuskori
+            {language === 'en'
+              ? 'Pioneering artificial intelligence in the legal sphere of Uzbekistan and enhancing public legal literacy'
+              : "O'zbekistonda yuridik sohada sun'iy intellektni joriy etish va fuqarolarning huquqiy savodxonligini oshirish tashabbuskori"}
           </p>
         </div>
 
@@ -613,20 +783,34 @@ function HomeFounderSection() {
                 </div>
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Zafar Zokirov</h3>
-              <p className="text-teal-700 font-semibold text-sm mt-0.5">Asoschi va Bosh Dasturchi</p>
+              <p className="text-teal-700 font-semibold text-sm mt-0.5">
+                {language === 'en' ? 'Founder & Lead Developer' : 'Asoschi va Bosh Dasturchi'}
+              </p>
               <span className="inline-block mt-2 px-3 py-1 bg-teal-50 text-teal-800 rounded-full text-xs font-medium border border-teal-200/80">
-                Termiz Prezident maktabi · 11-sinf
+                {language === 'en' ? 'Presidential School in Termez · Grade 11' : 'Termiz Prezident maktabi · 11-sinf'}
               </span>
             </div>
 
             <div className="md:col-span-8 space-y-5 text-left">
               <div>
-                <h4 className="text-lg font-bold text-gray-900 mb-2">Huquqiy Texnologiyalar (LegalTech) Kelajagi</h4>
+                <h4 className="text-lg font-bold text-gray-900 mb-2">
+                  {language === 'en' ? 'The Future of Legal Technologies (LegalTech)' : 'Huquqiy Texnologiyalar (LegalTech) Kelajagi'}
+                </h4>
                 <p className="text-gray-600 text-sm leading-relaxed mb-3">
-                  Men Zafar Zokirov, Surxondaryo viloyati Termiz shahridagi Prezident maktabining 11-sinf o'quvchisiman. <strong>AIAdvokat</strong> loyihasini yaratishdan asosiy maqsadim — O'zbekiston fuqarolariga o'z huquqlarini chuqur anglash, murakkab huquqiy me'yorlarni oddiy tilda tushunish va har qanday sharoitda professional yuridik yordam olish imkoniyatini taqdim etishdir.
+                  {language === 'en' ? (
+                    <>
+                      I am Zafar Zokirov, an 11th-grade student at the Presidential School in Termez, Surkhandarya Region. My foremost mission in founding <strong>AI Advokat</strong> is to provide Uzbekistan citizens with an accessible platform to deeply understand their legal rights, demystify complex statutes, and receive dependable legal assistance whenever needed.
+                    </>
+                  ) : (
+                    <>
+                      Men Zafar Zokirov, Surxondaryo viloyati Termiz shahridagi Prezident maktabining 11-sinf o'quvchisiman. <strong>AI Advokat</strong> loyihasini yaratishdan asosiy maqsadim — O'zbekiston fuqarolariga o'z huquqlarini chuqur anglash, murakkab huquqiy me'yorlarni oddiy tilda tushunish va har qanday sharoitda professional yuridik yordam olish imkoniyatini taqdim etishdir.
+                    </>
+                  )}
                 </p>
                 <p className="text-gray-600 text-sm leading-relaxed">
-                  Platforma Retrieval-Augmented Generation (RAG) texnologiyasiga tayanadi. Barcha javoblar O'zbekiston Respublikasining Lex.uz rasmiy qonunchilik bazasiga, 5 ta asosiy kodeks va 3,000 dan ortiq huquqiy moddalarga qat'iy asoslangan holda shakllantiriladi.
+                  {language === 'en'
+                    ? 'The platform is anchored on Retrieval-Augmented Generation (RAG) technology. All answers are strictly grounded in the official Lex.uz national legislation database, key legal codes, and thousands of statutory articles.'
+                    : "Platforma Retrieval-Augmented Generation (RAG) texnologiyasiga tayanadi. Barcha javoblar O'zbekiston Respublikasining Lex.uz rasmiy qonunchilik bazasiga, 5 ta asosiy kodeks va 3,000 dan ortiq huquqiy moddalarga qat'iy asoslangan holda shakllantiriladi."}
                 </p>
               </div>
 
@@ -634,21 +818,21 @@ function HomeFounderSection() {
                 <div className="flex items-start gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <i className="ri-graduation-cap-line text-teal-600 text-lg flex-shrink-0 mt-0.5"></i>
                   <div>
-                    <div className="text-xs font-bold text-gray-800">Ta'lim</div>
-                    <div className="text-xs text-gray-500">Termiz shahridagi Prezident maktabi 11-sinf</div>
+                    <div className="text-xs font-bold text-gray-800">{language === 'en' ? 'Education' : "Ta'lim"}</div>
+                    <div className="text-xs text-gray-500">{language === 'en' ? 'Presidential School in Termez · 11th Grade' : 'Termiz shahridagi Prezident maktabi 11-sinf'}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <i className="ri-code-s-slash-line text-teal-600 text-lg flex-shrink-0 mt-0.5"></i>
                   <div>
-                    <div className="text-xs font-bold text-gray-800">Ixtisoslashuv</div>
-                    <div className="text-xs text-gray-500">AI & Full-stack LegalTech muhandisligi</div>
+                    <div className="text-xs font-bold text-gray-800">{language === 'en' ? 'Specialization' : 'Ixtisoslashuv'}</div>
+                    <div className="text-xs text-gray-500">{language === 'en' ? 'AI & Full-stack LegalTech Engineering' : 'AI & Full-stack LegalTech muhandisligi'}</div>
                   </div>
                 </div>
               </div>
 
               <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3">
-                <span className="text-xs font-bold text-gray-700">Bog'lanish va ijtimoiy tarmoqlar:</span>
+                <span className="text-xs font-bold text-gray-700">{language === 'en' ? 'Connect & Social Media:' : "Bog'lanish va ijtimoiy tarmoqlar:"}</span>
                 <div className="flex flex-wrap items-center gap-2">
                   <a
                     href="tel:+998906950811"
@@ -703,33 +887,46 @@ function HomeFounderSection() {
 
 function HomeFAQSection() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const { language } = useLanguage();
 
   return (
     <section className="py-20 bg-white border-t border-gray-100">
       <div className="max-w-4xl mx-auto px-8">
         <div className="text-center mb-12">
-          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Savol-Javob</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2 mb-3">Tez-tez So'raladigan Savollar</h2>
-          <p className="text-gray-500 text-sm">AIAdvokat platformasi, uning yuridik maqomi va imkoniyatlari haqida muhim ma'lumotlar</p>
+          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">
+            {language === 'en' ? 'FAQ' : 'Savol-Javob'}
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2 mb-3">
+            {language === 'en' ? 'Frequently Asked Questions' : "Tez-tez So'raladigan Savollar"}
+          </h2>
+          <p className="text-gray-500 text-sm">
+            {language === 'en'
+              ? 'Key insights regarding AI Advokat, its legal standing, and operational capabilities'
+              : "AI Advokat platformasi, uning yuridik maqomi va imkoniyatlari haqida muhim ma'lumotlar"}
+          </p>
         </div>
 
         <div className="space-y-4">
-          {faqsData.map((faq, i) => (
-            <div key={faq.id} className="bg-gray-50/70 hover:bg-gray-50 rounded-2xl border border-gray-200/80 transition-all overflow-hidden">
-              <button
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                className="w-full flex items-center justify-between p-5 text-left cursor-pointer"
-              >
-                <h3 className="font-bold text-gray-900 text-sm sm:text-base pr-4">{faq.question}</h3>
-                <i className={`text-gray-400 text-xl transition-transform ${openFaq === i ? 'ri-arrow-up-s-line text-teal-600' : 'ri-arrow-down-s-line'}`}></i>
-              </button>
-              {openFaq === i && (
-                <div className="px-5 pb-5 pt-1 border-t border-gray-100 bg-white/60">
-                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{faq.answer}</p>
-                </div>
-              )}
-            </div>
-          ))}
+          {faqsData.map((faq, i) => {
+            const question = language === 'en' && faq.questionEn ? faq.questionEn : faq.question;
+            const answer = language === 'en' && faq.answerEn ? faq.answerEn : faq.answer;
+            return (
+              <div key={faq.id} className="bg-gray-50/70 hover:bg-gray-50 rounded-2xl border border-gray-200/80 transition-all overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between p-5 text-left cursor-pointer"
+                >
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base pr-4">{question}</h3>
+                  <i className={`text-gray-400 text-xl transition-transform ${openFaq === i ? 'ri-arrow-up-s-line text-teal-600' : 'ri-arrow-down-s-line'}`}></i>
+                </button>
+                {openFaq === i && (
+                  <div className="px-5 pb-5 pt-1 border-t border-gray-100 bg-white/60">
+                    <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{answer}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -737,19 +934,32 @@ function HomeFAQSection() {
 }
 
 function ContactSnippet() {
+  const { language } = useLanguage();
   return (
     <section className="py-24 bg-gray-50/60">
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-16">
-          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">Aloqa</span>
-          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">Biz bilan Bog'laning</h2>
-          <p className="text-gray-500">Sizdan eshitishdan mamnun bo'lamiz. Istalgan vaqtda murojaat qiling.</p>
+          <span className="text-teal-600 text-sm font-semibold uppercase tracking-widest">
+            {language === 'en' ? 'Contact' : 'Aloqa'}
+          </span>
+          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">
+            {language === 'en' ? 'Get in Touch with Us' : "Biz bilan Bog'laning"}
+          </h2>
+          <p className="text-gray-500">
+            {language === 'en'
+              ? 'We would love to hear from you. Feel free to contact us anytime.'
+              : "Sizdan eshitishdan mamnun bo'lamiz. Istalgan vaqtda murojaat qiling."}
+          </p>
         </div>
         <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
           {[
             { icon: 'ri-mail-line', label: 'Email', value: 'zokirovzafar881@gmail.com' },
-            { icon: 'ri-phone-line', label: 'Telefon', value: '+998 90 695 08 11' },
-            { icon: 'ri-map-pin-line', label: 'Manzil', value: 'Surxondaryo, Termiz shahridagi Prezident maktabi.' },
+            { icon: 'ri-phone-line', label: language === 'en' ? 'Phone' : 'Telefon', value: '+998 90 695 08 11' },
+            {
+              icon: 'ri-map-pin-line',
+              label: language === 'en' ? 'Address' : 'Manzil',
+              value: language === 'en' ? 'Presidential School in Termez, Surkhandarya Region.' : 'Surxondaryo, Termiz shahridagi Prezident maktabi.',
+            },
           ].map((item) => (
             <div key={item.label} className="bg-white rounded-2xl p-6 text-center border border-gray-100 shadow-sm">
               <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center mx-auto mb-4">
