@@ -65,40 +65,49 @@ function HeroSection() {
               </div>
               <div className="flex items-center space-x-1.5">
                 <i className="ri-global-line text-teal-500"></i>
-                <span>O'zbek Qonunlari</span>
-              </div>
-            </div>
-            <div className="pt-4">
-              <p className="text-sm text-gray-400 mb-4">O'zbekistondagi mutaxassislar va fuqarolar ishonadi</p>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                  <div className="text-2xl font-bold text-teal-600 mb-1">500+</div>
-                  <div className="text-xs text-gray-500">Foydalanuvchilar</div>
-                </div>
-                <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                  <div className="text-2xl font-bold text-teal-600 mb-1">100%</div>
-                  <div className="text-xs text-gray-500">O'zbek Qonunlari</div>
-                </div>
-                <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                  <div className="text-2xl font-bold text-teal-600 mb-1">24/7</div>
-                  <div className="text-xs text-gray-500">Mavjud</div>
-                </div>
+                <span>Lex.uz Qonunlari</span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="space-y-4">
             {[
-              { icon: 'ri-user-line', value: '500+', label: 'Foydalanuvchilar' },
-              { icon: 'ri-question-answer-line', value: '2000+', label: 'Savollarga javob berilgan' },
-              { icon: 'ri-customer-service-2-line', value: '24/7', label: 'AI Yordam' },
+              {
+                icon: 'ri-user-star-line',
+                color: 'text-teal-600 bg-teal-50',
+                value: '800+',
+                label: 'Foydalanuvchilar',
+                desc: "O'zbekiston bo'ylab ishonchli fuqarolar va tadbirkorlar",
+              },
+              {
+                icon: 'ri-scales-3-line',
+                color: 'text-cyan-600 bg-cyan-50',
+                value: '4500+',
+                label: 'Moddalar soni',
+                desc: "Lex.uz milliy qonunchilik bazasiga asoslangan rasmiy qonun va kodeks moddalari",
+              },
+              {
+                icon: 'ri-file-text-line',
+                color: 'text-emerald-600 bg-emerald-50',
+                value: '250+',
+                label: 'Hujjatlar soni',
+                desc: "Amaliyotda sinovdan o'tgan tayyor rasmiy ariza, shartnoma va da'vo shablonlari",
+              },
             ].map((stat) => (
-              <div key={stat.label} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center mb-4">
-                  <i className={`${stat.icon} text-teal-600 text-lg`}></i>
+              <div
+                key={stat.label}
+                className="bg-white/95 backdrop-blur-xs border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex items-center space-x-5"
+              >
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${stat.color}`}>
+                  <i className={`${stat.icon} text-2xl`}></i>
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
+                <div>
+                  <div className="flex items-baseline space-x-2.5 mb-1">
+                    <span className="text-3xl font-extrabold text-gray-900">{stat.value}</span>
+                    <span className="text-sm font-bold text-gray-800">{stat.label}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">{stat.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -130,9 +139,9 @@ function ServicesSection() {
       title: 'Hujjat Generatori',
       desc: "AI yordami bilan professional huquqiy hujjatlar, shartnomalar, shikoyatlar va rasmiy shablonlar yarating. O'zbek huquqiy standartlariga mos.",
       features: [
-        { icon: 'ri-file-list-line', text: 'Shartnoma shablonlari' },
-        { icon: 'ri-article-line', text: 'Huquqiy shikoyatlar' },
-        { icon: 'ri-file-shield-line', text: 'Rasmiy hujjatlar' },
+        { icon: 'ri-file-list-line', text: "250+ tayyor shablonlar" },
+        { icon: 'ri-article-line', text: 'Huquqiy shikoyatlar va da\'volar' },
+        { icon: 'ri-file-shield-line', text: 'Rasmiy hujjat standartlari' },
         { icon: 'ri-magic-line', text: 'Maxsus yaratish' },
       ],
       link: '/templates',
@@ -144,9 +153,9 @@ function ServicesSection() {
       title: 'Qonun Qidiruv Tizimi',
       desc: "Kalit so'zlar va tabiiy til so'rovlari yordamida tegishli maqolalar, bandlar va qonuniy normalarni toping. Keng qamrovli ma'lumotlar bazasi.",
       features: [
-        { icon: 'ri-search-2-line', text: "Kalit so'z qidiruvi" },
-        { icon: 'ri-bookmark-line', text: 'Maqola qidirish' },
-        { icon: 'ri-links-line', text: 'Iqtibos topish' },
+        { icon: 'ri-scales-3-line', text: "4500+ qonun moddalari" },
+        { icon: 'ri-search-2-line', text: "Kalit so'z va semantik qidiruv" },
+        { icon: 'ri-links-line', text: 'Iqtibos va moddalar tahlili' },
         { icon: 'ri-file-list-3-line', text: 'Huquqiy pretsedentlar' },
       ],
       link: '/search',

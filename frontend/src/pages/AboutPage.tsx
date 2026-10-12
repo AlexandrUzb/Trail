@@ -27,13 +27,14 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { value: '500+', label: 'Foydalanuvchilar' },
-              { value: '2000+', label: 'Savollarga javob berilgan' },
-              { value: '24/7', label: 'Ishlash vaqti' },
+              { value: '800+', label: 'Foydalanuvchilar', sub: "Platformadan faol foydalanuvchilar" },
+              { value: '4500+', label: 'Moddalar soni', sub: "Lex.uz qonun va kodeks moddalari" },
+              { value: '250+', label: 'Hujjatlar soni', sub: "Rasmiy shablon va arizalar" },
             ].map((s) => (
               <div key={s.label} className="text-center p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-3xl font-bold text-teal-600 mb-2">{s.value}</div>
-                <div className="text-sm text-gray-500">{s.label}</div>
+                <div className="text-3xl font-bold text-teal-600 mb-1">{s.value}</div>
+                <div className="text-sm font-semibold text-gray-800 mb-1">{s.label}</div>
+                <div className="text-xs text-gray-400">{s.sub}</div>
               </div>
             ))}
           </div>
