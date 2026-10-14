@@ -3,9 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AIAdvokat - Huquqiy yordam platformasi</title>
-    <meta name="description" content="AIAdvokat - O'zbekiston fuqarolari uchun sun'iy intellekt asosidagi huquqiy yordam platformasi." />
+    <title>AI Advokat - Huquqiy yordam platformasi</title>
+    <meta name="description" content="AI Advokat - O'zbekiston fuqarolari uchun sun'iy intellekt asosidagi huquqiy yordam platformasi." />
     <meta name="theme-color" content="#0d9488" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-13FZSVTEYE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+
+      // Google Consent Mode v2 default configuration
+      var savedConsent = null;
+      try {
+        savedConsent = localStorage.getItem('aiadvokat_cookie_consent');
+      } catch (e) {}
+
+      gtag('consent', 'default', {
+        'analytics_storage': savedConsent === 'granted' ? 'granted' : 'denied',
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied'
+      });
+
+      gtag('js', new Date());
+      gtag('config', 'G-13FZSVTEYE', {
+        send_page_view: false // Managed via React Router to ensure exact SPA pageview measurement without duplicates
+      });
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />

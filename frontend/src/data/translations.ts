@@ -32,10 +32,25 @@ export const translations = {
     footer_about: 'Biz haqimizda',
     footer_terms: 'Foydalanish shartlari',
     footer_privacy: 'Maxfiylik siyosati',
+    footer_cookie_settings: 'Cookie sozlamalari',
     footer_contact: 'Aloqa',
     footer_address: 'Surxondaryo, Termiz shahridagi Prezident maktabi.',
     footer_rights: '© 2025 AI Advokat. Barcha huquqlar himoyalangan.',
     footer_developer: 'Loyiha ishlab chiquvchisi:',
+
+    // Cookie & Consent
+    cookie_banner_desc: "Saytimizda xizmat sifatini oshirish va statistik tahlil uchun anonim tahliliy cookie fayllaridan foydalanamiz. Shaxsiy ma'lumotlar yoki huquqiy savollar kuzatilmaydi.",
+    cookie_accept: 'Qabul qilish',
+    cookie_decline: 'Rad etish',
+    cookie_learn_more: 'Maxfiylik siyosati',
+    cookie_modal_title: 'Cookie va tahlil sozlamalari',
+    cookie_modal_desc: "AI Advokat platformasida faqatgina saytga tashriflar oqimini umumiy tahlil qilish uchun Google Analytics 4 xizmatidan foydalaniladi. Siz istalgan paytda tahliliy kuzatuvni yoqishingiz yoki o'chirishingiz mumkin.",
+    cookie_status_label: 'Hozirgi holat:',
+    cookie_status_granted: 'Tahlil yoqilgan (Ruxsat berilgan)',
+    cookie_status_denied: "Tahlil o'chirilgan (Rad etilgan)",
+    cookie_btn_allow: 'Tahlilni yoqish',
+    cookie_btn_disable: "Tahlilni o'chirish",
+    cookie_btn_close: 'Yopish',
 
     // Common Buttons
     btn_ask_ai: "AI Advokat dan So'rang →",
@@ -320,10 +335,25 @@ export const translations = {
     footer_about: 'About Us',
     footer_terms: 'Terms of Service',
     footer_privacy: 'Privacy Policy',
+    footer_cookie_settings: 'Cookie Settings',
     footer_contact: 'Contact',
     footer_address: 'Presidential School in Termez, Surkhandarya Region.',
     footer_rights: '© 2025 AI Advokat. All rights reserved.',
     footer_developer: 'Project Creator & Lead Developer:',
+
+    // Cookie & Consent
+    cookie_banner_desc: 'We use anonymous analytical cookies to improve service quality and analyze site traffic. No personal information or legal queries are tracked.',
+    cookie_accept: 'Accept',
+    cookie_decline: 'Decline',
+    cookie_learn_more: 'Privacy Policy',
+    cookie_modal_title: 'Cookie & Analytics Settings',
+    cookie_modal_desc: 'AI Advokat uses Google Analytics 4 solely for aggregated traffic analysis. You can enable or disable analytical tracking at any time.',
+    cookie_status_label: 'Current status:',
+    cookie_status_granted: 'Analytics active (Allowed)',
+    cookie_status_denied: 'Analytics disabled (Declined)',
+    cookie_btn_allow: 'Enable Analytics',
+    cookie_btn_disable: 'Disable Analytics',
+    cookie_btn_close: 'Close',
 
     // Common Buttons
     btn_ask_ai: 'Ask AI Advokat →',

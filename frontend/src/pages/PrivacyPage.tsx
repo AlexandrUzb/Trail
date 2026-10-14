@@ -42,19 +42,20 @@ Hisob o'chirilgach, barcha shaxsiy ma'lumotlar 30 kun ichida o'chiriladi.`,
     title: "4. Cookie fayllar",
     content: `Biz cookie fayllaridan quyidagi maqsadlarda foydalanamiz:
 • Sessiyani saqlash (zaruriy)
-• Afzalliklaringizni eslab qolish
-• Foydalanish statistikasi (anonim)
+• Afzalliklaringizni eslab qolish (til va interfeys)
+• Foydalanish statistikasi (Google Analytics 4 orqali anonim tahlil)
 
-Brauzer sozlamalaringizda cookie fayllarni o'chirishingiz mumkin, lekin bu ba'zi funksiyalarning ishlamasligiga olib kelishi mumkin.`,
+Siz istalgan vaqtda saytning pastki qismidagi "Cookie sozlamalari" havolasi yoki brauzer sozlamalaringiz orqali tahliliy cookie fayllarni boshqarishingiz mumkin.`,
   },
   {
     title: '5. Uchinchi tomon xizmatlar',
     content: `Biz quyidagi uchinchi tomon xizmatlardan foydalanamiz:
-• OpenAI (AI javoblari uchun)
+• Google Analytics 4 (sayt tashriflarini anonim umumiy tahlil qilish)
+• OpenAI va Google Gemini (sun'iy intellekt javoblari uchun)
 • Google Fonts (shriftlar uchun)
 • Cloudflare (CDN va xavfsizlik)
 
-Ushbu xizmatlar o'zlarining maxfiylik siyosatiga ega.`,
+Ushbu xizmatlar o'zlarining rasmiy maxfiylik siyosatiga ega bo'lib, foydalanuvchilarning maxfiy yuridik savollari yoki shaxsiy ma'lumotlari tahlil xizmatlariga uzatilmaydi.`,
   },
   {
     title: '6. Foydalanuvchi huquqlari',
@@ -114,19 +115,20 @@ Upon account deletion, all personal data is permanently wiped within 30 days.`,
     title: "4. Cookie Files",
     content: `We utilize cookie files for:
 • Session maintenance (essential)
-• Remembering your preferences (e.g., chosen language)
-• Anonymous usage analytics
+• Remembering your preferences (e.g., chosen language and UI settings)
+• Anonymous usage analytics via Google Analytics 4
 
-You can disable cookies in your browser settings, though certain interactive features may be limited.`,
+You can manage or disable analytical cookies at any time via the "Cookie Settings" link in the footer or in your browser settings.`,
   },
   {
     title: "5. Third-Party Services",
     content: `We integrate trusted third-party providers:
-• OpenAI & AI providers (for intelligent answer generation)
+• Google Analytics 4 (for anonymous, aggregated site traffic analytics)
+• Google Gemini & OpenAI (for intelligent legal assistant responses)
 • Google Fonts (for typography delivery)
 • Cloudflare (for CDN caching and cyber protection)
 
-Each provider adheres to international privacy and security benchmarks.`,
+Each provider adheres to international privacy and security benchmarks. Confidential legal inquiries and chat transcripts are never sent to analytics providers.`,
   },
   {
     title: "6. User Rights",

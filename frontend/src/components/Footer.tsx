@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { openCookieSettings } from '../utils/analytics';
 
 export default function Footer() {
   const { t } = useLanguage();
@@ -46,6 +47,7 @@ export default function Footer() {
               <li><a href="https://buymeacoffee.com/advokatai" target="_blank" rel="noopener noreferrer" className="hover:text-amber-800 text-amber-700 font-medium cursor-pointer">{t('nav_support_project')}</a></li>
               <li><Link to="/terms" className="hover:text-teal-600 cursor-pointer">{t('footer_terms')}</Link></li>
               <li><Link to="/privacy" className="hover:text-teal-600 cursor-pointer">{t('footer_privacy')}</Link></li>
+              <li><button type="button" onClick={openCookieSettings} className="hover:text-teal-600 cursor-pointer text-left transition-colors">{t('footer_cookie_settings')}</button></li>
             </ul>
           </div>
 
@@ -86,6 +88,7 @@ export default function Footer() {
           <div className="flex items-center space-x-4 mt-3 md:mt-0">
             <Link to="/terms" className="text-xs text-gray-400 hover:text-teal-600">{t('footer_terms')}</Link>
             <Link to="/privacy" className="text-xs text-gray-400 hover:text-teal-600">{t('footer_privacy')}</Link>
+            <button type="button" onClick={openCookieSettings} className="text-xs text-gray-400 hover:text-teal-600 cursor-pointer">{t('footer_cookie_settings')}</button>
           </div>
         </div>
       </div>

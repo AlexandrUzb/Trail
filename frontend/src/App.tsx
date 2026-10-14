@@ -18,6 +18,8 @@ import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import ScrollToTop from './components/ScrollToTop';
 import ErrorBoundary from './components/ErrorBoundary';
+import AnalyticsTracker from './components/AnalyticsTracker';
+import CookieConsentBanner from './components/CookieConsentBanner';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 
@@ -65,6 +67,7 @@ function Layout() {
 
   return (
     <>
+      <AnalyticsTracker />
       <ScrollToTop />
       {!noLayout && <Navbar />}
       <div className="flex-1">
@@ -120,6 +123,7 @@ function Layout() {
         </Routes>
       </div>
       {!noLayout && <Footer />}
+      <CookieConsentBanner />
     </>
   );
 }
